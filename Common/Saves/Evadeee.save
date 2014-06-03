@@ -1,0 +1,554 @@
+return {
+	["dashData"] = {
+		["Riven"] = {
+			["E - Valor"] = {
+				["dangerLevel"] = 1,
+			},
+			["Q - Broken Wings"] = {
+				["dangerLevel"] = 2,
+			},
+			["Flash"] = {
+				["dangerLevel"] = 5,
+			},
+		},
+		["Vayne"] = {
+			["Q - Tumble"] = {
+				["dangerLevel"] = 1,
+			},
+			["Flash"] = {
+				["dangerLevel"] = 5,
+			},
+		},
+	},
+	["spellData"] = {
+		["Malzahar"] = {
+			["Q - Call of the Void"] = {
+				["dangerLevel"] = 2,
+				["isDangerous"] = true,
+			},
+		},
+		["Draven"] = {
+			["R - Whirling Death"] = {
+				["dangerLevel"] = 4,
+				["isDangerous"] = true,
+			},
+			["E - Stand Aside"] = {
+				["dangerLevel"] = 3,
+				["isDangerous"] = true,
+			},
+		},
+		["Veigar"] = {
+			["W - Dark Matter"] = {
+				["dangerLevel"] = 1,
+				["isDangerous"] = true,
+			},
+		},
+		["Amumu"] = {
+			["Q - Bandage Toss"] = {
+				["dangerLevel"] = 4,
+				["isDangerous"] = true,
+			},
+		},
+		["Orianna"] = {
+			["E - Shield"] = {
+				["dangerLevel"] = 1,
+			},
+			["Q - Attack"] = {
+				["dangerLevel"] = 1,
+			},
+		},
+		["Quinn"] = {
+			["Q - Blinding Assault"] = {
+				["dangerLevel"] = 1,
+			},
+		},
+		["KogMaw"] = {
+			["R - Living Artillery"] = {
+				["dangerLevel"] = 2,
+			},
+		},
+		["Yasuo"] = {
+			["Q - Steel Tempest"] = {
+				["dangerLevel"] = 4,
+				["isDangerous"] = true,
+			},
+		},
+		["Olaf"] = {
+			["Q - Undertow"] = {
+				["dangerLevel"] = 1,
+			},
+		},
+		["Tryndamere"] = {
+			["W - Mocking Shout"] = {
+				["dangerLevel"] = 0,
+			},
+			["E - Spinning Slash"] = {
+				["dangerLevel"] = 3,
+				["isDangerous"] = true,
+			},
+		},
+		["Caitlyn"] = {
+			["Q - Piltover Peacemaker"] = {
+				["useSpellsInside"] = true,
+				["dangerLevel"] = 1,
+			},
+			["E - 90 Caliber Net"] = {
+				["useSpellsInside"] = true,
+				["dangerLevel"] = 1,
+			},
+		},
+		["Jinx"] = {
+			["R - SMD Rocket!"] = {
+				["dangerLevel"] = 5,
+				["isDangerous"] = true,
+			},
+			["W - Zap!"] = {
+				["dangerLevel"] = 2,
+				["isDangerous"] = true,
+			},
+		},
+		["Shen"] = {
+			["E - Shadow Dash"] = {
+				["dangerLevel"] = 3,
+				["isDangerous"] = true,
+			},
+		},
+		["Ezreal"] = {
+			["W - Essence Flux"] = {
+				["dangerLevel"] = 1,
+			},
+			["R - Trueshot Barrage"] = {
+				["dangerLevel"] = 4,
+				["isDangerous"] = true,
+			},
+			["Q - Mystic Shot"] = {
+				["dangerLevel"] = 1,
+			},
+		},
+		["Ziggs"] = {
+			["E - Hexplosive Minefield"] = {
+				["dangerLevel"] = 1,
+				["useSpellsInside"] = true,
+			},
+			["W - Satchel Charge"] = {
+				["dangerLevel"] = 2,
+				["useSpellsInside"] = true,
+			},
+			["Q - Bouncing Bomb"] = {
+				["dangerLevel"] = 1,
+				["useSpellsInside"] = true,
+			},
+			["R - Mega Inferno Bomb"] = {
+				["dangerLevel"] = 4,
+				["useSpellsInside"] = true,
+				["isDangerous"] = true,
+			},
+		},
+		["Khazix"] = {
+			["W - Void Spike Evolved (FoW)"] = {
+				["dangerLevel"] = 2,
+			},
+			["W - Void Spike"] = {
+				["dangerLevel"] = 2,
+			},
+			["E - Leap"] = {
+				["dangerLevel"] = 2,
+			},
+			["E - Leap Evolved"] = {
+				["dangerLevel"] = 2,
+			},
+			["W - Void Spike Evolved"] = {
+				["dangerLevel"] = 2,
+			},
+		},
+		["Fizz"] = {
+			["R - Chum The Waters"] = {
+				["dangerLevel"] = 5,
+				["isDangerous"] = true,
+			},
+		},
+		["Gragas"] = {
+			["Q - Barrel Roll"] = {
+				["dangerLevel"] = 2,
+			},
+			["E - Body Slam"] = {
+				["dangerLevel"] = 2,
+				["isDangerous"] = true,
+			},
+			["R - Explosive Cask"] = {
+				["dangerLevel"] = 5,
+				["isDangerous"] = true,
+			},
+		},
+		["Nami"] = {
+			["Q - Aqua Prison"] = {
+				["useSpellsInside"] = true,
+				["dangerLevel"] = 3,
+				["isDangerous"] = true,
+			},
+			["R - Tidal Wave"] = {
+				["useSpellsInside"] = true,
+				["dangerLevel"] = 3,
+				["isDangerous"] = true,
+			},
+		},
+		["Janna"] = {
+			["Q - Howling Gale"] = {
+				["useSpellsInside"] = true,
+				["dangerLevel"] = 3,
+				["isDangerous"] = false,
+			},
+		},
+		["LeeSin"] = {
+			["Q - Sonic Wave"] = {
+				["useSpellsInside"] = true,
+				["dangerLevel"] = 3,
+				["isDangerous"] = true,
+			},
+		},
+		["Lulu"] = {
+			["Q - Glitterlance"] = {
+				["dangerLevel"] = 2,
+			},
+		},
+		["Leblanc"] = {
+			["E - Ethereal Chains (Ult)"] = {
+				["dangerLevel"] = 2,
+				["isDangerous"] = true,
+			},
+			["E - Ethereal Chains"] = {
+				["dangerLevel"] = 2,
+				["isDangerous"] = true,
+			},
+		},
+		["Ahri"] = {
+			["Q - Orb of Deception Back"] = {
+				["dangerLevel"] = 1,
+			},
+			["Q - Orb of Deception"] = {
+				["dangerLevel"] = 1,
+			},
+			["E - Charm"] = {
+				["dangerLevel"] = 3,
+				["isDangerous"] = true,
+			},
+		},
+		["Sivir"] = {
+			["Q - Boomerang Blade"] = {
+				["dangerLevel"] = 1,
+				["useSpellsInside"] = false,
+				["isDangerous"] = false,
+			},
+		},
+		["Swain"] = {
+			["W - Nevermove"] = {
+				["dangerLevel"] = 3,
+				["isDangerous"] = true,
+			},
+		},
+		["Jayce"] = {
+			["Q - Shock Blast Charged"] = {
+				["dangerLevel"] = 2,
+			},
+			["Q - Shock Blast"] = {
+				["dangerLevel"] = 1,
+			},
+		},
+		["Mordekaiser"] = {
+			["E - Syphon Of Destruction"] = {
+				["dangerLevel"] = 1,
+			},
+		},
+		["Lucian"] = {
+			["Q - Piercing Light"] = {
+				["dangerLevel"] = 2,
+			},
+			["W - Ardent Blaze"] = {
+				["dangerLevel"] = 2,
+			},
+		},
+		["Chogath"] = {
+			["Q - Rupture"] = {
+				["dangerLevel"] = 4,
+				["isDangerous"] = true,
+			},
+		},
+		["Varus"] = {
+			["Q - Piercing Arrow"] = {
+				["dangerLevel"] = 1,
+			},
+			["E - Hail Of Arrows"] = {
+				["dangerLevel"] = 1,
+			},
+			["R - Chain Of Corruption"] = {
+				["dangerLevel"] = 5,
+				["isDangerous"] = true,
+			},
+		},
+		["Graves"] = {
+			["Q - Buckshot"] = {
+				["useSpellsInside"] = true,
+				["dangerLevel"] = 1,
+			},
+			["Q - Buckshot (FoW)"] = {
+				["useSpellsInside"] = true,
+				["dangerLevel"] = 1,
+			},
+		},
+		["Morgana"] = {
+			["Q - Dark Binding"] = {
+				["useSpellsInside"] = true,
+				["dangerLevel"] = 3,
+				["isDangerous"] = true,
+			},
+		},
+		["Blitzcrank"] = {
+			["Q - Rocket Grab"] = {
+				["dangerLevel"] = 4,
+				["isDangerous"] = true,
+			},
+		},
+		["Galio"] = {
+			["Q - Resolute Smite"] = {
+				["dangerLevel"] = 2,
+			},
+		},
+		["Nidalee"] = {
+			["Q - Javelin Toss"] = {
+				["dangerLevel"] = 3,
+				["isDangerous"] = true,
+			},
+		},
+		["Xerath"] = {
+			["Q - Arcanopulse (Extended)"] = {
+				["dangerLevel"] = 2,
+			},
+			["Q - Arcanopulse"] = {
+				["dangerLevel"] = 2,
+			},
+		},
+		["Viktor"] = {
+			["E - Death Ray (Augment)"] = {
+				["dangerLevel"] = 1,
+			},
+			["E - Death Ray"] = {
+				["dangerLevel"] = 1,
+			},
+		},
+		["Nautilus"] = {
+			["Q - Dredge Line"] = {
+				["dangerLevel"] = 3,
+				["isDangerous"] = true,
+			},
+		},
+		["Diana"] = {
+			["Q - Crescent Strike"] = {
+				["dangerLevel"] = 4,
+				["useSpellsInside"] = true,
+				["isDangerous"] = true,
+			},
+		},
+		["DrMundo"] = {
+			["Q - Infected Cleaver"] = {
+				["dangerLevel"] = 2,
+			},
+		},
+		["Riven"] = {
+			["R - Blade Of The Exile"] = {
+				["useSpellsInside"] = true,
+				["dangerLevel"] = 5,
+				["isDangerous"] = true,
+			},
+		},
+		["Brand"] = {
+			["Q - Sear"] = {
+				["dangerLevel"] = 3,
+				["isDangerous"] = true,
+			},
+			["W - Pillar of Flame"] = {
+				["dangerLevel"] = 1,
+			},
+		},
+		["Corki"] = {
+			["R - Missile Barrage"] = {
+				["dangerLevel"] = 1,
+			},
+			["R - Missile Barrage Big"] = {
+				["dangerLevel"] = 2,
+			},
+		},
+		["Annie"] = {
+			["R - Summon: Tibbers"] = {
+				["useSpellsInside"] = false,
+				["dangerLevel"] = 5,
+				["isDangerous"] = true,
+			},
+		},
+		["Karthus"] = {
+			["Q - Lay Waste"] = {
+				["dangerLevel"] = 2,
+			},
+		},
+		["Anivia"] = {
+			["Q - Flash Frost"] = {
+				["dangerLevel"] = 3,
+				["isDangerous"] = true,
+			},
+		},
+		["Ashe"] = {
+			["W - Volley"] = {
+				["dangerLevel"] = 1,
+			},
+			["R - Enchanted Arrow"] = {
+				["dangerLevel"] = 5,
+				["isDangerous"] = true,
+			},
+		},
+		["Nocturne"] = {
+			["Q - Duskbringer"] = {
+				["dangerLevel"] = 1,
+			},
+		},
+		["Thresh"] = {
+			["Q - Death Sentence"] = {
+				["dangerLevel"] = 3,
+				["isDangerous"] = true,
+			},
+		},
+		["JarvanIV"] = {
+			["Q - Dragon Strike"] = {
+				["dangerLevel"] = 3,
+				["isDangerous"] = true,
+			},
+		},
+		["Malphite"] = {
+			["R - Unstoppable Force"] = {
+				["useSpellsInside"] = true,
+				["dangerLevel"] = 5,
+				["isDangerous"] = true,
+			},
+		},
+		["Syndra"] = {
+			["W - Force Of Will"] = {
+				["dangerLevel"] = 3,
+				["isDangerous"] = false,
+			},
+			["Q - Dark Sphere"] = {
+				["dangerLevel"] = 2,
+				["isDangerous"] = false,
+			},
+		},
+		["Karma"] = {
+			["Q - Inner Flame"] = {
+				["dangerLevel"] = 1,
+			},
+		},
+		["Sona"] = {
+			["R - Crescendo"] = {
+				["useSpellsInside"] = true,
+				["dangerLevel"] = 5,
+				["isDangerous"] = true,
+			},
+		},
+		["Zyra"] = {
+			["E - Grasping Roots"] = {
+				["dangerLevel"] = 3,
+				["isDangerous"] = true,
+			},
+			["Passive - Rise Of The Thorns"] = {
+				["dangerLevel"] = 2,
+			},
+			["Q - Deadly Bloom"] = {
+				["dangerLevel"] = 1,
+			},
+		},
+		["Leona"] = {
+			["E - Zenith Blade"] = {
+				["dangerLevel"] = 3,
+				["isDangerous"] = true,
+			},
+			["R - Solar Flare"] = {
+				["dangerLevel"] = 4,
+				["isDangerous"] = true,
+			},
+		},
+		["TwistedFate"] = {
+			["Q - Loaded Dice (FoW)"] = {
+				["dangerLevel"] = 1,
+			},
+			["Q - Loaded Dice"] = {
+				["dangerLevel"] = 1,
+			},
+		},
+		["Cassiopeia"] = {
+			["R - Petrifying Gaze"] = {
+				["dangerLevel"] = 4,
+				["isDangerous"] = true,
+			},
+			["Q - Noxious Blast"] = {
+				["dangerLevel"] = 2,
+			},
+		},
+		["Vi"] = {
+			["Q - Vault Breaker"] = {
+				["dangerLevel"] = 3,
+				["isDangerous"] = true,
+			},
+		},
+		["Lux"] = {
+			["Q - Light Binding"] = {
+				["useSpellsInside"] = true,
+				["dangerLevel"] = 3,
+				["isDangerous"] = true,
+			},
+			["E - Lucent Singularity"] = {
+				["useSpellsInside"] = false,
+				["dangerLevel"] = 3,
+				["isDangerous"] = true,
+			},
+			["R - Final Spark"] = {
+				["useSpellsInside"] = true,
+				["dangerLevel"] = 5,
+				["isDangerous"] = true,
+			},
+		},
+		["Elise"] = {
+			["E - Cocoon"] = {
+				["dangerLevel"] = 4,
+				["isDangerous"] = true,
+			},
+		},
+		["Kennen"] = {
+			["Q - Thundering Shuriken"] = {
+				["dangerLevel"] = 1,
+			},
+		},
+		["Aatrox"] = {
+			["Q - Dark Flight"] = {
+				["dangerLevel"] = 4,
+				["isDangerous"] = true,
+			},
+			["E - Blade of Torment"] = {
+				["dangerLevel"] = 1,
+			},
+		},
+		["Zed"] = {
+			["Q - Razor Shuriken (Clone)"] = {
+				["dangerLevel"] = 2,
+			},
+			["Q - Razor Shuriken"] = {
+				["dangerLevel"] = 2,
+			},
+		},
+		["Rumble"] = {
+			["E - Harpoon"] = {
+				["dangerLevel"] = 2,
+			},
+		},
+		["Tristana"] = {
+			["W - Rocket Jump"] = {
+				["dangerLevel"] = 1,
+			},
+		},
+	},
+}

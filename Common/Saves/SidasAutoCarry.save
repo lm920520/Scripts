@@ -1,0 +1,625 @@
+return {
+	["GragasClearSpeed"] = 0,
+	["HoldZone"] = 0,
+	["LeeSinClearSpeed"] = 0,
+	["Akali"] = {
+	},
+	["DravenClearSpeed"] = 0,
+	["UrgotOffset"] = 0,
+	["Syndra"] = {
+		[1] = {
+			["mode"] = "AutoCarry",
+			["name"] = "QDarkSphere",
+			["value"] = false,
+		},
+		[2] = {
+			["mode"] = "MixedMode",
+			["name"] = "QDarkSphere",
+			["value"] = false,
+		},
+		[3] = {
+			["mode"] = "LaneClear",
+			["name"] = "QDarkSphere",
+			["value"] = false,
+		},
+	},
+	["EnemyHitBoxes"] = {
+		["TimeSaved"] = 5.4440307617188,
+		["Data"] = {
+			["Yorick"] = 307.34286499023,
+			["Tristana"] = 174.85494995117,
+		},
+	},
+	["Yasuo"] = {
+	},
+	["GangplankClearSpeed"] = 0,
+	["GragasOffset"] = 0,
+	["NasusClearSpeed"] = 0,
+	["CorkiOffset"] = 0,
+	["UrgotClearSpeed"] = 0,
+	["Ziggs"] = {
+	},
+	["NasusOffset"] = 0,
+	["SionClearSpeed"] = 0,
+	["VelkozClearSpeed"] = 0,
+	["DariusClearSpeed"] = 0,
+	["TristanaClearSpeed"] = 0,
+	["EzrealOffset"] = 0,
+	["AnnieOffset"] = 0,
+	["Urgot"] = {
+	},
+	["ZedOffset"] = 0,
+	["MordekaiserClearSpeed"] = 0,
+	["RengarOffset"] = 0,
+	["Draven"] = {
+		[1] = {
+			["mode"] = "AutoCarry",
+			["name"] = "EStandAside",
+			["value"] = false,
+		},
+		[2] = {
+			["mode"] = "MixedMode",
+			["name"] = "EStandAside",
+			["value"] = false,
+		},
+		[3] = {
+			["mode"] = "LaneClear",
+			["name"] = "EStandAside",
+			["value"] = false,
+		},
+	},
+	["XerathClearSpeed"] = 0,
+	["SionOffset"] = 0,
+	["Ezreal"] = {
+		[1] = {
+			["mode"] = "AutoCarry",
+			["name"] = "QMysticShot",
+			["value"] = true,
+		},
+		[2] = {
+			["mode"] = "MixedMode",
+			["name"] = "QMysticShot",
+			["value"] = true,
+		},
+		[4] = {
+			["mode"] = "AutoCarry",
+			["name"] = "WEssenceFlux",
+			["value"] = true,
+		},
+		[3] = {
+			["mode"] = "LaneClear",
+			["name"] = "QMysticShot",
+			["value"] = true,
+		},
+		[5] = {
+			["mode"] = "MixedMode",
+			["name"] = "WEssenceFlux",
+			["value"] = false,
+		},
+		[6] = {
+			["mode"] = "LaneClear",
+			["name"] = "WEssenceFlux",
+			["value"] = true,
+		},
+	},
+	["XerathOffset"] = 0,
+	["GravesOffset"] = 0,
+	["Rengar"] = {
+		[1] = {
+			["mode"] = "AutoCarry",
+			["name"] = "QSavagery",
+			["value"] = false,
+		},
+		[2] = {
+			["mode"] = "MixedMode",
+			["name"] = "QSavagery",
+			["value"] = false,
+		},
+		[3] = {
+			["mode"] = "LaneClear",
+			["name"] = "QSavagery",
+			["value"] = false,
+		},
+		[6] = {
+			["mode"] = "LaneClear",
+			["name"] = "QSavagery",
+			["value"] = false,
+		},
+		[4] = {
+			["mode"] = "AutoCarry",
+			["name"] = "QSavagery",
+			["value"] = false,
+		},
+		[8] = {
+			["mode"] = "MixedMode",
+			["name"] = "QEmpoweredSavagery",
+			["value"] = false,
+		},
+		[5] = {
+			["mode"] = "MixedMode",
+			["name"] = "QSavagery",
+			["value"] = false,
+		},
+		[7] = {
+			["mode"] = "AutoCarry",
+			["name"] = "QEmpoweredSavagery",
+			["value"] = false,
+		},
+		[9] = {
+			["mode"] = "LaneClear",
+			["name"] = "QEmpoweredSavagery",
+			["value"] = false,
+		},
+	},
+	["Corki"] = {
+		[1] = {
+			["mode"] = "AutoCarry",
+			["name"] = "QPhosphorusBomb",
+			["value"] = false,
+		},
+		[2] = {
+			["mode"] = "MixedMode",
+			["name"] = "QPhosphorusBomb",
+			["value"] = false,
+		},
+		[4] = {
+			["mode"] = "AutoCarry",
+			["name"] = "RMissileBarrage",
+			["value"] = false,
+		},
+		[6] = {
+			["mode"] = "LaneClear",
+			["name"] = "RMissileBarrage",
+			["value"] = false,
+		},
+		[5] = {
+			["mode"] = "MixedMode",
+			["name"] = "RMissileBarrage",
+			["value"] = false,
+		},
+		[3] = {
+			["mode"] = "LaneClear",
+			["name"] = "QPhosphorusBomb",
+			["value"] = false,
+		},
+	},
+	["GangplankOffset"] = 0,
+	["AkaliOffset"] = 0,
+	["Riven"] = {
+	},
+	["Sion"] = {
+	},
+	["JinxOffset"] = 0,
+	["RivenOffset"] = 0,
+	["YasuoOffset"] = 0,
+	["Quinn"] = {
+		[1] = {
+			["mode"] = "AutoCarry",
+			["name"] = "QBlindingAssault",
+			["value"] = false,
+		},
+		[2] = {
+			["mode"] = "MixedMode",
+			["name"] = "QBlindingAssault",
+			["value"] = false,
+		},
+		[3] = {
+			["mode"] = "LaneClear",
+			["name"] = "QBlindingAssault",
+			["value"] = false,
+		},
+	},
+	["ZiggsOffset"] = 0,
+	["Velkoz"] = {
+	},
+	["Anivia"] = {
+	},
+	["KatarinaOffset"] = 0,
+	["TristanaOffset"] = 0,
+	["Lux"] = {
+	},
+	["VayneOffset"] = 0,
+	["Leblanc"] = {
+	},
+	["EliseOffset"] = 0,
+	["TwitchOffset"] = 0,
+	["RyzeOffset"] = 0,
+	["UdyrClearSpeed"] = 0,
+	["NidaleeClearSpeed"] = 0,
+	["Xerath"] = {
+	},
+	["UdyrOffset"] = 0,
+	["MordekaiserOffset"] = 0,
+	["LeblancOffset"] = 0,
+	["AniviaClearSpeed"] = 0,
+	["Gangplank"] = {
+		[1] = {
+			["mode"] = "AutoCarry",
+			["name"] = "QParrrley",
+			["value"] = true,
+		},
+		[2] = {
+			["mode"] = "MixedMode",
+			["name"] = "QParrrley",
+			["value"] = true,
+		},
+		[3] = {
+			["mode"] = "LaneClear",
+			["name"] = "QParrrley",
+			["value"] = false,
+		},
+	},
+	["VayneClearSpeed"] = 0,
+	["VelkozOffset"] = 0,
+	["StreamingMode"] = false,
+	["CaitlynOffset"] = 0,
+	["Darius"] = {
+		[1] = {
+			["mode"] = "AutoCarry",
+			["name"] = "WCripplingStrike",
+			["value"] = false,
+		},
+		[2] = {
+			["mode"] = "MixedMode",
+			["name"] = "WCripplingStrike",
+			["value"] = false,
+		},
+		[3] = {
+			["mode"] = "LaneClear",
+			["name"] = "WCripplingStrike",
+			["value"] = false,
+		},
+	},
+	["Jinx"] = {
+	},
+	["NidaleeOffset"] = 0,
+	["AkaliClearSpeed"] = 0,
+	["Annie"] = {
+	},
+	["AmumuOffset"] = 0,
+	["EzrealClearSpeed"] = 0,
+	["SyndraClearSpeed"] = 0,
+	["NocturneOffset"] = 0,
+	["Gragas"] = {
+	},
+	["TargetSelectorMode"] = 7,
+	["RengarClearSpeed"] = 0,
+	["QuinnOffset"] = 0,
+	["Khazix"] = {
+		[1] = {
+			["mode"] = "AutoCarry",
+			["name"] = "QTasteTheirFear",
+			["value"] = false,
+		},
+		[2] = {
+			["mode"] = "MixedMode",
+			["name"] = "QTasteTheirFear",
+			["value"] = false,
+		},
+		[3] = {
+			["mode"] = "LaneClear",
+			["name"] = "QTasteTheirFear",
+			["value"] = false,
+		},
+	},
+	["Nidalee"] = {
+		[1] = {
+			["mode"] = "AutoCarry",
+			["name"] = "QJavelinToss",
+			["value"] = false,
+		},
+		[2] = {
+			["mode"] = "MixedMode",
+			["name"] = "QJavelinToss",
+			["value"] = false,
+		},
+		[4] = {
+			["mode"] = "AutoCarry",
+			["name"] = "QTakedown",
+			["value"] = false,
+		},
+		[3] = {
+			["mode"] = "LaneClear",
+			["name"] = "QJavelinToss",
+			["value"] = false,
+		},
+		[5] = {
+			["mode"] = "MixedMode",
+			["name"] = "QTakedown",
+			["value"] = false,
+		},
+		[6] = {
+			["mode"] = "LaneClear",
+			["name"] = "QTakedown",
+			["value"] = false,
+		},
+	},
+	["Elise"] = {
+	},
+	["KatarinaClearSpeed"] = 0,
+	["OriannaOffset"] = 0,
+	["CassiopeiaOffset"] = 0,
+	["Lucian"] = {
+	},
+	["Renekton"] = {
+		[1] = {
+			["mode"] = "AutoCarry",
+			["name"] = "WRuthlessPredator",
+			["value"] = false,
+		},
+		[2] = {
+			["mode"] = "MixedMode",
+			["name"] = "WRuthlessPredator",
+			["value"] = false,
+		},
+		[3] = {
+			["mode"] = "LaneClear",
+			["name"] = "WRuthlessPredator",
+			["value"] = false,
+		},
+	},
+	["QuinnClearSpeed"] = 0,
+	["Mordekaiser"] = {
+		[1] = {
+			["mode"] = "AutoCarry",
+			["name"] = "QMaceofSpades",
+			["value"] = false,
+		},
+		[2] = {
+			["mode"] = "MixedMode",
+			["name"] = "QMaceofSpades",
+			["value"] = false,
+		},
+		[3] = {
+			["mode"] = "LaneClear",
+			["name"] = "QMaceofSpades",
+			["value"] = false,
+		},
+	},
+	["Ryze"] = {
+	},
+	["Vayne"] = {
+		[1] = {
+			["mode"] = "AutoCarry",
+			["name"] = "QTumble",
+			["value"] = true,
+		},
+		[2] = {
+			["mode"] = "MixedMode",
+			["name"] = "QTumble",
+			["value"] = true,
+		},
+		[4] = {
+			["mode"] = "AutoCarry",
+			["name"] = "RFinalHour",
+			["value"] = true,
+		},
+		[3] = {
+			["mode"] = "LaneClear",
+			["name"] = "QTumble",
+			["value"] = false,
+		},
+		[5] = {
+			["mode"] = "MixedMode",
+			["name"] = "RFinalHour",
+			["value"] = false,
+		},
+		[6] = {
+			["mode"] = "LaneClear",
+			["name"] = "RFinalHour",
+			["value"] = false,
+		},
+	},
+	["CorkiClearSpeed"] = 0,
+	["YasuoClearSpeed"] = 0,
+	["Graves"] = {
+		[1] = {
+			["mode"] = "AutoCarry",
+			["name"] = "QBuckShot",
+			["value"] = true,
+		},
+		[2] = {
+			["mode"] = "MixedMode",
+			["name"] = "QBuckShot",
+			["value"] = true,
+		},
+		[3] = {
+			["mode"] = "LaneClear",
+			["name"] = "QBuckShot",
+			["value"] = false,
+		},
+		[6] = {
+			["mode"] = "LaneClear",
+			["name"] = "WSmokeScreen",
+			["value"] = false,
+		},
+		[4] = {
+			["mode"] = "AutoCarry",
+			["name"] = "WSmokeScreen",
+			["value"] = true,
+		},
+		[8] = {
+			["mode"] = "MixedMode",
+			["name"] = "EQuickDraw",
+			["value"] = false,
+		},
+		[5] = {
+			["mode"] = "MixedMode",
+			["name"] = "WSmokeScreen",
+			["value"] = false,
+		},
+		[7] = {
+			["mode"] = "AutoCarry",
+			["name"] = "EQuickDraw",
+			["value"] = true,
+		},
+		[9] = {
+			["mode"] = "LaneClear",
+			["name"] = "EQuickDraw",
+			["value"] = false,
+		},
+	},
+	["AmumuClearSpeed"] = 0,
+	["AniviaOffset"] = 0,
+	["CaitlynClearSpeed"] = 0,
+	["DravenOffset"] = 0,
+	["AhriOffset"] = 0,
+	["RivenClearSpeed"] = 0,
+	["SyndraOffset"] = 0,
+	["Cassiopeia"] = {
+	},
+	["RyzeClearSpeed"] = 0,
+	["Tristana"] = {
+		[1] = {
+			["mode"] = "AutoCarry",
+			["name"] = "QRapidFire",
+			["value"] = true,
+		},
+		[2] = {
+			["mode"] = "MixedMode",
+			["name"] = "QRapidFire",
+			["value"] = true,
+		},
+		[4] = {
+			["mode"] = "AutoCarry",
+			["name"] = "EExplosiveShot",
+			["value"] = true,
+		},
+		[6] = {
+			["mode"] = "LaneClear",
+			["name"] = "EExplosiveShot",
+			["value"] = false,
+		},
+		[5] = {
+			["mode"] = "MixedMode",
+			["name"] = "EExplosiveShot",
+			["value"] = true,
+		},
+		[3] = {
+			["mode"] = "LaneClear",
+			["name"] = "QRapidFire",
+			["value"] = false,
+		},
+	},
+	["OriannaClearSpeed"] = 0,
+	["AnnieClearSpeed"] = 0,
+	["LuxOffset"] = 0,
+	["DariusOffset"] = 0,
+	["Nocturne"] = {
+	},
+	["RenektonOffset"] = 0,
+	["KhazixOffset"] = 0,
+	["Ahri"] = {
+	},
+	["CassiopeiaClearSpeed"] = 0,
+	["Varus"] = {
+		[1] = {
+			["mode"] = "AutoCarry",
+			["name"] = "EHailofArrows",
+			["value"] = false,
+		},
+		[2] = {
+			["mode"] = "MixedMode",
+			["name"] = "EHailofArrows",
+			["value"] = false,
+		},
+		[3] = {
+			["mode"] = "LaneClear",
+			["name"] = "EHailofArrows",
+			["value"] = false,
+		},
+	},
+	["KhazixClearSpeed"] = 0,
+	["LucianClearSpeed"] = 0,
+	["EliseClearSpeed"] = 0,
+	["AhriClearSpeed"] = 0,
+	["Orianna"] = {
+	},
+	["Zed"] = {
+	},
+	["JinxClearSpeed"] = 0,
+	["LucianOffset"] = 0,
+	["Udyr"] = {
+	},
+	["SwingTimer"] = {
+		["Width"] = 266,
+		["Y"] = 946,
+		["X"] = 374,
+		["Height"] = 12,
+	},
+	["Amumu"] = {
+	},
+	["Twitch"] = {
+		[1] = {
+			["mode"] = "AutoCarry",
+			["name"] = "WVenomCask",
+			["value"] = false,
+		},
+		[2] = {
+			["mode"] = "MixedMode",
+			["name"] = "WVenomCask",
+			["value"] = false,
+		},
+		[3] = {
+			["mode"] = "LaneClear",
+			["name"] = "WVenomCask",
+			["value"] = false,
+		},
+	},
+	["LeeSin"] = {
+		[1] = {
+			["mode"] = "AutoCarry",
+			["name"] = "QSonicWave",
+			["value"] = false,
+		},
+		[2] = {
+			["mode"] = "MixedMode",
+			["name"] = "QSonicWave",
+			["value"] = false,
+		},
+		[3] = {
+			["mode"] = "LaneClear",
+			["name"] = "QSonicWave",
+			["value"] = false,
+		},
+	},
+	["Nasus"] = {
+		[1] = {
+			["mode"] = "AutoCarry",
+			["name"] = "QSiphoningStrike",
+			["value"] = false,
+		},
+		[2] = {
+			["mode"] = "MixedMode",
+			["name"] = "QSiphoningStrike",
+			["value"] = false,
+		},
+		[3] = {
+			["mode"] = "LaneClear",
+			["name"] = "QSiphoningStrike",
+			["value"] = false,
+		},
+	},
+	["ZedClearSpeed"] = 0,
+	["Caitlyn"] = {
+		[1] = {
+			["mode"] = "AutoCarry",
+			["name"] = "QPiltoverPeacemaker",
+			["value"] = false,
+		},
+		[2] = {
+			["mode"] = "MixedMode",
+			["name"] = "QPiltoverPeacemaker",
+			["value"] = false,
+		},
+		[3] = {
+			["mode"] = "LaneClear",
+			["name"] = "QPiltoverPeacemaker",
+			["value"] = false,
+		},
+	},
+	["LeeSinOffset"] = 0,
+	["Katarina"] = {
+	},
+	["GravesClearSpeed"] = 0,
+}
