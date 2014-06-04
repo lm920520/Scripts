@@ -70,7 +70,7 @@ RequireI:Check()
 if RequireI.downloadNeeded == true then return end
 --[[	Body	]]--
 function OnLoad()	
-	PrintChat("<font color='#ff8000'> >> Fiora Combo 1.2.2 loaded! <<</font>")
+	PrintChat("<font color='#ff8000'> >> [HFP]Fiora Combo Loaded! <<</font>")
 	FCConfig = scriptConfig("Fiora Combo", "FioraCombo")
 	FCConfig:addParam("scriptActive", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
 	FCConfig:addParam("autoParry", "Auto Parry", SCRIPT_PARAM_ONKEYTOGGLE, true, 90)
