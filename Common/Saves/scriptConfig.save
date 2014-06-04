@@ -1,104 +1,333 @@
 return {
-	["SV_MAIN_targets_Lissandra"] = {
-	},
-	["sidasacmixedmode"] = {
-		["YoumuusGhostbladeMixedMode"] = true,
-		["TiamatMixedMode"] = true,
-		["HextechGunbladeMixedMode"] = true,
-		["BladeoftheRuinedKingMixedMode"] = true,
-		["Active"] = false,
-		["BilgewaterCutlassMixedMode"] = true,
-		["MinionPriority"] = true,
-		["EntropyMixedMode"] = true,
-		["MuramanaMixedMode"] = true,
-		["botrkSave"] = true,
-		["_param"] = {
-			[3] = {
-				["key"] = 88,
-			},
-		},
-		["DeathfireGraspMixedMode"] = true,
-		["SwordoftheDivineMixedMode"] = true,
-		["Toggle"] = false,
-		["BlackfireTorchMixedMode"] = true,
-		["RavenousHydraMixedMode"] = true,
+	["Katarina_drawing"] = {
 		["_tsInstances"] = {
 		},
-	},
-	["SV_MAIN_anticapcloser_ShenE"] = {
-	},
-	["Jax_Orbwalking"] = {
-	},
-	["Jinx_KS"] = {
-	},
-	["Evade_spells_NocturneDuskbringer"] = {
-	},
-	["aesezreal_otherSubMenu_managementSettings"] = {
+		["drawText"] = true,
+		["disableAll"] = false,
+		["drawTargetText"] = true,
+		["drawQ"] = true,
 		["_param"] = {
 		},
-		["_tsInstances"] = {
-		},
-		["manaProcentHarass"] = 0,
-		["manaProcentFarm"] = 0,
+		["drawE"] = false,
+		["drawW"] = false,
 	},
-	["Evade_spells_LeonaSolarFlare"] = {
+	["VayneDraw"] = {
 	},
-	["ShadowVayne_autoup"] = {
-	},
-	["nidaleetherapist"] = {
-		["drawtext"] = true,
-		["harass"] = false,
-		["DASH"] = false,
-		["autoignite"] = true,
-		["scriptActive"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 32,
-			},
-			[2] = {
-				["key"] = 86,
-			},
-			[4] = {
-				["key"] = 67,
-			},
-			[10] = {
-				["key"] = 192,
-			},
-			[3] = {
-				["key"] = 88,
-			},
-			[5] = {
-				["key"] = 90,
-			},
-		},
-		["scriptActive1"] = false,
-		["scriptActive2"] = false,
-		["drawcircles"] = true,
-		["autoAAFarm"] = false,
-		["drawprediction"] = false,
+	["dianacombo"] = {
 		["_tsInstances"] = {
 			[1] = {
 				["mode"] = 1,
 			},
 		},
-	},
-	["VayneDraw"] = {
-	},
-	["Leblanc_misc"] = {
-		["aHP"] = true,
-		["ZWHealth"] = 15,
-		["HPHealth"] = 50,
-		["predType"] = 1,
+		["useE"] = true,
+		["drawtext"] = true,
+		["harass"] = false,
+		["drawcircles"] = true,
 		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+			[2] = {
+				["key"] = 67,
+			},
 		},
-		["ZWItems"] = true,
-		["aMP"] = true,
+		["scriptActive"] = false,
+		["drawprediction"] = false,
+	},
+	["Cassiopeia_Farm"] = {
 		["_tsInstances"] = {
 		},
+		["UseE"] = 3,
+		["UseW"] = 3,
+		["UseQ"] = 3,
+		["_param"] = {
+			[4] = {
+				["key"] = 67,
+			},
+			[5] = {
+				["key"] = 86,
+			},
+		},
+		["Freeze"] = false,
+		["LaneClear"] = false,
+	},
+	["SV_MAIN_tssetting"] = {
+		["_tsInstances"] = {
+		},
+		["_param"] = {
+		},
+		["UsedTS"] = 1,
+	},
+	["cassiopeiacombo"] = {
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 1,
+			},
+		},
+		["useonlowhp"] = true,
+		["drawcircles"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+		},
+		["scriptActive"] = false,
+	},
+	["Lulu"] = {
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 8,
+			},
+			[2] = {
+				["mode"] = 8,
+			},
+		},
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+			[2] = {
+				["key"] = 84,
+			},
+			[3] = {
+				["key"] = 67,
+			},
+			[4] = {
+				["key"] = 88,
+			},
+		},
+		["Support"] = false,
+		["Combo"] = false,
+		["Farm"] = false,
+		["Harass"] = false,
+	},
+	["Better Nerf Irelia_misc"] = {
+	},
+	["SV_MAIN_anticapcloser_LeeSinQ"] = {
+	},
+	["SV_MAIN_vip"] = {
+	},
+	["Evade_spells_SyndraQ"] = {
+	},
+	["Katarina_killsteal"] = {
+		["_tsInstances"] = {
+		},
+		["Ignite"] = true,
+		["itemsKS"] = true,
+		["ultKS"] = false,
+		["_param"] = {
+		},
+		["smartKS"] = true,
+	},
+	["Jinx"] = {
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 8,
+			},
+		},
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+			[2] = {
+				["key"] = 84,
+			},
+			[3] = {
+				["key"] = 67,
+			},
+		},
+		["Combo"] = false,
+		["Farm"] = false,
+		["Harass"] = false,
+	},
+	["SV_MAIN_targets_Khazix"] = {
+	},
+	["Thresh"] = {
+		["DrawAssist"] = true,
+		["BoxCount"] = 3,
+		["_param"] = {
+			[1] = {
+				["key"] = 69,
+			},
+			[2] = {
+				["key"] = 84,
+			},
+			[3] = {
+				["key"] = 81,
+			},
+			[4] = {
+				["key"] = 65,
+			},
+		},
+		["Push"] = false,
+		["Pull"] = false,
+		["Escape"] = false,
+		["Marker"] = true,
+		["Ignite"] = true,
+		["Hook"] = false,
+		["DoubleIgnite"] = true,
+		["Box"] = true,
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 1,
+			},
+		},
+		["BoxRange"] = 400,
+		["AExhaust"] = true,
+	},
+	["aesezreal"] = {
+	},
+	["Evade_spells_KogMawLivingArtillery"] = {
+	},
+	["towerRange_enemyConfig"] = {
+		["_tsInstances"] = {
+		},
+		["distanceBasedOpacity"] = true,
+		["showAggro"] = true,
+		["opacity"] = 64,
+		["_param"] = {
+		},
+		["hideDistance"] = 1200,
+		["showRange"] = true,
+	},
+	["Evade_spells_JinxR"] = {
+	},
+	["Evade_spells_AatroxE"] = {
+	},
+	["SV_MAIN_qqs"] = {
+	},
+	["Wukong_combo"] = {
+	},
+	["sidasacextras"] = {
+	},
+	["SV_MAIN_targets_Shen"] = {
+	},
+	["Evade_spells_ViktorDeathRay!"] = {
+	},
+	["Evade_spells_KhazixE"] = {
+	},
+	["Ziggscombo"] = {
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 1,
+			},
+		},
+		["drawprediction"] = false,
+		["useUlt"] = true,
+		["drawcircles"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+		},
+		["scriptActive"] = false,
+		["drawtext"] = true,
+	},
+	["Evade_spells_LucianQ"] = {
+	},
+	["Cassiopeia_Harass"] = {
+		["_tsInstances"] = {
+		},
+		["UseE"] = true,
+		["UseW"] = false,
+		["UseQ"] = true,
+		["_param"] = {
+			[4] = {
+				["key"] = 90,
+			},
+			[5] = {
+				["key"] = 65,
+			},
+		},
+		["Enabled2"] = true,
+		["Enabled"] = false,
+	},
+	["Katarina_combo"] = {
+		["_tsInstances"] = {
+		},
+		["autoE"] = true,
+		["comboKey"] = false,
+		["detonateQ"] = true,
+		["stopUlt"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+		},
+		["comboOrbwalk"] = true,
+		["comboItems"] = true,
+	},
+	["Leblanc_ks"] = {
+	},
+	["Evade_spells_zyrapassivedeathmanager"] = {
+	},
+	["aesezreal_basicSubMenu"] = {
+		["_tsInstances"] = {
+		},
+		["scriptHarass"] = false,
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+			[2] = {
+				["key"] = 67,
+			},
+			[3] = {
+				["key"] = 90,
+			},
+			[4] = {
+				["key"] = 90,
+			},
+		},
+		["scriptCombo"] = false,
+		["scriptFarm"] = false,
+		["aoeR"] = false,
+	},
+	["Jax_misc_ult"] = {
+	},
+	["Jax_misc_q"] = {
+		["_tsInstances"] = {
+		},
+		["howTo"] = 1,
+		["_param"] = {
+		},
+	},
+	["SV_MAIN_anticapcloser_JayceQ"] = {
+	},
+	["Jinx_KS"] = {
+	},
+	["SV_MAIN_tumble"] = {
+		["QManaLastHit"] = 50,
+		["Qlasthit"] = false,
+		["QManaMixedMode"] = 50,
+		["_param"] = {
+		},
+		["Qautocarry"] = true,
+		["QManaLaneClear"] = 50,
+		["_tsInstances"] = {
+		},
+		["QManaAutoCarry"] = 0,
+		["Qlaneclear"] = false,
+		["Qalways"] = false,
+		["Qmixedmode"] = true,
+	},
+	["SV_MAIN_targets_Jayce"] = {
+	},
+	["Jinx_HarassSub"] = {
+	},
+	["SV_MAIN_targets_JarvanIV"] = {
+	},
+	["FioraCombo_STS"] = {
+	},
+	["Evade_spells_KarmaQ"] = {
 	},
 	["sidaszed"] = {
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 8,
+			},
+		},
 		["TargetCircle"] = true,
-		["Harass"] = false,
 		["_param"] = {
 			[1] = {
 				["key"] = 88,
@@ -109,228 +338,382 @@ return {
 		},
 		["Range"] = true,
 		["AutoE"] = true,
-		["Movement"] = false,
 		["Combo"] = false,
+		["Harass"] = false,
+		["Movement"] = false,
+	},
+	["Jax_combo"] = {
 		["_tsInstances"] = {
+		},
+		["useW"] = true,
+		["_param"] = {
 			[1] = {
-				["mode"] = 8,
+				["key"] = 88,
 			},
 		},
+		["comboKey"] = false,
+		["comboItems"] = true,
 	},
-	["SV_TSS"] = {
-		["mode"] = 3,
-		["Selected"] = true,
+	["Evade_spells_MordekaiserSyphonOfDestruction"] = {
+	},
+	["KarthusSBTW"] = {
+		["autoWall"] = true,
+		["drawafterult"] = true,
+		["autoE"] = true,
+		["autoUlt"] = true,
+		["harass"] = false,
 		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 1,
+			},
 		},
-		["_param"] = {
-		},
-	},
-	["sidasacdrawing"] = {
-	},
-	["FioraCombo"] = {
-		["drawcirclesSelf"] = false,
-		["mousemoving"] = true,
-		["waitDelay"] = 395.51000976563,
-		["drawtextEnemy"] = true,
-		["autoignite"] = true,
-		["scriptActive"] = false,
-		["useR"] = true,
 		["_param"] = {
 			[1] = {
 				["key"] = 88,
 			},
 			[2] = {
+				["key"] = 67,
+			},
+		},
+		["chatNotify"] = true,
+		["drawcircles"] = true,
+		["pingNotify"] = true,
+		["scriptActive"] = false,
+		["autoEH"] = true,
+	},
+	["SV_MAIN_bilgesettings"] = {
+		["_param"] = {
+		},
+		["bilgemixedmode"] = false,
+		["_tsInstances"] = {
+		},
+		["bilgealways"] = false,
+		["bilgelaneclear"] = false,
+		["bilgemaxheal"] = 59,
+		["bilgelasthit"] = false,
+		["bilgeminheal"] = 72,
+		["bilgeautocarry"] = true,
+	},
+	["Better Nerf Irelia_misc_manamanage"] = {
+		["_tsInstances"] = {
+		},
+		["minmanafarm"] = 0,
+		["minmanaharass"] = 25,
+		["_param"] = {
+		},
+	},
+	["Enlightened_extra_ex"] = {
+	},
+	["SV_MAIN_walltumble"] = {
+	},
+	["evelynncombo"] = {
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 1,
+			},
+		},
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+			[2] = {
+				["key"] = 84,
+			},
+			[3] = {
+				["key"] = 67,
+			},
+		},
+		["drawtext"] = true,
+		["harass"] = false,
+		["drawcircles"] = false,
+		["autoignite"] = true,
+		["scriptActive"] = false,
+		["autoFarm"] = false,
+	},
+	["Enlightened_ta"] = {
+		["_tsInstances"] = {
+		},
+		["_param"] = {
+		},
+		["orb"] = 1,
+		["co"] = 1,
+	},
+	["Wukong_farming"] = {
+		["_tsInstances"] = {
+		},
+		["Mana"] = 35,
+		["eFarm"] = true,
+		["qFarm"] = true,
+		["_param"] = {
+			[1] = {
 				["key"] = 90,
 			},
-			[3] = {
-				["key"] = 84,
-			},
-			[4] = {
-				["key"] = 67,
-			},
-		},
-		["alwaysParry"] = true,
-		["doubleLunge"] = true,
-		["autoks"] = true,
-		["drawcirclesEnemy"] = false,
-		["qBuffer"] = 250,
-		["autoParry"] = true,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 1,
-			},
-		},
-		["lasthit"] = false,
-	},
-	["aesezreal_aggressiveSubMenu_comboSettings"] = {
-		["comboQ"] = true,
-		["_param"] = {
-		},
-		["comboW"] = true,
-		["comboR"] = true,
-		["_tsInstances"] = {
-		},
-	},
-	["blitzcrankcombo"] = {
-		["autoignite"] = true,
-		["autolvl"] = true,
-		["_param"] = {
-			[1] = {
-				["key"] = 67,
-			},
 			[2] = {
-				["key"] = 88,
+				["key"] = 32,
 			},
 		},
-		["silenceR"] = true,
-		["drawcircles"] = true,
-		["grabQ"] = false,
-		["autoks"] = true,
-		["scriptActive"] = false,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 1,
-			},
-		},
+		["lastHit"] = false,
+		["farmKey"] = true,
 	},
-	["ShadowVayne_targets_Ryze"] = {
+	["Evade_spells_VarusE"] = {
 	},
-	["ziggscombo"] = {
-		["autoCombo"] = true,
-		["drawcircles"] = true,
-		["scriptActive"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-		},
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 1,
-			},
-		},
+	["Evade_spells_KennenShurikenHurlMissile1"] = {
 	},
-	["Evade_spells_VarusQ!"] = {
-	},
-	["Lulu_Extras"] = {
-		["WGapCloser"] = true,
-		["Hitchance"] = 2,
-		["WSpells"] = true,
-		["_param"] = {
-		},
-		["ExtendQ"] = true,
-		["Debug"] = false,
-		["mManager"] = 0,
-		["MinPix"] = 1,
-		["AoEQ"] = true,
+	["Evade_spells_BlindMonkQOne"] = {
 		["_tsInstances"] = {
 		},
-	},
-	["Lulu"] = {
-		["Harass"] = false,
-		["Farm"] = false,
-		["Support"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-			[2] = {
-				["key"] = 84,
-			},
-			[3] = {
-				["key"] = 67,
-			},
-			[4] = {
-				["key"] = 88,
-			},
-		},
-		["Combo"] = false,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 8,
-			},
-			[2] = {
-				["mode"] = 8,
-			},
-		},
-	},
-	["Evade_spells_ZiggsE"] = {
 		["useSpellsInside"] = true,
 		["enabled"] = true,
-		["dangerLevel"] = 1,
 		["_param"] = {
+		},
+		["dangerLevel"] = 3,
+		["isDangerous"] = true,
+	},
+	["HFPDarkAlex_STS"] = {
+		["_tsInstances"] = {
+		},
+		["_param"] = {
+		},
+		["Selected"] = true,
+		["mode"] = 3,
+	},
+	["Cassiopeia_Drawings_circle1"] = {
+		["_tsInstances"] = {
+		},
+		["_param"] = {
+		},
+		["circle1width"] = 1,
+		["circle1quality"] = 170,
+		["circle1enabled"] = true,
+		["circle1color"] = {
+			[1] = 255,
+			[2] = 255,
+			[3] = 255,
+			[4] = 255,
+		},
+	},
+	["Evade_spells_ZyraQFissure"] = {
+	},
+	["Leblanc_harass"] = {
+		["_tsInstances"] = {
+		},
+		["secW"] = true,
+		["harassKey"] = false,
+		["harassOrbwalk"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 67,
+			},
+		},
+		["harassType"] = 2,
+	},
+	["ShadowVayne_misc"] = {
+	},
+	["mkcLeona"] = {
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 4,
+			},
+		},
+		["drawcircles"] = true,
+		["AutoUlt"] = true,
+		["scriptActive"] = false,
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+			[2] = {
+				["key"] = 67,
+			},
+		},
+	},
+	["Wukong_clear"] = {
+	},
+	["TFHelper"] = {
+		["selectblue"] = false,
+		["active"] = false,
+		["drawultarrow"] = true,
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 4,
+			},
+		},
+		["_param"] = {
+			[1] = {
+				["key"] = 32,
+			},
+			[9] = {
+				["key"] = 90,
+			},
+			[7] = {
+				["key"] = 88,
+			},
+			[8] = {
+				["key"] = 67,
+			},
+		},
+		["selectred"] = false,
+		["onlywithmana"] = true,
+		["selectgold"] = false,
+		["onlygoldcard"] = true,
+		["autoq"] = true,
+		["attackaftercard"] = true,
+	},
+	["Nasus_hp"] = {
+	},
+	["Nasus_ks"] = {
+	},
+	["Evade_spells_EzrealMysticShotPulse"] = {
+	},
+	["SV_MAIN_targets_Ziggs"] = {
+	},
+	["Jax_jungle"] = {
+	},
+	["Enlightened_extra_alvl"] = {
+	},
+	["VPrediction_Collision"] = {
+		["PredictPos"] = true,
+		["_param"] = {
+		},
+		["Mobs"] = true,
+		["_tsInstances"] = {
+		},
+		["CastPos"] = true,
+		["CHealth"] = true,
+		["UnitPos"] = true,
+		["Minions"] = true,
+		["Buffer"] = 20,
+		["Others"] = true,
+	},
+	["Evade_spells_EzrealTrueshotBarrage"] = {
+	},
+	["SV_MAIN_debug"] = {
+	},
+	["sidasacpluginKatarina"] = {
+	},
+	["Enlightened_keys"] = {
+		["_tsInstances"] = {
+		},
+		["okdhrs"] = false,
+		["permrota"] = false,
+		["_param"] = {
+			[1] = {
+				["key"] = 90,
+			},
+			[2] = {
+				["key"] = 88,
+			},
+			[3] = {
+				["key"] = 84,
+			},
+			[4] = {
+				["key"] = 67,
+			},
+		},
+		["permhrs"] = false,
+		["okdrota"] = false,
+	},
+	["yasuo_SMfarm"] = {
+	},
+	["Cassiopeia_Combo"] = {
+		["UseE"] = true,
+		["UseQ"] = true,
+		["_param"] = {
+			[7] = {
+				["key"] = 88,
+			},
 		},
 		["_tsInstances"] = {
 		},
+		["Enabled"] = false,
+		["UseIgnite"] = true,
+		["UseW"] = true,
+		["UseR"] = false,
+		["UseEP"] = false,
 	},
-	["Evade_spells_SyndraQ"] = {
-	},
-	["Evade_spells_zyrapassivedeathmanager"] = {
-	},
-	["Enlightened_harrass"] = {
+	["lulupixglitterlance"] = {
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 8,
+			},
+		},
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+		},
+		["scriptActive"] = false,
+		["drawcircles"] = true,
 	},
 	["Better Nerf Irelia_harass"] = {
+		["_tsInstances"] = {
+		},
 		["useE"] = 1,
+		["useW"] = true,
 		["useQ"] = true,
 		["harasskey"] = false,
-		["useW"] = true,
 		["_param"] = {
 			[1] = {
 				["key"] = 86,
 			},
 		},
+	},
+	["EliseCombo"] = {
+	},
+	["SV_MAIN_anticapcloser_JarvanIVR"] = {
+	},
+	["Jax_misc_w"] = {
 		["_tsInstances"] = {
 		},
-	},
-	["SV_MAIN_targets_Amumu"] = {
-	},
-	["Evade_spells_GravesClusterShot"] = {
-	},
-	["dianacombo"] = {
-		["drawtext"] = true,
-		["harass"] = false,
-		["drawprediction"] = false,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 1,
-			},
-		},
-		["drawcircles"] = true,
-		["scriptActive"] = false,
+		["howTo"] = 2,
 		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-			[2] = {
-				["key"] = 67,
-			},
 		},
-		["useE"] = true,
 	},
-	["Evade_spells_HowlingGale"] = {
+	["Cassiopeia_Drawings_circle2"] = {
+		["_tsInstances"] = {
+		},
+		["circle2width"] = 1,
+		["circle2quality"] = 140,
+		["circle2enabled"] = true,
+		["_param"] = {
+		},
+		["circle2color"] = {
+			[1] = 255,
+			[2] = 255,
+			[3] = 255,
+			[4] = 255,
+		},
+	},
+	["Lulu_HarassSub"] = {
+	},
+	["Evade_spells_FlashFrostSpell"] = {
+	},
+	["Evade_spells_CaitlynPiltoverPeacemaker"] = {
+		["_tsInstances"] = {
+		},
 		["useSpellsInside"] = true,
-		["isDangerous"] = false,
+		["_param"] = {
+		},
+		["dangerLevel"] = 1,
 		["enabled"] = true,
-		["dangerLevel"] = 3,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
 	},
-	["Jax_ks"] = {
-		["autoIgnite"] = true,
-		["killSteal"] = true,
-		["useW"] = true,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
+	["sidasacconfig"] = {
+	},
+	["yasuo_SMsbtw"] = {
+	},
+	["Evade_spells_RocketJump"] = {
+	},
+	["SV_MAIN_targets_Vi"] = {
+	},
+	["Evade_spells_ShenShadowDash"] = {
+	},
+	["SV_MAIN_targets_Vladimir"] = {
+	},
+	["SV_MAIN_anticapcloser_ShenE"] = {
+	},
+	["Evade_spells_GravesClusterShot2!"] = {
 	},
 	["Shen"] = {
-		["combo"] = false,
-		["harass"] = false,
-		["minionMarker"] = true,
-		["autoIgnite"] = true,
 		["_tsInstances"] = {
 			[1] = {
 				["mode"] = 7,
@@ -347,58 +730,740 @@ return {
 				["key"] = 84,
 			},
 		},
-		["orbWalk"] = false,
+		["minionMarker"] = true,
 		["autoFarm"] = false,
+		["orbWalk"] = false,
+		["combo"] = false,
+		["harass"] = false,
+		["autoIgnite"] = true,
 	},
-	["Evade_spells_SivirQ"] = {
+	["Cassiopeia_Drawings"] = {
 	},
-	["Evade_spells_syndrawcast"] = {
-	},
-	["Evade_spells_LuluQ"] = {
-	},
-	["alistarcombo"] = {
-		["drawcircles"] = true,
-		["scriptActive"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
+	["Menu"] = {
+		["menuKey"] = 16,
+		["pDraw"] = {
+			["x"] = 844,
+			["y"] = 819,
 		},
+		["draw"] = {
+			["x"] = 104,
+			["y"] = 74,
+		},
+	},
+	["Evade_spells_LeblancSoulShackle"] = {
+	},
+	["Evade_spells_JarvanIVDragonStrike"] = {
+	},
+	["yasuo_SMharass"] = {
+	},
+	["Evade_spells_EnchantedCrystalArrow"] = {
+	},
+	["Shaco"] = {
+		["AutoShiv"] = true,
+		["Active"] = false,
+		["Harass"] = false,
+		["Escape"] = false,
 		["_tsInstances"] = {
 			[1] = {
 				["mode"] = 1,
 			},
 		},
-	},
-	["SV_MAIN_autostunn"] = {
-		["target"] = true,
-		["trinket"] = true,
-		["towerstunn"] = true,
-		["_param"] = {
-		},
-		["pushDistance"] = 390,
-		["_tsInstances"] = {
-		},
-	},
-	["Lulu_FarmSub"] = {
-	},
-	["Evade_spells_LayWaste"] = {
-	},
-	["Evade_spells_CaitlynEntrapment"] = {
-		["useSpellsInside"] = true,
-		["enabled"] = true,
-		["dangerLevel"] = 1,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["anniecombo"] = {
-		["harass"] = false,
-		["scriptActive"] = false,
+		["Ulti"] = true,
 		["_param"] = {
 			[1] = {
 				["key"] = 88,
+			},
+			[2] = {
+				["key"] = 67,
+			},
+			[3] = {
+				["key"] = 90,
+			},
+		},
+		["Movement"] = false,
+		["DrawCircles"] = true,
+	},
+	["ShadowVayne_targets_Ryze"] = {
+	},
+	["Wukong"] = {
+	},
+	["Ryze_Config_Config"] = {
+	},
+	["sidasaclaneclear"] = {
+	},
+	["Malzaharcombo"] = {
+		["teamFight"] = false,
+		["drawcircles"] = false,
+		["_param"] = {
+			[2] = {
+				["key"] = 67,
+			},
+			[3] = {
+				["key"] = 88,
+			},
+		},
+		["drawtext"] = true,
+		["autoIgnite"] = true,
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 1,
+			},
+		},
+		["harass"] = false,
+		["drawprediction"] = false,
+		["farm"] = false,
+	},
+	["VayneAssistant_condemnSubMenu"] = {
+		["_tsInstances"] = {
+		},
+		["disableCondemn4"] = true,
+		["disableCondemn3"] = true,
+		["disableCondemn1"] = true,
+		["_param"] = {
+		},
+		["disableCondemn2"] = true,
+		["disableCondemn5"] = true,
+	},
+	["SV_MAIN_targets_Karma"] = {
+	},
+	["autosmite"] = {
+		["_tsInstances"] = {
+		},
+		["switcher"] = true,
+		["hold"] = false,
+		["smitenashor"] = true,
+		["drawcircles"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 78,
+			},
+			[2] = {
+				["key"] = 83,
+			},
+		},
+		["drawtext"] = true,
+		["drawrange"] = true,
+	},
+	["Nasus_combos"] = {
+		["_tsInstances"] = {
+		},
+		["useE"] = true,
+		["useW"] = true,
+		["useQ"] = true,
+		["_param"] = {
+		},
+		["orb"] = false,
+		["useR"] = false,
+	},
+	["SV_MAIN_autolevel"] = {
+		["_tsInstances"] = {
+		},
+		["UseAutoLevelrest"] = true,
+		["first3level"] = 1,
+		["_param"] = {
+		},
+		["restlevel"] = 1,
+		["UseAutoLevelfirst"] = true,
+	},
+	["SV_MAIN_targets_Janna"] = {
+	},
+	["alistarcombo"] = {
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 1,
+			},
+		},
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+		},
+		["scriptActive"] = false,
+		["drawcircles"] = true,
+	},
+	["Lulu_Extras"] = {
+		["WGapCloser"] = true,
+		["MinPix"] = 1,
+		["Debug"] = false,
+		["_tsInstances"] = {
+		},
+		["_param"] = {
+		},
+		["AoEQ"] = true,
+		["Hitchance"] = 2,
+		["ExtendQ"] = true,
+		["WSpells"] = true,
+		["mManager"] = 0,
+	},
+	["Enlightened_ta_basic"] = {
+	},
+	["Ryze_Settings"] = {
+	},
+	["Evade_spells_CassiopeiaPetrifyingGaze"] = {
+	},
+	["Evade_spells_CaitlynEntrapment"] = {
+		["_tsInstances"] = {
+		},
+		["useSpellsInside"] = true,
+		["_param"] = {
+		},
+		["dangerLevel"] = 1,
+		["enabled"] = true,
+	},
+	["Leblanc_drawing"] = {
+	},
+	["Jax_ks"] = {
+		["_tsInstances"] = {
+		},
+		["useW"] = true,
+		["_param"] = {
+		},
+		["killSteal"] = true,
+		["autoIgnite"] = true,
+	},
+	["Better Nerf Irelia_drawings_lclear"] = {
+	},
+	["Evade_spells_EzrealMysticShot"] = {
+	},
+	["Jinx_Extras"] = {
+		["EAutoCast"] = false,
+		["RRange"] = 1700,
+		["SwapThree"] = true,
+		["EStun"] = true,
+		["Debug"] = false,
+		["SwapDistance"] = true,
+		["_tsInstances"] = {
+		},
+		["REnemies"] = 4,
+		["_param"] = {
+		},
+		["MinRRange"] = 300,
+		["EGapcloser"] = true,
+		["WRange"] = 300,
+		["ROverkill"] = true,
+		["SwapAOE"] = true,
+	},
+	["Evade_spells_VeigarDarkMatter"] = {
+		["_tsInstances"] = {
+		},
+		["enabled"] = true,
+		["_param"] = {
+		},
+		["dangerLevel"] = 1,
+		["isDangerous"] = true,
+	},
+	["AutoItems"] = {
+		["_tsInstances"] = {
+		},
+		["drawranges"] = false,
+		["_param"] = {
+			[1] = {
+				["key"] = 221,
+			},
+			[2] = {
+				["key"] = 219,
+			},
+		},
+		["dfg"] = false,
+		["AllItems"] = false,
+	},
+	["FioraCombo"] = {
+		["drawcirclesSelf"] = false,
+		["waitDelay"] = 395.51000976563,
+		["alwaysParry"] = true,
+		["doubleLunge"] = true,
+		["lasthit"] = false,
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+			[2] = {
+				["key"] = 90,
+			},
+			[3] = {
+				["key"] = 84,
+			},
+			[4] = {
+				["key"] = 67,
+			},
+		},
+		["scriptActive"] = false,
+		["drawtextEnemy"] = true,
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 1,
+			},
+		},
+		["mousemoving"] = true,
+		["autoks"] = true,
+		["qBuffer"] = 250,
+		["drawcirclesEnemy"] = false,
+		["autoignite"] = true,
+		["useR"] = false,
+		["autoParry"] = true,
+	},
+	["SV_MAIN_targets_Lissandra"] = {
+	},
+	["SV_MAIN_targets_Braum"] = {
+	},
+	["aesezreal_otherSubMenu_drawSettings"] = {
+		["_tsInstances"] = {
+		},
+		["drawW"] = false,
+		["drawQ"] = false,
+		["_param"] = {
+		},
+		["drawR"] = false,
+	},
+	["Jinx_ComboSub"] = {
+	},
+	["Evade_spells_OrianaIzunaCommand"] = {
+	},
+	["aesezreal_aggressiveSubMenu_farmingSettings"] = {
+		["_tsInstances"] = {
+		},
+		["_param"] = {
+		},
+		["farmQ"] = true,
+	},
+	["ShadowVayne_targets_MonkeyKing"] = {
+	},
+	["Evade_spells_LeonaZenithBlade"] = {
+	},
+	["Jax"] = {
+	},
+	["Evade_spells_SonaCrescendo"] = {
+		["_tsInstances"] = {
+		},
+		["useSpellsInside"] = true,
+		["enabled"] = true,
+		["_param"] = {
+		},
+		["dangerLevel"] = 5,
+		["isDangerous"] = true,
+	},
+	["Jax_drawing"] = {
+	},
+	["SV_SOW"] = {
+	},
+	["Enlightened"] = {
+	},
+	["SV_MAIN_botrksettings"] = {
+		["botrkminheal"] = 33,
+		["botrkmixedmode"] = true,
+		["_param"] = {
+		},
+		["botrkalways"] = false,
+		["_tsInstances"] = {
+		},
+		["botrklaneclear"] = false,
+		["botrkmaxheal"] = 70,
+		["botrkautocarry"] = true,
+		["botrklasthit"] = false,
+	},
+	["Evade_spells_DianaArc"] = {
+		["_tsInstances"] = {
+		},
+		["useSpellsInside"] = true,
+		["enabled"] = true,
+		["_param"] = {
+		},
+		["dangerLevel"] = 4,
+		["isDangerous"] = true,
+	},
+	["Enlightened_rota"] = {
+		["_tsInstances"] = {
+		},
+		["enemyErange"] = 400,
+		["userw"] = 3,
+		["_param"] = {
+		},
+		["userq"] = 3,
+		["usere"] = 3,
+	},
+	["yicombo"] = {
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 1,
+			},
+		},
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+		},
+		["drawtext"] = true,
+		["autoQ"] = true,
+		["drawcircles"] = true,
+		["autoignite"] = true,
+		["scriptActive"] = false,
+		["drawenemy"] = false,
+	},
+	["SV_MAIN_targets_Caitlyn"] = {
+	},
+	["ShadowVayne_draw"] = {
+	},
+	["BrandCombo"] = {
+		["Ignite"] = false,
+		["Active"] = false,
+		["Harass"] = false,
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 1,
+			},
+		},
+		["KS"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+			[2] = {
+				["key"] = 67,
+			},
+		},
+		["Movement"] = true,
+		["DoubleIgnite"] = false,
+		["DrawCircles"] = true,
+	},
+	["ShadowVayne_anticapcloser_MonkeyKingE"] = {
+	},
+	["UdyrCombo"] = {
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+			[2] = {
+				["key"] = 67,
+			},
+			[7] = {
+				["key"] = 90,
+			},
+			[13] = {
+				["key"] = 17,
+			},
+		},
+		["autoPotions"] = false,
+		["moveToMouse"] = true,
+		["autoTS"] = true,
+		["TempStopStartAutoSmite"] = false,
+		["Combo"] = false,
+		["PredatorVision"] = false,
+		["EnableAutoSmite"] = true,
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 8,
+			},
+		},
+		["UseAutoSmite"] = true,
+		["drawAStext"] = true,
+		["autoignite"] = true,
+		["smiteRange"] = true,
+		["StunCycle"] = false,
+		["autoLevel"] = false,
+		["drawCircles"] = true,
+	},
+	["Enlightened_draw_drawsub2"] = {
+	},
+	["Evade_spells_InfectedCleaverMissileCast"] = {
+	},
+	["blitzcrankcombo"] = {
+		["drawcircles"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 67,
+			},
+			[2] = {
+				["key"] = 88,
+			},
+		},
+		["scriptActive"] = false,
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 1,
+			},
+		},
+		["autoks"] = true,
+		["silenceR"] = true,
+		["autoignite"] = true,
+		["grabQ"] = false,
+		["autolvl"] = true,
+	},
+	["Evade_spells_AhriOrbofDeception2"] = {
+	},
+	["ShadowVayne_autolevel"] = {
+	},
+	["Evade_spells_ThreshQ"] = {
+	},
+	["SV_MAIN_autostunn"] = {
+		["_tsInstances"] = {
+		},
+		["towerstunn"] = true,
+		["target"] = true,
+		["pushDistance"] = 390,
+		["_param"] = {
+		},
+		["trinket"] = true,
+	},
+	["Wukong_decoy"] = {
+	},
+	["SV_MAIN_targets_LeeSin"] = {
+	},
+	["yasuo_SMult"] = {
+		["_tsInstances"] = {
+		},
+		["autoRMin"] = true,
+		["autoRPercent"] = 1,
+		["_param"] = {
+		},
+		["minRTargets"] = 2,
+		["autoR"] = true,
+	},
+	["Cassiopeia_Orbwalking"] = {
+		["_param"] = {
+			[8] = {
+				["key"] = 90,
+			},
+			[9] = {
+				["key"] = 86,
+			},
+			[7] = {
+				["key"] = 67,
+			},
+			[10] = {
+				["key"] = 88,
+			},
+		},
+		["Mode0"] = false,
+		["Enabled"] = true,
+		["_tsInstances"] = {
+		},
+		["Mode1"] = false,
+		["Attack"] = 2,
+		["ExtraWindUpTime"] = 0,
+		["FarmDelay"] = 0,
+		["Mode3"] = false,
+		["Mode"] = 1,
+		["Mode2"] = false,
+	},
+	["Lulu_Draw"] = {
+		["DrawQ2"] = false,
+		["DrawQ"] = false,
+		["DrawPix"] = false,
+		["_tsInstances"] = {
+		},
+		["DrawW"] = false,
+		["DrawQPrediction"] = false,
+		["DrawTarget"] = false,
+		["_param"] = {
+		},
+		["DrawR"] = false,
+	},
+	["FioraCombo_STS_STS"] = {
+	},
+	["Leblanc_combo"] = {
+	},
+	["SV_MAIN_anticapcloser_KhazixE"] = {
+	},
+	["Zed"] = {
+		["botrk"] = true,
+		["drawQ"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+			[2] = {
+				["key"] = 67,
+			},
+		},
+		["scriptActive"] = false,
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 4,
+			},
+		},
+		["shuriken"] = false,
+		["draw"] = true,
+		["wgapclose"] = true,
+		["eHarass"] = true,
+		["drawAA"] = true,
+		["wfulldamage"] = true,
+	},
+	["AutoSummonerBarrier"] = {
+	},
+	["Evade_spells_LeonaSolarFlare"] = {
+	},
+	["sidasaclasthit"] = {
+		["_tsInstances"] = {
+		},
+		["Active"] = false,
+		["_param"] = {
+			[3] = {
+				["key"] = 67,
+			},
+		},
+		["Toggle"] = false,
+	},
+	["Jax_misc"] = {
+	},
+	["Better Nerf Irelia"] = {
+		["_tsInstances"] = {
+		},
+		["_param"] = {
+		},
+		["Debugg"] = false,
+	},
+	["Cassiopeia_Drawings_circle5"] = {
+		["_tsInstances"] = {
+		},
+		["circle5quality"] = 119,
+		["circle5color"] = {
+			[1] = 255,
+			[2] = 255,
+			[3] = 255,
+			[4] = 255,
+		},
+		["_param"] = {
+		},
+		["circle5width"] = 1,
+		["circle5enabled"] = false,
+	},
+	["jaycetherapist"] = {
+	},
+	["Wukong_misc"] = {
+	},
+	["ShadowVayne_targets_Annie"] = {
+	},
+	["Evade_collision"] = {
+		["_tsInstances"] = {
+		},
+		["checkMinions"] = true,
+		["checkHeroes"] = true,
+		["_param"] = {
+		},
+		["checkBoxes"] = true,
+	},
+	["VayneAssistant"] = {
+		["_tsInstances"] = {
+		},
+		["switchKey"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+		},
+		["autoCondemn"] = true,
+	},
+	["Evade_spells_ZiggsR"] = {
+		["_tsInstances"] = {
+		},
+		["useSpellsInside"] = true,
+		["enabled"] = true,
+		["_param"] = {
+		},
+		["dangerLevel"] = 4,
+		["isDangerous"] = true,
+	},
+	["leblanccombo"] = {
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 8,
+			},
+		},
+		["drawprediction"] = true,
+		["harass"] = false,
+		["drawcircles"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+			[2] = {
+				["key"] = 67,
+			},
+		},
+		["scriptActive"] = false,
+		["drawtext"] = true,
+	},
+	["Evade_spells_DravenRCast"] = {
+	},
+	["Evade_spells_WildCards"] = {
+	},
+	["SV_MAIN_permashowsettings"] = {
+	},
+	["Nasus"] = {
+	},
+	["Evade_spells_rivenizunablade"] = {
+	},
+	["sidasacautocarry"] = {
+	},
+	["HFPDarkAlex_STS_STS"] = {
+	},
+	["Galiocombo"] = {
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 1,
+			},
+		},
+		["silenceR"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+		},
+		["useW"] = true,
+		["drawcircles"] = true,
+		["autoignite"] = true,
+		["scriptActive"] = false,
+		["autolvl"] = true,
+	},
+	["autosmite_drawinfo"] = {
+	},
+	["Evade_spells_LayWaste"] = {
+	},
+	["Evade_spells_NamiQ"] = {
+		["_tsInstances"] = {
+		},
+		["useSpellsInside"] = true,
+		["enabled"] = true,
+		["_param"] = {
+		},
+		["dangerLevel"] = 3,
+		["isDangerous"] = true,
+	},
+	["Evade_spells_MissileBarrage"] = {
+	},
+	["Jax_harass"] = {
+	},
+	["SV_MAIN_targets_Nami"] = {
+	},
+	["SV_MAIN_interrupt_CaitlynR"] = {
+	},
+	["Evade_spells_VarusR"] = {
+	},
+	["yasuo_SMdraw"] = {
+	},
+	["Evade_spells_BrandFissure"] = {
+	},
+	["HFPDarkAlex_Drawings_circle1"] = {
+	},
+	["Evade_spells_AhriOrbofDeception"] = {
+	},
+	["Evade_spells_BrandBlaze"] = {
+	},
+	["Evade_spells_NocturneDuskbringer"] = {
+	},
+	["Evade_spells_JayceShockBlast!"] = {
+	},
+	["iLux"] = {
+		["autoFarm"] = false,
+		["AutoUlt"] = true,
+		["AutoTriggerE"] = true,
+		["damageText"] = true,
+		["drawcircles"] = true,
+		["AutoTriggerEMin"] = 1,
+		["harass"] = false,
+		["_param"] = {
+			[1] = {
+				["key"] = 65,
 			},
 			[2] = {
 				["key"] = 84,
@@ -407,54 +1472,292 @@ return {
 				["key"] = 67,
 			},
 		},
-		["drawKillable"] = true,
-		["panic"] = false,
-		["drawcircles"] = true,
+		["UseUlt"] = true,
+		["QWithSingleCollide"] = false,
+		["moveToMouse"] = false,
 		["_tsInstances"] = {
 			[1] = {
-				["mode"] = 1,
+				["mode"] = 4,
 			},
 		},
-		["Mect"] = 2,
-		["useE"] = true,
+		["pewpew"] = false,
+		["SafeBet"] = 20,
+		["AutoShield"] = true,
+		["SmartSave"] = true,
 	},
-	["Jinx_ComboSub"] = {
+	["Katarina_clear"] = {
+		["clearOrbJ"] = true,
+		["clearE"] = false,
+		["clearQ"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 84,
+			},
+		},
+		["JungleFarm"] = true,
+		["clearOrbM"] = true,
+		["_tsInstances"] = {
+		},
+		["clearW"] = true,
+		["clearKey"] = false,
+		["ClearLane"] = true,
 	},
-	["Evade_spells_CassiopeiaPetrifyingGaze"] = {
+	["SV_MAIN_targets_MissFortune"] = {
+		["_tsInstances"] = {
+		},
+		["MissFortuneAutoCarry"] = true,
+		["MissFortuneAlways"] = true,
+		["_param"] = {
+		},
+		["MissFortuneMixedMode"] = false,
+		["MissFortuneLaneClear"] = false,
+		["MissFortuneLastHit"] = false,
 	},
-	["Better Nerf Irelia_Orbwalk"] = {
-		["Mode0"] = false,
-		["FarmDelay"] = 0,
+	["HFPDarkAlex_Orbwalking"] = {
 		["_param"] = {
 			[8] = {
-				["key"] = 86,
+				["key"] = 90,
 			},
 			[9] = {
-				["key"] = 67,
+				["key"] = 86,
 			},
 			[10] = {
 				["key"] = 88,
 			},
 			[7] = {
-				["key"] = 90,
+				["key"] = 67,
 			},
 		},
-		["ExtraWindUpTime"] = 50,
-		["Mode3"] = false,
-		["Mode2"] = false,
-		["Mode"] = 2,
+		["Mode0"] = false,
 		["Enabled"] = true,
-		["Attack"] = 2,
+		["_tsInstances"] = {
+		},
 		["Mode1"] = false,
+		["Attack"] = 2,
+		["ExtraWindUpTime"] = 50,
+		["FarmDelay"] = 0,
+		["Mode3"] = false,
+		["Mode"] = 1,
+		["Mode2"] = false,
+	},
+	["Evade_spells_LucianW"] = {
+	},
+	["Evade_spells_OrianaRedactCommand"] = {
+	},
+	["Better Nerf Irelia_drawings_killsteal"] = {
+	},
+	["Enlightened_harrass"] = {
+	},
+	["Evade_spells_ZedShuriken"] = {
+	},
+	["ShadowVayne_targets_Shyvana"] = {
+	},
+	["FGE skillshots config"] = {
+		["_param"] = {
+		},
+		["SonicWave"] = 2,
+		["yasuoq2"] = 1,
+		["_tsInstances"] = {
+		},
+		["OrbofDeception"] = 1,
+		["ZiggsQ"] = 2,
+		["yasuoq1"] = 1,
+		["yasuoq3"] = 2,
+		["OrbofDeceptionBack"] = 1,
+		["Charm"] = 2,
+	},
+	["sidasacmixedmode"] = {
+		["SwordoftheDivineMixedMode"] = true,
+		["MinionPriority"] = true,
+		["_param"] = {
+			[3] = {
+				["key"] = 88,
+			},
+		},
+		["botrkSave"] = true,
+		["YoumuusGhostbladeMixedMode"] = true,
+		["BlackfireTorchMixedMode"] = true,
+		["BladeoftheRuinedKingMixedMode"] = true,
+		["MuramanaMixedMode"] = true,
+		["RavenousHydraMixedMode"] = true,
+		["Active"] = false,
+		["EntropyMixedMode"] = true,
+		["TiamatMixedMode"] = true,
+		["Toggle"] = false,
+		["BilgewaterCutlassMixedMode"] = true,
+		["DeathfireGraspMixedMode"] = true,
+		["HextechGunbladeMixedMode"] = true,
 		["_tsInstances"] = {
 		},
 	},
-	["yasuo_SMsbtw"] = {
+	["Evade_spells_NautilusAnchorDrag"] = {
 	},
-	["Wukong_misc"] = {
+	["Evade_spells_YasuoQW"] = {
 	},
-	["Better Nerf Irelia_lclear"] = {
-		["clear"] = false,
+	["minimapTimers"] = {
+		["textOnRespawn"] = true,
+		["adviceTheirMonsters"] = true,
+		["pingOnRespawn"] = false,
+		["_tsInstances"] = {
+		},
+		["pingOnRespawnBefore"] = false,
+		["_param"] = {
+		},
+		["textOnMap"] = true,
+		["textOnRespawnBefore"] = true,
+		["adviceBefore"] = 10,
+	},
+	["khazixcombo"] = {
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 1,
+			},
+		},
+		["drawprediction"] = false,
+		["useult"] = true,
+		["harass"] = false,
+		["drawcircles"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+			[2] = {
+				["key"] = 67,
+			},
+		},
+		["scriptActive"] = false,
+		["drawtext"] = true,
+	},
+	["Taloncombo"] = {
+		["teamFight"] = false,
+		["ks"] = true,
+		["drawcircles"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 67,
+			},
+			[2] = {
+				["key"] = 88,
+			},
+			[3] = {
+				["key"] = 90,
+			},
+		},
+		["drawtext"] = true,
+		["autoIgnite"] = true,
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 1,
+			},
+		},
+		["stunText"] = true,
+		["drawprediction"] = false,
+		["farm"] = false,
+	},
+	["Leblanc_combo_Targets"] = {
+		["_tsInstances"] = {
+		},
+		["DontBurstNunu"] = false,
+		["_param"] = {
+		},
+		["DontBurstSivir"] = false,
+		["DontBurstMissFortune"] = false,
+		["DontBurstMalzahar"] = false,
+		["DontBurstMalphite"] = false,
+	},
+	["Wukong_killsteal"] = {
+	},
+	["aesezreal_aggressiveSubMenu_harassSettings"] = {
+		["_tsInstances"] = {
+		},
+		["_param"] = {
+		},
+		["harassQ"] = true,
+		["harassW"] = true,
+	},
+	["Pantheoncombo"] = {
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 1,
+			},
+		},
+		["drawtext"] = true,
+		["useUlt"] = false,
+		["harass"] = false,
+		["drawcircles"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+			[2] = {
+				["key"] = 67,
+			},
+		},
+		["scriptActive"] = false,
+		["drawprediction"] = true,
+	},
+	["Cassiopeia_Ultimate"] = {
+		["_tsInstances"] = {
+		},
+		["_param"] = {
+			[2] = {
+				["key"] = 90,
+			},
+		},
+		["AutoAim"] = false,
+		["Auto"] = 3,
+	},
+	["Wukong_harass"] = {
+		["_tsInstances"] = {
+		},
+		["qharass"] = true,
+		["harassKey"] = false,
+		["harassOrbwalk"] = true,
+		["_param"] = {
+			[2] = {
+				["key"] = 67,
+			},
+		},
+		["wEscape"] = true,
+		["hMode"] = 1,
+	},
+	["sidasacdrawing"] = {
+	},
+	["SV_MAIN_anticapcloser"] = {
+		["_tsInstances"] = {
+		},
+		["OverwriteAlways"] = false,
+		["OverwriteAutoCarry"] = false,
+		["OverwriteLastHit"] = false,
+		["OverwriteMixedMode"] = false,
+		["_param"] = {
+		},
+		["OverwriteLaneClear"] = false,
+	},
+	["Evade_spells_LuxLightStrikeKugel"] = {
+		["_tsInstances"] = {
+		},
+		["useSpellsInside"] = false,
+		["enabled"] = true,
+		["_param"] = {
+		},
+		["dangerLevel"] = 3,
+		["isDangerous"] = true,
+	},
+	["AutoShieldItems"] = {
+	},
+	["SV_TSS"] = {
+		["_tsInstances"] = {
+		},
+		["_param"] = {
+		},
+		["Selected"] = true,
+		["mode"] = 3,
+	},
+	["Better Nerf Irelia_jclear"] = {
+		["_tsInstances"] = {
+		},
+		["useW"] = true,
 		["useitems"] = true,
 		["useQ"] = true,
 		["_param"] = {
@@ -462,27 +1765,760 @@ return {
 				["key"] = 67,
 			},
 		},
-		["useW"] = false,
 		["useR"] = false,
+		["clear"] = false,
+	},
+	["aesezreal_aggressiveSubMenu_finisherSettings"] = {
 		["_tsInstances"] = {
 		},
+		["finishR"] = false,
+		["finishQ"] = true,
+		["finishW"] = true,
+		["_param"] = {
+			[3] = {
+				["key"] = 82,
+			},
+		},
 	},
-	["autosmite_drawinfo"] = {
+	["Evade_spells_JayceShockBlast"] = {
 	},
-	["Enlightened_extra_ex"] = {
+	["Leblanc_misc"] = {
+		["_tsInstances"] = {
+		},
+		["_param"] = {
+		},
+		["aHP"] = true,
+		["aMP"] = true,
+		["predType"] = 1,
+		["ZWItems"] = true,
+		["HPHealth"] = 50,
+		["ZWHealth"] = 15,
 	},
-	["Ryze_Config"] = {
-		["autoQHarass"] = false,
+	["Ahri Helper"] = {
+		["drawcirclesSelf"] = false,
+		["useE"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 84,
+			},
+			[2] = {
+				["key"] = 67,
+			},
+			[3] = {
+				["key"] = 88,
+			},
+		},
+		["Harass"] = true,
+		["autoignite"] = true,
 		["_tsInstances"] = {
 			[1] = {
 				["mode"] = 1,
 			},
 		},
+		["movement"] = true,
+		["Charm"] = false,
+		["scriptActive"] = false,
+		["drawcirclesEnemy"] = true,
+		["attacks"] = true,
+		["useR"] = true,
+		["mouseDash"] = true,
+	},
+	["SV_MAIN_targets_Rammus"] = {
+	},
+	["Better Nerf Irelia_Orbwalk"] = {
+		["_param"] = {
+			[8] = {
+				["key"] = 86,
+			},
+			[10] = {
+				["key"] = 88,
+			},
+			[7] = {
+				["key"] = 90,
+			},
+			[9] = {
+				["key"] = 67,
+			},
+		},
+		["Mode0"] = false,
+		["Enabled"] = true,
+		["_tsInstances"] = {
+		},
+		["Mode1"] = false,
+		["Attack"] = 2,
+		["ExtraWindUpTime"] = 50,
+		["FarmDelay"] = 0,
+		["Mode3"] = false,
+		["Mode"] = 2,
+		["Mode2"] = false,
+	},
+	["LeeSincombo"] = {
+		["drawcirclesSelf"] = true,
+		["autoult"] = true,
+		["useUlti"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+			[2] = {
+				["key"] = 71,
+			},
+			[3] = {
+				["key"] = 67,
+			},
+			[4] = {
+				["key"] = 90,
+			},
+		},
+		["qDodge"] = false,
+		["rClose"] = false,
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 1,
+			},
+		},
+		["wardjump"] = false,
+		["drawcirclesEnemy"] = false,
+		["autoignite"] = true,
+		["scriptActive"] = false,
+		["drawtext"] = true,
+	},
+	["SV_TSS_STS"] = {
+		["_tsInstances"] = {
+		},
+		["31062BEACC3D0885A9DA72288ACED30F"] = 2,
+		["862F10ED056F3A6CEEF950E320289EA7"] = 3,
+		["_param"] = {
+		},
+		["0527B5A0039D6493CD505200A2F6427B"] = 1,
+		["506BF08374358F083BCCEC9B7F66892D"] = 4,
+		["1F7514D76CFF9323ABA04DBB10BDA1ED"] = 3,
+	},
+	["Lulu_ComboSub"] = {
+	},
+	["srcSpellClass"] = {
+	},
+	["yasuo"] = {
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 5,
+			},
+		},
+		["sbtw"] = false,
+		["smartfarm"] = false,
+		["flee"] = false,
+		["_param"] = {
+			[1] = {
+				["key"] = 86,
+			},
+			[2] = {
+				["key"] = 90,
+			},
+			[4] = {
+				["key"] = 88,
+			},
+			[5] = {
+				["key"] = 84,
+			},
+			[3] = {
+				["key"] = 67,
+			},
+		},
+		["farm"] = false,
+		["harass"] = false,
+	},
+	["SV_MAIN_keysetting"] = {
+		["threshlantern"] = false,
+		["LastHitOrb"] = 1,
+		["_param"] = {
+			[3] = {
+				["key"] = 84,
+			},
+			[7] = {
+				["key"] = 88,
+			},
+			[8] = {
+				["key"] = 86,
+			},
+			[10] = {
+				["key"] = 67,
+			},
+			[9] = {
+				["key"] = 90,
+			},
+			[2] = {
+				["key"] = 84,
+			},
+		},
+		["AutoCarryOrb"] = 1,
+		["laneclear"] = false,
+		["_tsInstances"] = {
+		},
+		["LaneClearOrb"] = 1,
+		["MixedModeOrb"] = 1,
+		["togglemode"] = false,
+		["mixedmode"] = false,
+		["autocarry"] = false,
+		["lasthit"] = false,
+		["basiccondemn"] = true,
+	},
+	["Nasus_ult"] = {
+	},
+	["Cassiopeia_STS_STS"] = {
+		["_tsInstances"] = {
+		},
+		["1919FE4EE1D503663508023C3B057CE8"] = 3,
+		["C5F6500EF2DC62A007A7132A40488952"] = 2,
+		["B1A547C8BD1B7FA9515CED1A0B1D23F2"] = 2,
+		["_param"] = {
+		},
+		["561FDDDD1DF02524F154BFF83A1A28E3"] = 2,
+		["B2F3B455DF3201423A458212ADDECE8D"] = 1,
+	},
+	["VayneParameters"] = {
+	},
+	["Leblanc_farming"] = {
+	},
+	["aesezreal_otherSubMenu_managementSettings"] = {
+		["_tsInstances"] = {
+		},
+		["manaProcentHarass"] = 0,
+		["_param"] = {
+		},
+		["manaProcentFarm"] = 0,
+	},
+	["Evade_spells_EzrealEssenceFlux"] = {
+	},
+	["Cassiopeia_Drawings_circle3"] = {
+		["_tsInstances"] = {
+		},
+		["circle3enabled"] = false,
+		["circle3color"] = {
+			[1] = 255,
+			[2] = 255,
+			[3] = 255,
+			[4] = 255,
+		},
+		["circle3width"] = 1,
+		["circle3quality"] = 165,
+		["_param"] = {
+		},
+	},
+	["AutoVeigar"] = {
+		["deathFireKill"] = true,
+		["autoKill"] = true,
+		["qfarm"] = true,
+		["_param"] = {
+			[4] = {
+				["key"] = 88,
+			},
+		},
+		["debug"] = false,
+		["stunEnemiesAttackedByTurret"] = true,
+		["_tsInstances"] = {
+		},
+		["autoCage"] = true,
+		["autoSeraph"] = true,
+		["antiStun"] = true,
+		["autoPotions"] = false,
+		["autoW"] = true,
+		["autoLevel"] = true,
+		["autoQweakest"] = true,
+	},
+	["SV_MAIN_targets_Yasuo"] = {
+	},
+	["Jax_farming"] = {
+		["_tsInstances"] = {
+		},
+		["FarmMana"] = 50,
+		["qFarm"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 90,
+			},
+		},
+		["farmKey"] = false,
+	},
+	["Better Nerf Irelia_combo"] = {
+		["useE"] = 1,
+		["useQ"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+		},
+		["combokey"] = false,
+		["_tsInstances"] = {
+		},
+		["useW"] = true,
+		["useitems"] = true,
+		["useR"] = true,
+		["useQ2"] = true,
+	},
+	["ShadowVayne_targets_Lux"] = {
+	},
+	["Evade_spells_LuxLightBinding"] = {
+	},
+	["DianaCombo"] = {
+		["BurstCombo"] = false,
+		["useE"] = true,
+		["autoMinion"] = false,
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+			[2] = {
+				["key"] = 67,
+			},
+			[3] = {
+				["key"] = 90,
+			},
+		},
+		["Harass"] = false,
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 4,
+			},
+		},
+		["drawText"] = true,
+		["ultKS"] = true,
+		["drawcirclesEnemy"] = true,
+		["autoignite"] = true,
+		["drawcirclesSelf"] = true,
+		["orbWalk"] = true,
+	},
+	["Evade_spells_LuxMaliceCannon"] = {
+	},
+	["Evade_spells_LeblancSoulShackleM"] = {
+	},
+	["Wukong_drawing"] = {
+	},
+	["Cassiopeia_Drawings_circle6"] = {
+	},
+	["sidasacstreaming"] = {
+		["_tsInstances"] = {
+		},
+		["Colour"] = 0,
+		["MinRand"] = 401,
+		["_param"] = {
+		},
+		["ShowClick"] = false,
+		["MaxRand"] = 775,
+	},
+	["Katarina_farming"] = {
+		["_tsInstances"] = {
+		},
+		["eFarm"] = false,
+		["qFarm"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 90,
+			},
+		},
+		["wFarm"] = true,
+		["farmKey"] = false,
+	},
+	["SV_MAIN_draw"] = {
+		["_tsInstances"] = {
+		},
+		["DrawAAColor"] = 4,
+		["_param"] = {
+		},
+		["DrawNeededAutohits"] = false,
+		["DrawEColor"] = 1,
+		["DrawAARange"] = true,
+		["DrawERange"] = false,
+	},
+	["autoqss"] = {
+		["fizzqss"] = true,
+		["grievousqss"] = true,
+		["asheqss"] = true,
+		["_param"] = {
+		},
+		["zileanqss"] = false,
+		["luluqss"] = true,
+		["_tsInstances"] = {
+		},
+		["witherqss"] = true,
+		["fearqss"] = true,
+		["exhaustqss"] = true,
+		["stunqss"] = true,
+		["ryzeqss"] = false,
+		["Silenceqss"] = false,
+		["nunuqss"] = false,
+		["morganaqss"] = true,
+		["sonaqss"] = true,
+		["skarnerqss"] = true,
+		["qss"] = true,
+		["teemoqss"] = false,
+		["amumuqss"] = true,
+		["luxqss"] = false,
+		["suppressionqss"] = true,
+		["tauntqss"] = true,
+		["caitqss"] = false,
+		["igniteqss"] = true,
+		["mordeqss"] = true,
+	},
+	["ShadowVayne_autostunn"] = {
+		["_tsInstances"] = {
+		},
+		["accuracy"] = 5,
+		["trinket"] = true,
+		["pushDistance"] = 390,
+		["_param"] = {
+		},
+		["towerstunn"] = true,
+	},
+	["Better Nerf Irelia_drawings"] = {
+	},
+	["Freaking Good Evade"] = {
+		["evadeBuffer"] = 16,
+		["_param"] = {
+			[5] = {
+				["key"] = 77,
+			},
+			[12] = {
+				["key"] = 17,
+			},
+			[3] = {
+				["key"] = 192,
+			},
+			[4] = {
+				["key"] = 32,
+			},
+		},
+		["useSummonerFlash"] = true,
+		["lineallways"] = true,
+		["dodgeCConly"] = false,
+		["allowMove"] = true,
+		["resetdodge"] = false,
+		["dodgeEnabled"] = true,
+		["dodgeCConly2"] = false,
+		["freemovementblock"] = true,
+		["oldDrawing"] = false,
+		["drawEnabled"] = true,
+		["fowdelay"] = 1,
+		["dashPercent"] = 100,
+		["usedashes"] = true,
+		["_tsInstances"] = {
+		},
+		["stopCCMoves"] = true,
+		["dashMouse"] = true,
+	},
+	["HFPDarkAlex_Combo"] = {
+		["UseAutoE"] = true,
+		["Enabled"] = false,
+		["UseIgnite"] = true,
+		["_tsInstances"] = {
+		},
+		["UseQ"] = true,
+		["_param"] = {
+			[6] = {
+				["key"] = 88,
+			},
+		},
+		["UseR"] = true,
+		["BRKUse"] = 0.85,
+	},
+	["Better Nerf Irelia_drawings_spells"] = {
+	},
+	["Evade_spells_AlZaharCalloftheVoid"] = {
+	},
+	["ShadowVayne_autoup"] = {
+	},
+	["perfectpounce"] = {
+		["_tsInstances"] = {
+		},
+		["perfectPounce"] = true,
+		["_param"] = {
+			[3] = {
+				["key"] = 90,
+			},
+		},
+		["autoPounce"] = true,
+		["hold"] = false,
+	},
+	["Evade_spells_AhriSeduce"] = {
+	},
+	["SV_MAIN_targets_Graves"] = {
+	},
+	["Jax_misc_e"] = {
+		["_tsInstances"] = {
+		},
+		["howTo"] = 1,
+		["_param"] = {
+		},
+		["whenTo"] = 3,
+	},
+	["Katarina_misc"] = {
+		["wardJumpKey"] = false,
+		["uTM"] = false,
+		["AutoLevelSkills"] = 3,
+		["HPHealth"] = 50,
+		["_tsInstances"] = {
+		},
+		["aHP"] = false,
+		["_param"] = {
+			[1] = {
+				["key"] = 71,
+			},
+		},
+		["ZWItems"] = true,
+		["jumpAllies"] = true,
+		["ZWHealth"] = 15,
+	},
+	["VPrediction"] = {
+		["_tsInstances"] = {
+		},
+		["_param"] = {
+		},
+		["Mode"] = 1,
+	},
+	["Lulu_FarmSub"] = {
+	},
+	["Evade_spells_ZyraGraspingRoots"] = {
+	},
+	["Lulu_SupportSub"] = {
+		["support7"] = true,
+		["support10"] = false,
+		["MinRHealth"] = 20,
+		["MinEHealth"] = 75,
+		["useQ"] = true,
+		["RKnockup"] = 3,
+		["support6"] = false,
+		["_tsInstances"] = {
+		},
+		["_param"] = {
+		},
+		["useE"] = true,
+		["useW"] = true,
+		["support9"] = false,
+		["support8"] = false,
+		["useR"] = true,
+		["WGapCloser"] = true,
+	},
+	["Master"] = {
+		["iCount"] = 1,
+		["y"] = 74,
+		["x"] = 104,
+		["osTime"] = 1401828963,
+		["P1"] = 74,
+		["name1"] = "autosmite",
+		["useTS"] = true,
+		["py"] = 819,
+		["px"] = 844,
+		["PS1"] = 6,
+		["I1"] = 7,
+	},
+	["Evade_spells_CassiopeiaNoxiousBlast"] = {
+	},
+	["yasuo_SMother"] = {
+	},
+	["Evade_spells_SivirQ"] = {
+	},
+	["Evade_spells_InfernalGuardian"] = {
+	},
+	["Evade_spells_ZiggsQ"] = {
+		["_tsInstances"] = {
+		},
+		["useSpellsInside"] = true,
+		["_param"] = {
+		},
+		["dangerLevel"] = 1,
+		["enabled"] = true,
+	},
+	["Evade_spells_KhazixW"] = {
+	},
+	["towerRange_ownConfig"] = {
+		["_tsInstances"] = {
+		},
+		["distanceBasedOpacity"] = true,
+		["hideDistance"] = 450,
+		["opacity"] = 10,
+		["_param"] = {
+		},
+		["showRange"] = true,
+	},
+	["yasuo_SMblocks"] = {
+	},
+	["Evade_spells_NamiR"] = {
+		["_tsInstances"] = {
+		},
+		["useSpellsInside"] = true,
+		["enabled"] = true,
+		["_param"] = {
+		},
+		["dangerLevel"] = 3,
+		["isDangerous"] = true,
+	},
+	["Evade_spells_WildCards!"] = {
+	},
+	["SV_MAIN_targets_Amumu"] = {
+	},
+	["SV_MAIN_targets_Draven"] = {
+	},
+	["Oriannacombo"] = {
+	},
+	["Evade_spells_syndrawcast"] = {
+	},
+	["Evade_spells_VarusQ!"] = {
+	},
+	["Evade_spells_ZiggsW"] = {
+		["_tsInstances"] = {
+		},
+		["useSpellsInside"] = true,
+		["_param"] = {
+		},
+		["dangerLevel"] = 2,
+		["enabled"] = true,
+	},
+	["Jinx_Draw"] = {
+		["_tsInstances"] = {
+		},
+		["DrawW"] = true,
+		["DrawE"] = false,
+		["_param"] = {
+		},
+		["DrawOtherQ"] = false,
+		["DrawR"] = false,
+	},
+	["Evade_spells_GalioResoluteSmite"] = {
+	},
+	["SV_MAIN_autoup"] = {
+	},
+	["Vaynity"] = {
+	},
+	["Jax_misc_smisc"] = {
+	},
+	["Evade_spells_LuluQ"] = {
+	},
+	["Evade_spells_AatroxQ"] = {
+	},
+	["Evade_spells_DravenDoubleShot"] = {
+	},
+	["Better Nerf Irelia_lclear"] = {
+		["_tsInstances"] = {
+		},
+		["useW"] = false,
+		["useitems"] = true,
+		["useQ"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 67,
+			},
+		},
+		["useR"] = false,
+		["clear"] = false,
+	},
+	["Katarina_harass"] = {
+		["_tsInstances"] = {
+		},
+		["detonateQ"] = true,
+		["wharass"] = true,
+		["harassOrbwalk"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 67,
+			},
+		},
+		["harassKey"] = false,
+		["hMode"] = 2,
+	},
+	["Katarina"] = {
+	},
+	["Evade_spells_khazixwlong"] = {
+	},
+	["aesezreal_aggressiveSubMenu_comboSettings"] = {
+		["_tsInstances"] = {
+		},
+		["comboQ"] = true,
+		["comboR"] = true,
+		["_param"] = {
+		},
+		["comboW"] = true,
+	},
+	["nidaleetherapist"] = {
+		["DASH"] = false,
+		["_param"] = {
+			[1] = {
+				["key"] = 32,
+			},
+			[2] = {
+				["key"] = 86,
+			},
+			[4] = {
+				["key"] = 67,
+			},
+			[10] = {
+				["key"] = 192,
+			},
+			[5] = {
+				["key"] = 90,
+			},
+			[3] = {
+				["key"] = 88,
+			},
+		},
+		["scriptActive2"] = false,
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 1,
+			},
+		},
+		["drawprediction"] = false,
+		["autoAAFarm"] = false,
+		["drawtext"] = true,
+		["harass"] = false,
+		["drawcircles"] = true,
+		["autoignite"] = true,
+		["scriptActive"] = false,
+		["scriptActive1"] = false,
+	},
+	["Nasus_draw"] = {
+	},
+	["Evade_spells_ZedShuriken2"] = {
+	},
+	["Evade_spells_Rupture"] = {
+	},
+	["SidasLux"] = {
+		["killSteal"] = true,
+		["useE"] = true,
+		["autoE"] = true,
+		["combo"] = false,
+		["harass"] = false,
+		["attackSpark"] = true,
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 7,
+			},
+		},
+		["jungleSteal"] = true,
+		["draw"] = true,
+		["_param"] = {
+			[1] = {
+				["key"] = 88,
+			},
+			[2] = {
+				["key"] = 84,
+			},
+		},
+		["useUlt"] = true,
+		["movement"] = true,
+	},
+	["Leblanc_jungle"] = {
+	},
+	["autosmite_smiteat"] = {
+	},
+	["Evade_spells_JavelinToss"] = {
+	},
+	["Evade_spells_UFSlash"] = {
+	},
+	["Ryze_Config"] = {
 		["PowerFarm"] = true,
-		["useUltiJungle"] = true,
-		["autoQFarm"] = true,
 		["Ignite"] = true,
 		["useMura"] = true,
+		["useUlti"] = true,
+		["LongActive"] = false,
 		["_param"] = {
 			[14] = {
 				["key"] = 67,
@@ -502,547 +2538,63 @@ return {
 			[12] = {
 				["key"] = 90,
 			},
-			[4] = {
-				["key"] = 66,
-			},
-			[10] = {
-				["key"] = 73,
-			},
-			[9] = {
-				["key"] = 84,
-			},
-			[8] = {
-				["key"] = 85,
+			[13] = {
+				["key"] = 65,
 			},
 			[11] = {
 				["key"] = 220,
 			},
-			[13] = {
-				["key"] = 65,
+			[8] = {
+				["key"] = 85,
+			},
+			[9] = {
+				["key"] = 84,
+			},
+			[10] = {
+				["key"] = 73,
+			},
+			[4] = {
+				["key"] = 66,
 			},
 		},
-		["BurstActive"] = false,
-		["CageHunter"] = false,
-		["cageW"] = true,
-		["LongActive"] = false,
 		["autoQToggle"] = true,
-		["autoAAFarm"] = false,
 		["JungleActive"] = false,
-		["useUlti"] = true,
-	},
-	["Enlightened_keys"] = {
-		["permrota"] = false,
-		["okdrota"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 90,
-			},
-			[2] = {
-				["key"] = 88,
-			},
-			[3] = {
-				["key"] = 84,
-			},
-			[4] = {
-				["key"] = 67,
-			},
-		},
-		["okdhrs"] = false,
-		["permhrs"] = false,
-		["_tsInstances"] = {
-		},
-	},
-	["Evade_dashes"] = {
-		["dash12"] = 5,
-		["dash0"] = 2,
-		["_tsInstances"] = {
-		},
-		["dash2"] = 1,
-		["_param"] = {
-		},
-	},
-	["VPrediction_Collision"] = {
-		["Minions"] = true,
-		["CastPos"] = true,
-		["Buffer"] = 20,
-		["_param"] = {
-		},
-		["UnitPos"] = true,
-		["PredictPos"] = true,
-		["Mobs"] = true,
-		["Others"] = true,
-		["CHealth"] = true,
-		["_tsInstances"] = {
-		},
-	},
-	["SV_MAIN_targets_MissFortune"] = {
-		["MissFortuneAutoCarry"] = true,
-		["MissFortuneMixedMode"] = false,
-		["MissFortuneLastHit"] = false,
-		["_param"] = {
-		},
-		["MissFortuneAlways"] = true,
-		["MissFortuneLaneClear"] = false,
-		["_tsInstances"] = {
-		},
-	},
-	["yasuo_SMdraw"] = {
-	},
-	["ShadowVayne_targets_Lux"] = {
-	},
-	["Cassiopeia_Combo"] = {
-		["UseQ"] = true,
-		["UseR"] = false,
-		["_param"] = {
-			[7] = {
-				["key"] = 88,
-			},
-		},
-		["UseEP"] = false,
-		["UseIgnite"] = true,
-		["Enabled"] = false,
-		["UseW"] = true,
-		["_tsInstances"] = {
-		},
-		["UseE"] = true,
-	},
-	["Leblanc_farming"] = {
-	},
-	["Evade_spells_JinxWMissile"] = {
-	},
-	["Jinx_HarassSub"] = {
-	},
-	["Evade_spells_EzrealEssenceFlux"] = {
-	},
-	["SV_MAIN_walltumble"] = {
-	},
-	["khazixcombo"] = {
-		["drawtext"] = true,
-		["harass"] = false,
-		["drawprediction"] = false,
-		["scriptActive"] = false,
-		["drawcircles"] = true,
-		["useult"] = true,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-			[2] = {
-				["key"] = 67,
-			},
-		},
 		["_tsInstances"] = {
 			[1] = {
 				["mode"] = 1,
 			},
 		},
+		["autoAAFarm"] = false,
+		["BurstActive"] = false,
+		["cageW"] = true,
+		["CageHunter"] = false,
+		["autoQHarass"] = false,
+		["autoQFarm"] = true,
+		["useUltiJungle"] = true,
 	},
-	["Wukong_killsteal"] = {
+	["SV_MAIN_anticapcloser_GravesE"] = {
 	},
-	["Evade_spells_JavelinToss"] = {
-	},
-	["Evade_spells_ZyraQFissure"] = {
-	},
-	["SV_MAIN_targets_Draven"] = {
-	},
-	["SV_MAIN_debug"] = {
-	},
-	["HFPDarkAlex_Combo"] = {
-		["_param"] = {
-			[5] = {
-				["key"] = 88,
-			},
-		},
-		["UseIgnite"] = true,
-		["UseQ"] = true,
-		["Enabled"] = false,
-		["UseR"] = true,
-		["UseAutoE"] = true,
-		["_tsInstances"] = {
-		},
-	},
-	["Evade_spells_GalioResoluteSmite"] = {
-	},
-	["SV_MAIN_targets_Khazix"] = {
-	},
-	["Evade_spells_BlindMonkQOne"] = {
-		["useSpellsInside"] = true,
-		["isDangerous"] = true,
-		["enabled"] = true,
-		["dangerLevel"] = 3,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["SV_MAIN_targets_Karma"] = {
-	},
-	["Evade_spells_LuxLightBinding"] = {
-	},
-	["SV_MAIN_targets_Nami"] = {
-	},
-	["SV_MAIN_anticapcloser_JayceQ"] = {
-	},
-	["Better Nerf Irelia_drawings_lclear"] = {
-	},
-	["Jinx_Extras"] = {
-		["ROverkill"] = true,
-		["MinRRange"] = 300,
-		["RRange"] = 1700,
-		["EStun"] = true,
-		["EAutoCast"] = false,
-		["REnemies"] = 4,
-		["_param"] = {
-		},
-		["SwapThree"] = true,
-		["Debug"] = false,
-		["EGapcloser"] = true,
-		["SwapDistance"] = true,
-		["WRange"] = 300,
-		["SwapAOE"] = true,
-		["_tsInstances"] = {
-		},
-	},
-	["Taloncombo"] = {
-		["drawtext"] = true,
-		["farm"] = false,
-		["autoIgnite"] = true,
-		["stunText"] = true,
-		["_param"] = {
-			[1] = {
-				["key"] = 67,
-			},
-			[2] = {
-				["key"] = 88,
-			},
-			[3] = {
-				["key"] = 90,
-			},
-		},
-		["teamFight"] = false,
-		["drawcircles"] = true,
-		["drawprediction"] = false,
-		["ks"] = true,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 1,
-			},
-		},
-	},
-	["ShadowVayne_draw"] = {
-	},
-	["SV_MAIN_targets_Caitlyn"] = {
-	},
-	["Evade_spells_NautilusAnchorDrag"] = {
-	},
-	["ShadowVayne_misc"] = {
-	},
-	["Jax_farming"] = {
-		["qFarm"] = true,
-		["_tsInstances"] = {
-		},
-		["FarmMana"] = 50,
-		["farmKey"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 90,
-			},
-		},
-	},
-	["lulupixglitterlance"] = {
-		["drawcircles"] = true,
-		["scriptActive"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-		},
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 8,
-			},
-		},
-	},
-	["SV_MAIN_targets_LeeSin"] = {
-	},
-	["Better Nerf Irelia_combo"] = {
-		["useQ2"] = true,
-		["useitems"] = true,
-		["useQ"] = true,
-		["useR"] = true,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-		},
-		["combokey"] = false,
-		["useW"] = true,
-		["_tsInstances"] = {
-		},
-		["useE"] = 1,
-	},
-	["Evade_spells_JayceShockBlast"] = {
-	},
-	["Jax_misc_ult"] = {
-	},
-	["Evade_spells_LeblancSoulShackle"] = {
-	},
-	["iLux"] = {
-		["AutoTriggerE"] = true,
-		["harass"] = false,
-		["pewpew"] = false,
-		["SmartSave"] = true,
-		["AutoTriggerEMin"] = 1,
-		["moveToMouse"] = false,
-		["drawcircles"] = true,
-		["_param"] = {
-			[1] = {
-				["key"] = 65,
-			},
-			[2] = {
-				["key"] = 84,
-			},
-			[3] = {
-				["key"] = 67,
-			},
-		},
-		["AutoUlt"] = true,
-		["SafeBet"] = 20,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 4,
-			},
-		},
-		["UseUlt"] = true,
-		["damageText"] = true,
-		["AutoShield"] = true,
-		["QWithSingleCollide"] = false,
-		["autoFarm"] = false,
-	},
-	["Jax"] = {
-	},
-	["Evade_spells_AatroxQ"] = {
-	},
-	["Master"] = {
-		["iCount"] = 1,
-		["useTS"] = false,
-		["PS1"] = 2,
-		["py"] = 819,
-		["I1"] = 9,
-		["P1"] = 62,
-		["px"] = 844,
-		["y"] = 74,
-		["name1"] = "autosmite",
-		["osTime"] = 1401779093,
-		["x"] = 104,
-	},
-	["SV_MAIN_autolevel"] = {
-		["UseAutoLevelfirst"] = true,
-		["_param"] = {
-		},
-		["restlevel"] = 1,
-		["UseAutoLevelrest"] = true,
-		["first3level"] = 1,
-		["_tsInstances"] = {
-		},
-	},
-	["Better Nerf Irelia_drawings_killsteal"] = {
-	},
-	["Leblanc_jungle"] = {
-	},
-	["SV_MAIN_anticapcloser_KhazixE"] = {
-	},
-	["Evade_spells_OrianaIzunaCommand"] = {
-	},
-	["Leblanc_combo_Targets"] = {
-		["DontBurstMissFortune"] = false,
-		["DontBurstSivir"] = false,
-		["DontBurstMalphite"] = false,
-		["_param"] = {
-		},
-		["DontBurstNunu"] = false,
-		["DontBurstMalzahar"] = false,
-		["_tsInstances"] = {
-		},
-	},
-	["Evade_spells_EzrealTrueshotBarrage"] = {
-	},
-	["Evade_spells_AatroxE"] = {
-	},
-	["Enlightened_draw_drawsub2"] = {
-	},
-	["Evade_spells_WildCards!"] = {
-	},
-	["Malzaharcombo"] = {
-		["drawtext"] = true,
-		["harass"] = false,
-		["farm"] = false,
-		["autoIgnite"] = true,
-		["_param"] = {
-			[2] = {
-				["key"] = 67,
-			},
-			[3] = {
-				["key"] = 88,
-			},
-		},
-		["drawcircles"] = false,
-		["drawprediction"] = false,
-		["teamFight"] = false,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 1,
-			},
-		},
-	},
-	["Cassiopeia_Farm"] = {
-		["Freeze"] = false,
-		["LaneClear"] = false,
-		["UseQ"] = 3,
-		["_tsInstances"] = {
-		},
-		["UseW"] = 3,
-		["_param"] = {
-			[4] = {
-				["key"] = 67,
-			},
-			[5] = {
-				["key"] = 86,
-			},
-		},
-		["UseE"] = 3,
-	},
-	["cassiopeiacombo"] = {
-		["drawcircles"] = true,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-		},
-		["scriptActive"] = false,
-		["useonlowhp"] = true,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 1,
-			},
-		},
-	},
-	["Wukong_decoy"] = {
-	},
-	["Menu"] = {
-		["menuKey"] = 16,
-		["pDraw"] = {
-			["y"] = 819,
-			["x"] = 844,
-		},
-		["draw"] = {
-			["y"] = 74,
-			["x"] = 104,
-		},
-	},
-	["Wukong_drawing"] = {
-	},
-	["SV_MAIN_qqs"] = {
-	},
-	["AutoShield"] = {
-		["teammateshield5"] = false,
-		["shieldslow"] = true,
-		["teammateshield2"] = false,
-		["teammateshield3"] = true,
-		["_param"] = {
-		},
-		["shieldcc"] = true,
-		["teammateshield1"] = false,
-		["_tsInstances"] = {
-		},
-		["mindmgpercent"] = 20,
-		["skillshots"] = true,
-		["drawcircles"] = true,
-		["teammateshield4"] = true,
-		["maxhppercent"] = 100,
-	},
-	["Evade_spells_DravenDoubleShot"] = {
-	},
-	["sidasacconfig"] = {
-	},
-	["Evade_spells_khazixwlong"] = {
-	},
-	["Leblanc_ks"] = {
-	},
-	["HFPDarkAlex_STS_STS"] = {
-	},
-	["Evade_spells_RocketJump"] = {
-	},
-	["sidasacextras"] = {
-	},
-	["Jax_jungle"] = {
-	},
-	["Lulu_ComboSub"] = {
+	["Evade_spells_QuinnQ"] = {
 	},
 	["SV_MAIN_interrupt_MissFortuneR"] = {
 	},
-	["perfectpounce"] = {
-		["perfectPounce"] = true,
-		["hold"] = false,
-		["autoPounce"] = true,
+	["Cassiopeia_JungleFarm"] = {
+		["_tsInstances"] = {
+		},
+		["UseE"] = true,
+		["UseW"] = false,
+		["UseQ"] = true,
 		["_param"] = {
-			[3] = {
-				["key"] = 90,
+			[4] = {
+				["key"] = 86,
 			},
 		},
-		["_tsInstances"] = {
-		},
+		["Enabled"] = false,
 	},
-	["Evade_spells_ViktorDeathRay!"] = {
-	},
-	["Evade_spells_InfectedCleaverMissileCast"] = {
-	},
-	["Jax_misc_q"] = {
-		["howTo"] = 1,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["Lulu_SupportSub"] = {
-		["support10"] = false,
-		["MinRHealth"] = 20,
-		["useQ"] = true,
-		["MinEHealth"] = 75,
-		["support6"] = false,
-		["support7"] = true,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-		["useW"] = true,
-		["support9"] = false,
-		["WGapCloser"] = true,
-		["support8"] = false,
-		["RKnockup"] = 3,
-		["useR"] = true,
-		["useE"] = true,
-	},
-	["Cassiopeia_STS_STS"] = {
-		["C5F6500EF2DC62A007A7132A40488952"] = 2,
-		["1919FE4EE1D503663508023C3B057CE8"] = 3,
-		["561FDDDD1DF02524F154BFF83A1A28E3"] = 2,
-		["B1A547C8BD1B7FA9515CED1A0B1D23F2"] = 2,
-		["B2F3B455DF3201423A458212ADDECE8D"] = 1,
-		["_tsInstances"] = {
-		},
-		["_param"] = {
-		},
-	},
-	["SV_MAIN_targets_Janna"] = {
-	},
-	["Evade_spells_ShenShadowDash"] = {
-	},
-	["Pantheoncombo"] = {
-		["drawtext"] = true,
-		["harass"] = false,
-		["drawprediction"] = true,
-		["useUlt"] = false,
+	["TristanaHelper"] = {
+		["drawcirclesSelf"] = true,
+		["autoult"] = true,
+		["ultCombo"] = false,
 		["_param"] = {
 			[1] = {
 				["key"] = 88,
@@ -1050,46 +2602,61 @@ return {
 			[2] = {
 				["key"] = 67,
 			},
+			[4] = {
+				["key"] = 90,
+			},
+			[5] = {
+				["key"] = 90,
+			},
+			[3] = {
+				["key"] = 84,
+			},
 		},
-		["scriptActive"] = false,
-		["drawcircles"] = true,
+		["Harass"] = true,
 		["_tsInstances"] = {
 			[1] = {
 				["mode"] = 1,
 			},
 		},
+		["autojump"] = true,
+		["scriptActive"] = false,
+		["drawcirclesEnemy"] = true,
+		["autoignite"] = true,
+		["useR"] = true,
+		["movement"] = true,
 	},
-	["aesezreal_otherSubMenu_drawSettings"] = {
-		["drawR"] = false,
-		["drawQ"] = false,
-		["drawW"] = false,
+	["Cassiopeia_STS"] = {
+		["_tsInstances"] = {
+		},
+		["_param"] = {
+		},
+		["Selected"] = true,
+		["mode"] = 2,
+	},
+	["AutoShield"] = {
+		["teammateshield5"] = false,
+		["teammateshield2"] = false,
+		["drawcircles"] = true,
+		["teammateshield4"] = true,
 		["_param"] = {
 		},
 		["_tsInstances"] = {
 		},
-	},
-	["SV_MAIN_tumble"] = {
-		["QManaAutoCarry"] = 0,
-		["Qmixedmode"] = true,
-		["Qlaneclear"] = false,
-		["Qautocarry"] = true,
-		["_param"] = {
-		},
-		["QManaMixedMode"] = 50,
-		["QManaLaneClear"] = 50,
-		["Qlasthit"] = false,
-		["Qalways"] = false,
-		["QManaLastHit"] = 50,
-		["_tsInstances"] = {
-		},
+		["teammateshield1"] = false,
+		["mindmgpercent"] = 20,
+		["teammateshield3"] = true,
+		["maxhppercent"] = 100,
+		["skillshots"] = true,
+		["shieldcc"] = true,
+		["shieldslow"] = true,
 	},
 	["Evade"] = {
-		["dodgeEnabled"] = true,
-		["dodgeOnlyDangerous"] = false,
-		["drawEnabled"] = true,
-		["dodgeCircular"] = true,
 		["_tsInstances"] = {
 		},
+		["dodgeCircular"] = true,
+		["dodgeOnlyDangerous"] = false,
+		["drawEnabled"] = true,
+		["dodgeEnabled"] = true,
 		["_param"] = {
 			[2] = {
 				["key"] = 77,
@@ -1102,162 +2669,26 @@ return {
 			},
 		},
 	},
-	["VPrediction"] = {
-		["Mode"] = 1,
-		["_param"] = {
-		},
+	["Evade_dashes"] = {
 		["_tsInstances"] = {
 		},
-	},
-	["Evade_spells_Rupture"] = {
-	},
-	["SV_MAIN_targets_JarvanIV"] = {
-	},
-	["Katarina_clear"] = {
-		["clearW"] = true,
-		["clearOrbJ"] = true,
-		["clearKey"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 84,
-			},
-		},
-		["ClearLane"] = true,
-		["clearE"] = false,
-		["clearOrbM"] = true,
-		["JungleFarm"] = true,
-		["clearQ"] = true,
-		["_tsInstances"] = {
-		},
-	},
-	["Wukong_clear"] = {
-	},
-	["HFPDarkAlex_STS"] = {
-	},
-	["Evade_spells_rivenizunablade"] = {
-	},
-	["Cassiopeia_Drawings_circle3"] = {
-		["circle3quality"] = 165,
-		["circle3color"] = {
-			[1] = 255,
-			[2] = 255,
-			[3] = 255,
-			[4] = 255,
-		},
-		["_tsInstances"] = {
-		},
+		["dash12"] = 5,
 		["_param"] = {
 		},
-		["circle3enabled"] = false,
-		["circle3width"] = 1,
+		["dash0"] = 2,
+		["dash2"] = 1,
 	},
-	["Evade_spells_ZyraGraspingRoots"] = {
+	["Evade_spells_ViQ!"] = {
 	},
-	["aesezreal_basicSubMenu"] = {
-		["scriptFarm"] = false,
-		["aoeR"] = false,
-		["scriptHarass"] = false,
-		["scriptCombo"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-			[2] = {
-				["key"] = 67,
-			},
-			[3] = {
-				["key"] = 90,
-			},
-			[4] = {
-				["key"] = 90,
-			},
-		},
-		["_tsInstances"] = {
-		},
+	["Evade_spells_GravesClusterShot"] = {
 	},
-	["Jax_misc"] = {
-	},
-	["Evade_spells_KarmaQ"] = {
-	},
-	["Evade_spells_MissileBarrage"] = {
-	},
-	["Evade_spells_NamiR"] = {
-		["useSpellsInside"] = true,
-		["isDangerous"] = true,
-		["enabled"] = true,
-		["dangerLevel"] = 3,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["AutoItems"] = {
-		["drawranges"] = false,
-		["dfg"] = false,
-		["AllItems"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 221,
-			},
-			[2] = {
-				["key"] = 219,
-			},
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["srcSpellClass"] = {
-	},
-	["HFPDarkAlex_Drawings_circle1"] = {
-	},
-	["Jax_misc_smisc"] = {
-	},
-	["Jinx_Draw"] = {
-		["DrawR"] = false,
-		["_param"] = {
-		},
-		["DrawOtherQ"] = false,
-		["DrawW"] = true,
-		["DrawE"] = false,
-		["_tsInstances"] = {
-		},
-	},
-	["sidasacpluginKatarina"] = {
-	},
-	["SV_MAIN_anticapcloser_LeeSinQ"] = {
-	},
-	["SV_MAIN_targets_Vi"] = {
-	},
-	["Nasus_ks"] = {
-	},
-	["Evade_spells_AhriOrbofDeception2"] = {
-	},
-	["ShadowVayne_targets_Shyvana"] = {
-	},
-	["aesezreal"] = {
-	},
-	["SV_MAIN_targets_Shen"] = {
+	["Evade_spells_FizzMarinerDoom"] = {
 	},
 	["Evade_spells_khazixelong"] = {
 	},
-	["Evade_spells_SonaCrescendo"] = {
-		["useSpellsInside"] = true,
-		["isDangerous"] = true,
-		["enabled"] = true,
-		["dangerLevel"] = 5,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
 	["ShadowVayne_keysetting"] = {
-		["mixedmode"] = false,
-		["laneclear"] = false,
 		["_tsInstances"] = {
 		},
-		["basiccondemn"] = false,
-		["autocarry"] = false,
-		["lasthit"] = false,
 		["_param"] = {
 			[1] = {
 				["key"] = 88,
@@ -1267,1457 +2698,109 @@ return {
 			},
 			[4] = {
 				["key"] = 67,
+			},
+			[3] = {
+				["key"] = 84,
 			},
 			[5] = {
 				["key"] = 69,
 			},
-			[3] = {
-				["key"] = 84,
-			},
 		},
-	},
-	["evelynncombo"] = {
-		["drawtext"] = true,
-		["harass"] = false,
-		["drawcircles"] = false,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 1,
-			},
-		},
-		["autoignite"] = true,
-		["scriptActive"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-			[2] = {
-				["key"] = 84,
-			},
-			[3] = {
-				["key"] = 67,
-			},
-		},
-		["autoFarm"] = false,
-	},
-	["towerRange_enemyConfig"] = {
-		["distanceBasedOpacity"] = true,
-		["opacity"] = 64,
-		["showAggro"] = true,
-		["showRange"] = true,
-		["hideDistance"] = 1200,
-		["_tsInstances"] = {
-		},
-		["_param"] = {
-		},
-	},
-	["Enlightened_ta_basic"] = {
-	},
-	["Evade_spells_BrandFissure"] = {
-	},
-	["Evade_spells_GravesClusterShot2!"] = {
-	},
-	["Cassiopeia_Drawings"] = {
-	},
-	["Jax_combo"] = {
-		["comboKey"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-		},
-		["useW"] = true,
-		["comboItems"] = true,
-		["_tsInstances"] = {
-		},
-	},
-	["Evade_spells_VarusE"] = {
-	},
-	["Evade_spells_LuxMaliceCannon"] = {
-	},
-	["SV_MAIN_permashowsettings"] = {
-	},
-	["Evade_spells_WildCards"] = {
-	},
-	["mkcLeona"] = {
-		["AutoUlt"] = true,
-		["drawcircles"] = true,
-		["scriptActive"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-			[2] = {
-				["key"] = 67,
-			},
-		},
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 4,
-			},
-		},
-	},
-	["SV_MAIN_targets_Braum"] = {
-	},
-	["Evade_spells_ZiggsR"] = {
-		["useSpellsInside"] = true,
-		["isDangerous"] = true,
-		["enabled"] = true,
-		["dangerLevel"] = 4,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["Evade_spells_ZiggsW"] = {
-		["useSpellsInside"] = true,
-		["enabled"] = true,
-		["dangerLevel"] = 2,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["SV_MAIN_anticapcloser_GravesE"] = {
-	},
-	["Lulu_HarassSub"] = {
-	},
-	["SV_SOW"] = {
-	},
-	["DianaCombo"] = {
-		["drawcirclesSelf"] = true,
-		["Harass"] = false,
-		["autoignite"] = true,
-		["BurstCombo"] = false,
-		["autoMinion"] = false,
-		["orbWalk"] = true,
-		["drawText"] = true,
-		["drawcirclesEnemy"] = true,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-			[2] = {
-				["key"] = 67,
-			},
-			[3] = {
-				["key"] = 90,
-			},
-		},
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 4,
-			},
-		},
-		["ultKS"] = true,
-		["useE"] = true,
-	},
-	["Evade_spells_LeblancSoulShackleM"] = {
-	},
-	["Evade_spells_FizzMarinerDoom"] = {
-	},
-	["Evade_spells_DarkBindingMissile"] = {
-	},
-	["Evade_advanced"] = {
-		["crossLinear"] = true,
-		["crossCircular"] = true,
-		["_param"] = {
-		},
-		["crossRectangle"] = true,
-		["crossTriangle"] = true,
-		["_tsInstances"] = {
-		},
-	},
-	["EliseCombo"] = {
-	},
-	["minimapTimers"] = {
-		["textOnMap"] = true,
-		["textOnRespawnBefore"] = true,
-		["adviceTheirMonsters"] = true,
-		["pingOnRespawnBefore"] = false,
-		["_param"] = {
-		},
-		["textOnRespawn"] = true,
-		["pingOnRespawn"] = false,
-		["adviceBefore"] = 10,
-		["_tsInstances"] = {
-		},
-	},
-	["Evade_spells_ZedShuriken"] = {
-	},
-	["Evade_spells_EliseHumanE"] = {
-	},
-	["SV_MAIN_targets_Ziggs"] = {
-	},
-	["TristanaHelper"] = {
-		["drawcirclesSelf"] = true,
-		["Harass"] = true,
-		["autoignite"] = true,
-		["scriptActive"] = false,
-		["useR"] = true,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-			[2] = {
-				["key"] = 67,
-			},
-			[4] = {
-				["key"] = 90,
-			},
-			[3] = {
-				["key"] = 84,
-			},
-			[5] = {
-				["key"] = 90,
-			},
-		},
-		["movement"] = true,
-		["drawcirclesEnemy"] = true,
-		["ultCombo"] = false,
-		["autojump"] = true,
-		["autoult"] = true,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 1,
-			},
-		},
-	},
-	["Evade_spells_JinxR"] = {
-	},
-	["Evade_spells_DravenRCast"] = {
-	},
-	["Karthus"] = {
-		["autoUlt"] = false,
-		["poke"] = false,
-		["autoNotify"] = true,
-		["autoE"] = true,
-		["scriptActive"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-			[2] = {
-				["key"] = 67,
-			},
-			[4] = {
-				["key"] = 90,
-			},
-			[3] = {
-				["key"] = 84,
-			},
-			[5] = {
-				["key"] = 88,
-			},
-		},
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 7,
-			},
-		},
-	},
-	["Evade_spells_AhriOrbofDeception"] = {
-	},
-	["Ryze_Settings"] = {
-	},
-	["Katarina_misc"] = {
-		["wardJumpKey"] = false,
-		["uTM"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 71,
-			},
-		},
-		["AutoLevelSkills"] = 3,
-		["HPHealth"] = 50,
-		["aHP"] = false,
-		["jumpAllies"] = true,
-		["ZWItems"] = true,
-		["ZWHealth"] = 15,
-		["_tsInstances"] = {
-		},
-	},
-	["jaycetherapist"] = {
-	},
-	["Katarina_combo"] = {
-		["detonateQ"] = true,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-		},
-		["comboOrbwalk"] = true,
-		["comboKey"] = false,
-		["autoE"] = true,
-		["stopUlt"] = true,
-		["comboItems"] = true,
-		["_tsInstances"] = {
-		},
-	},
-	["Evade_spells_JarvanIVDragonStrike"] = {
-	},
-	["Evade_spells_ZedShuriken2"] = {
-	},
-	["Evade_spells_BrandBlaze"] = {
-	},
-	["SV_MAIN_vip"] = {
-	},
-	["Evade_spells_ViQ!"] = {
-	},
-	["Evade_spells_VarusR"] = {
-	},
-	["Evade_spells_CaitlynPiltoverPeacemaker"] = {
-		["useSpellsInside"] = true,
-		["enabled"] = true,
-		["dangerLevel"] = 1,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["sidasacautocarry"] = {
-	},
-	["Enlightened_extra_alvl"] = {
-	},
-	["SV_MAIN_bilgesettings"] = {
-		["bilgealways"] = false,
-		["bilgeautocarry"] = true,
-		["bilgemaxheal"] = 59,
-		["bilgemixedmode"] = false,
-		["bilgeminheal"] = 72,
-		["_param"] = {
-		},
-		["bilgelaneclear"] = false,
-		["bilgelasthit"] = false,
-		["_tsInstances"] = {
-		},
-	},
-	["Evade_spells_EzrealMysticShotPulse"] = {
-	},
-	["KarthusSBTW"] = {
-		["harass"] = false,
-		["autoWall"] = true,
-		["scriptActive"] = false,
-		["autoEH"] = true,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-			[2] = {
-				["key"] = 67,
-			},
-		},
-		["autoUlt"] = true,
-		["drawafterult"] = true,
-		["drawcircles"] = true,
-		["autoE"] = true,
-		["chatNotify"] = true,
-		["pingNotify"] = true,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 1,
-			},
-		},
-	},
-	["ShadowVayne_autolevel"] = {
-	},
-	["Wukong"] = {
-	},
-	["Katarina_farming"] = {
-		["wFarm"] = true,
-		["qFarm"] = true,
-		["_tsInstances"] = {
-		},
-		["farmKey"] = false,
-		["eFarm"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 90,
-			},
-		},
-	},
-	["VayneAssistant"] = {
-		["autoCondemn"] = true,
-		["switchKey"] = true,
-		["_tsInstances"] = {
-		},
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-		},
-	},
-	["leblanccombo"] = {
-		["drawtext"] = true,
-		["harass"] = false,
-		["drawprediction"] = true,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-			[2] = {
-				["key"] = 67,
-			},
-		},
-		["scriptActive"] = false,
-		["drawcircles"] = true,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 8,
-			},
-		},
-	},
-	["Evade_spells_LucianQ"] = {
-	},
-	["Evade_spells_ZiggsQ"] = {
-		["useSpellsInside"] = true,
-		["enabled"] = true,
-		["dangerLevel"] = 1,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["Shaco"] = {
-		["Harass"] = false,
-		["Escape"] = false,
-		["DrawCircles"] = true,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-			[2] = {
-				["key"] = 67,
-			},
-			[3] = {
-				["key"] = 90,
-			},
-		},
-		["Movement"] = false,
-		["Active"] = false,
-		["Ulti"] = true,
-		["AutoShiv"] = true,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 1,
-			},
-		},
-	},
-	["sidasacstreaming"] = {
-		["MaxRand"] = 775,
-		["MinRand"] = 401,
-		["Colour"] = 0,
-		["ShowClick"] = false,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["Cassiopeia_STS"] = {
-		["mode"] = 2,
-		["Selected"] = true,
-		["_tsInstances"] = {
-		},
-		["_param"] = {
-		},
-	},
-	["Evade_spells_EzrealMysticShot"] = {
-	},
-	["yasuo_SMharass"] = {
-	},
-	["SidasLux"] = {
-		["harass"] = false,
-		["jungleSteal"] = true,
-		["useUlt"] = true,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-			[2] = {
-				["key"] = 84,
-			},
-		},
-		["movement"] = true,
-		["draw"] = true,
-		["combo"] = false,
-		["killSteal"] = true,
-		["autoE"] = true,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 7,
-			},
-		},
-		["attackSpark"] = true,
-		["useE"] = true,
-	},
-	["Cassiopeia_Drawings_circle5"] = {
-		["circle5quality"] = 119,
-		["circle5enabled"] = false,
-		["circle5width"] = 1,
-		["_tsInstances"] = {
-		},
-		["circle5color"] = {
-			[1] = 255,
-			[2] = 255,
-			[3] = 255,
-			[4] = 255,
-		},
-		["_param"] = {
-		},
-	},
-	["SV_MAIN_targets_Rammus"] = {
-	},
-	["Enlightened_extra_rwslider"] = {
-	},
-	["Ryze_Config_Config"] = {
-	},
-	["Katarina"] = {
-	},
-	["Better Nerf Irelia_killsteal"] = {
-	},
-	["Cassiopeia_JungleFarm"] = {
-		["_tsInstances"] = {
-		},
-		["UseQ"] = true,
-		["Enabled"] = false,
-		["UseW"] = false,
-		["_param"] = {
-			[4] = {
-				["key"] = 86,
-			},
-		},
-		["UseE"] = true,
-	},
-	["Ziggscombo"] = {
-		["drawtext"] = true,
-		["drawprediction"] = false,
-		["useUlt"] = true,
-		["drawcircles"] = true,
-		["scriptActive"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-		},
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 1,
-			},
-		},
-	},
-	["Enlightened"] = {
-	},
-	["FGE skillshots config"] = {
-		["SonicWave"] = 2,
-		["yasuoq1"] = 1,
-		["_param"] = {
-		},
-		["OrbofDeception"] = 1,
-		["yasuoq3"] = 2,
-		["yasuoq2"] = 1,
-		["ZiggsQ"] = 2,
-		["Charm"] = 2,
-		["OrbofDeceptionBack"] = 1,
-		["_tsInstances"] = {
-		},
-	},
-	["SV_MAIN_draw"] = {
-		["DrawERange"] = false,
-		["DrawAAColor"] = 4,
-		["DrawAARange"] = true,
-		["DrawEColor"] = 1,
-		["DrawNeededAutohits"] = false,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["yicombo"] = {
-		["drawtext"] = true,
-		["drawcircles"] = true,
-		["autoQ"] = true,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 1,
-			},
-		},
-		["autoignite"] = true,
-		["scriptActive"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-		},
-		["drawenemy"] = false,
-	},
-	["yasuo_SMother"] = {
-	},
-	["Evade_spells_MissileBarrage!"] = {
-	},
-	["Enlightened_draw_prdraw"] = {
-	},
-	["Evade_spells_VeigarDarkMatter"] = {
-		["isDangerous"] = true,
-		["enabled"] = true,
-		["dangerLevel"] = 1,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["Evade_spells_KogMawLivingArtillery"] = {
-	},
-	["SV_MAIN_keysetting"] = {
 		["mixedmode"] = false,
-		["AutoCarryOrb"] = 1,
-		["LaneClearOrb"] = 1,
-		["LastHitOrb"] = 1,
-		["MixedModeOrb"] = 1,
 		["laneclear"] = false,
-		["togglemode"] = false,
 		["autocarry"] = false,
 		["lasthit"] = false,
-		["threshlantern"] = false,
-		["basiccondemn"] = true,
-		["_param"] = {
-			[3] = {
-				["key"] = 84,
-			},
-			[7] = {
-				["key"] = 88,
-			},
-			[8] = {
-				["key"] = 86,
-			},
-			[2] = {
-				["key"] = 84,
-			},
-			[9] = {
-				["key"] = 90,
-			},
-			[10] = {
-				["key"] = 67,
-			},
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["LeeSincombo"] = {
-		["drawtext"] = true,
-		["rClose"] = false,
-		["autoignite"] = true,
-		["scriptActive"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-			[2] = {
-				["key"] = 71,
-			},
-			[3] = {
-				["key"] = 67,
-			},
-			[4] = {
-				["key"] = 90,
-			},
-		},
-		["autoult"] = true,
-		["drawcirclesSelf"] = true,
-		["drawcirclesEnemy"] = false,
-		["wardjump"] = false,
-		["qDodge"] = false,
-		["useUlti"] = true,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 1,
-			},
-		},
-	},
-	["Evade_spells_LucianW"] = {
-	},
-	["Lulu_Draw"] = {
-		["DrawQ2"] = false,
-		["_param"] = {
-		},
-		["DrawR"] = false,
-		["DrawPix"] = false,
-		["DrawTarget"] = false,
-		["DrawQ"] = false,
-		["DrawW"] = false,
-		["DrawQPrediction"] = false,
-		["_tsInstances"] = {
-		},
-	},
-	["Better Nerf Irelia_drawings"] = {
-	},
-	["Ahri Helper"] = {
-		["attacks"] = true,
-		["Harass"] = true,
-		["autoignite"] = true,
-		["scriptActive"] = false,
-		["useR"] = true,
-		["_param"] = {
-			[1] = {
-				["key"] = 84,
-			},
-			[2] = {
-				["key"] = 67,
-			},
-			[3] = {
-				["key"] = 88,
-			},
-		},
-		["movement"] = true,
-		["drawcirclesSelf"] = false,
-		["drawcirclesEnemy"] = true,
-		["mouseDash"] = true,
-		["Charm"] = false,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 1,
-			},
-		},
-		["useE"] = true,
-	},
-	["Better Nerf Irelia_jclear"] = {
-		["clear"] = false,
-		["useitems"] = true,
-		["useQ"] = true,
-		["_param"] = {
-			[1] = {
-				["key"] = 67,
-			},
-		},
-		["useW"] = true,
-		["useR"] = false,
-		["_tsInstances"] = {
-		},
-	},
-	["Katarina_drawing"] = {
-		["disableAll"] = false,
-		["drawText"] = true,
-		["_param"] = {
-		},
-		["drawQ"] = true,
-		["drawTargetText"] = true,
-		["drawW"] = false,
-		["drawE"] = false,
-		["_tsInstances"] = {
-		},
-	},
-	["aesezreal_aggressiveSubMenu_finisherSettings"] = {
-		["finishQ"] = true,
-		["_param"] = {
-			[3] = {
-				["key"] = 82,
-			},
-		},
-		["finishR"] = false,
-		["finishW"] = true,
-		["_tsInstances"] = {
-		},
-	},
-	["Jax_misc_e"] = {
-		["whenTo"] = 3,
-		["howTo"] = 1,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["Evade_spells_ThreshQ"] = {
-	},
-	["Cassiopeia_Drawings_circle2"] = {
-		["circle2color"] = {
-			[1] = 255,
-			[2] = 255,
-			[3] = 255,
-			[4] = 255,
-		},
-		["circle2quality"] = 140,
-		["circle2enabled"] = true,
-		["_param"] = {
-		},
-		["circle2width"] = 1,
-		["_tsInstances"] = {
-		},
-	},
-	["VayneAssistant_condemnSubMenu"] = {
-		["disableCondemn2"] = true,
-		["disableCondemn5"] = true,
-		["disableCondemn4"] = true,
-		["disableCondemn3"] = true,
-		["disableCondemn1"] = true,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["Enlightened_rota"] = {
-		["userw"] = 3,
-		["userq"] = 3,
-		["usere"] = 3,
-		["enemyErange"] = 400,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["SV_MAIN_targets_Graves"] = {
-	},
-	["ShadowVayne_targets_Annie"] = {
-	},
-	["SV_MAIN_interrupt_ShenR"] = {
-	},
-	["Evade_spells_InfernalGuardian"] = {
-	},
-	["Cassiopeia_Orbwalking"] = {
-		["Mode0"] = false,
-		["FarmDelay"] = 0,
-		["_param"] = {
-			[8] = {
-				["key"] = 90,
-			},
-			[10] = {
-				["key"] = 88,
-			},
-			[7] = {
-				["key"] = 67,
-			},
-			[9] = {
-				["key"] = 86,
-			},
-		},
-		["ExtraWindUpTime"] = 0,
-		["Mode3"] = false,
-		["Mode2"] = false,
-		["Mode"] = 1,
-		["Enabled"] = true,
-		["Attack"] = 2,
-		["Mode1"] = false,
-		["_tsInstances"] = {
-		},
-	},
-	["Evade_spells_YasuoQW"] = {
-	},
-	["Evade_spells_FlashFrostSpell"] = {
-	},
-	["Evade_spells_LuxLightStrikeKugel"] = {
-		["useSpellsInside"] = false,
-		["isDangerous"] = true,
-		["enabled"] = true,
-		["dangerLevel"] = 3,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["Evade_spells_DianaArc"] = {
-		["useSpellsInside"] = true,
-		["isDangerous"] = true,
-		["enabled"] = true,
-		["dangerLevel"] = 4,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["yasuo_SMblocks"] = {
-	},
-	["AutoVeigar"] = {
-		["autoCage"] = true,
-		["autoLevel"] = true,
-		["deathFireKill"] = true,
-		["autoKill"] = true,
-		["stunEnemiesAttackedByTurret"] = true,
-		["_param"] = {
-			[4] = {
-				["key"] = 88,
-			},
-		},
-		["debug"] = false,
-		["antiStun"] = true,
-		["qfarm"] = true,
-		["autoPotions"] = false,
-		["autoW"] = true,
-		["autoQweakest"] = true,
-		["autoSeraph"] = true,
-		["_tsInstances"] = {
-		},
-	},
-	["HFPDarkAlex_Orbwalking"] = {
-		["Mode0"] = false,
-		["FarmDelay"] = 0,
-		["_param"] = {
-			[8] = {
-				["key"] = 90,
-			},
-			[7] = {
-				["key"] = 67,
-			},
-			[10] = {
-				["key"] = 88,
-			},
-			[9] = {
-				["key"] = 86,
-			},
-		},
-		["ExtraWindUpTime"] = 50,
-		["Mode3"] = false,
-		["Mode2"] = false,
-		["Mode"] = 1,
-		["Enabled"] = true,
-		["Attack"] = 2,
-		["Mode1"] = false,
-		["_tsInstances"] = {
-		},
-	},
-	["Katarina_harass"] = {
-		["detonateQ"] = true,
-		["harassKey"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 67,
-			},
-		},
-		["hMode"] = 2,
-		["harassOrbwalk"] = true,
-		["wharass"] = true,
-		["_tsInstances"] = {
-		},
-	},
-	["Evade_spells_KhazixE"] = {
-	},
-	["SV_MAIN_autoup"] = {
-	},
-	["autosmite"] = {
-		["drawtext"] = true,
-		["smitenashor"] = true,
-		["hold"] = false,
-		["drawcircles"] = true,
-		["switcher"] = true,
-		["drawrange"] = true,
-		["_param"] = {
-			[1] = {
-				["key"] = 78,
-			},
-			[2] = {
-				["key"] = 83,
-			},
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["autoqss"] = {
-		["sonaqss"] = true,
-		["fearqss"] = true,
-		["teemoqss"] = false,
-		["qss"] = true,
-		["mordeqss"] = true,
-		["skarnerqss"] = true,
-		["luluqss"] = true,
-		["luxqss"] = false,
-		["grievousqss"] = true,
-		["suppressionqss"] = true,
-		["exhaustqss"] = true,
-		["nunuqss"] = false,
-		["zileanqss"] = false,
-		["ryzeqss"] = false,
-		["tauntqss"] = true,
-		["stunqss"] = true,
-		["witherqss"] = true,
-		["_param"] = {
-		},
-		["asheqss"] = true,
-		["amumuqss"] = true,
-		["igniteqss"] = true,
-		["Silenceqss"] = false,
-		["fizzqss"] = true,
-		["morganaqss"] = true,
-		["caitqss"] = false,
-		["_tsInstances"] = {
-		},
-	},
-	["Evade_spells_MordekaiserSyphonOfDestruction"] = {
-	},
-	["Evade_spells_KhazixW"] = {
-	},
-	["Wukong_farming"] = {
-		["farmKey"] = true,
-		["lastHit"] = false,
-		["qFarm"] = true,
-		["_tsInstances"] = {
-		},
-		["Mana"] = 35,
-		["eFarm"] = true,
-		["_param"] = {
-			[1] = {
-				["key"] = 90,
-			},
-			[2] = {
-				["key"] = 32,
-			},
-		},
-	},
-	["Jax_misc_w"] = {
-		["howTo"] = 2,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["Better Nerf Irelia_misc_manamanage"] = {
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-		["minmanaharass"] = 25,
-		["minmanafarm"] = 0,
-	},
-	["Enlightened_ta"] = {
-		["_param"] = {
-		},
-		["co"] = 1,
-		["orb"] = 1,
-		["_tsInstances"] = {
-		},
-	},
-	["aesezreal_aggressiveSubMenu_farmingSettings"] = {
-		["farmQ"] = true,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["Freaking Good Evade"] = {
-		["dodgeCConly2"] = false,
-		["evadeBuffer"] = 16,
-		["usedashes"] = true,
-		["lineallways"] = true,
-		["dashPercent"] = 100,
-		["useSummonerFlash"] = true,
-		["resetdodge"] = false,
-		["allowMove"] = true,
-		["dashMouse"] = true,
-		["_param"] = {
-			[4] = {
-				["key"] = 32,
-			},
-			[5] = {
-				["key"] = 77,
-			},
-			[3] = {
-				["key"] = 192,
-			},
-			[12] = {
-				["key"] = 17,
-			},
-		},
-		["dodgeCConly"] = false,
-		["stopCCMoves"] = true,
-		["dodgeEnabled"] = true,
-		["oldDrawing"] = false,
-		["drawEnabled"] = true,
-		["freemovementblock"] = true,
-		["fowdelay"] = 1,
-		["_tsInstances"] = {
-		},
-	},
-	["Nasus_combos"] = {
-		["orb"] = false,
-		["_tsInstances"] = {
-		},
-		["useQ"] = true,
-		["_param"] = {
-		},
-		["useW"] = true,
-		["useR"] = false,
-		["useE"] = true,
-	},
-	["Zed"] = {
-		["wfulldamage"] = true,
-		["scriptActive"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-			[2] = {
-				["key"] = 67,
-			},
-		},
-		["draw"] = true,
-		["wgapclose"] = true,
-		["shuriken"] = false,
-		["drawQ"] = true,
-		["eHarass"] = true,
-		["botrk"] = true,
-		["drawAA"] = true,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 4,
-			},
-		},
-	},
-	["AutoShieldItems"] = {
-	},
-	["Evade_spells_LeonaZenithBlade"] = {
-	},
-	["Cassiopeia_Harass"] = {
-		["_param"] = {
-			[4] = {
-				["key"] = 90,
-			},
-			[5] = {
-				["key"] = 65,
-			},
-		},
-		["_tsInstances"] = {
-		},
-		["UseQ"] = true,
-		["Enabled"] = false,
-		["UseW"] = false,
-		["Enabled2"] = true,
-		["UseE"] = true,
-	},
-	["Evade_collision"] = {
-		["checkBoxes"] = true,
-		["checkHeroes"] = true,
-		["_tsInstances"] = {
-		},
-		["_param"] = {
-		},
-		["checkMinions"] = true,
-	},
-	["Jax_drawing"] = {
-	},
-	["Nasus_draw"] = {
-	},
-	["SV_MAIN_interrupt_CaitlynR"] = {
-	},
-	["Wukong_combo"] = {
-	},
-	["SV_MAIN_anticapcloser_JarvanIVQ"] = {
-	},
-	["Nasus_ult"] = {
-	},
-	["Cassiopeia_Drawings_circle1"] = {
-		["circle1quality"] = 170,
-		["circle1enabled"] = true,
-		["circle1width"] = 1,
-		["circle1color"] = {
-			[1] = 255,
-			[2] = 255,
-			[3] = 255,
-			[4] = 255,
-		},
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["Evade_spells_Volley"] = {
-	},
-	["SV_MAIN_targets_Yasuo"] = {
-	},
-	["Evade_spells_QuinnQ"] = {
-	},
-	["ShadowVayne_anticapcloser_MonkeyKingE"] = {
-	},
-	["SV_MAIN_botrksettings"] = {
-		["botrkalways"] = false,
-		["botrkmixedmode"] = true,
-		["_param"] = {
-		},
-		["botrkautocarry"] = true,
-		["botrklasthit"] = false,
-		["botrkmaxheal"] = 70,
-		["botrkminheal"] = 33,
-		["_tsInstances"] = {
-		},
-		["botrklaneclear"] = false,
-	},
-	["Katarina_killsteal"] = {
-		["itemsKS"] = true,
-		["smartKS"] = true,
-		["_param"] = {
-		},
-		["Ignite"] = true,
-		["ultKS"] = false,
-		["_tsInstances"] = {
-		},
-	},
-	["ShadowVayne_targets_MonkeyKing"] = {
-	},
-	["BrandCombo"] = {
-		["Harass"] = false,
-		["DrawCircles"] = true,
-		["Ignite"] = false,
-		["KS"] = true,
-		["_param"] = {
-			[1] = {
-				["key"] = 88,
-			},
-			[2] = {
-				["key"] = 67,
-			},
-		},
-		["Movement"] = true,
-		["Active"] = false,
-		["DoubleIgnite"] = false,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 1,
-			},
-		},
-	},
-	["Better Nerf Irelia_misc"] = {
-	},
-	["Leblanc_drawing"] = {
-	},
-	["ShadowVayne_autostunn"] = {
-		["accuracy"] = 5,
-		["towerstunn"] = true,
-		["_tsInstances"] = {
-		},
-		["trinket"] = true,
-		["pushDistance"] = 390,
-		["_param"] = {
-		},
-	},
-	["yasuo_SMfarm"] = {
-	},
-	["Evade_spells_UFSlash"] = {
-	},
-	["Leblanc_harass"] = {
-		["harassOrbwalk"] = true,
-		["harassKey"] = false,
-		["secW"] = true,
-		["_tsInstances"] = {
-		},
-		["harassType"] = 2,
-		["_param"] = {
-			[1] = {
-				["key"] = 67,
-			},
-		},
-	},
-	["VayneParameters"] = {
-	},
-	["Better Nerf Irelia"] = {
-		["Debugg"] = false,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["VayneAssistant_settingsSubMenu"] = {
-		["PushAwayGapclosers"] = true,
-		["CondemnAssistant"] = true,
-		["eyeCandy"] = true,
-		["_param"] = {
-		},
-		["pushDistance"] = 300,
-		["_tsInstances"] = {
-		},
-	},
-	["Evade_spells_AhriSeduce"] = {
-	},
-	["autosmite_smiteat"] = {
-	},
-	["towerRange_ownConfig"] = {
-		["distanceBasedOpacity"] = true,
-		["opacity"] = 10,
-		["showRange"] = true,
-		["hideDistance"] = 450,
-		["_tsInstances"] = {
-		},
-		["_param"] = {
-		},
-	},
-	["Leblanc_combo"] = {
+		["basiccondemn"] = false,
 	},
 	["Evade_spells_RocketGrab"] = {
 	},
-	["Wukong_harass"] = {
-		["qharass"] = true,
-		["harassKey"] = false,
-		["hMode"] = 1,
-		["wEscape"] = true,
-		["harassOrbwalk"] = true,
-		["_param"] = {
-			[2] = {
-				["key"] = 67,
-			},
-		},
+	["Enlightened_extra_rwslider"] = {
+	},
+	["Evade_spells_HowlingGale"] = {
 		["_tsInstances"] = {
 		},
+		["useSpellsInside"] = true,
+		["enabled"] = true,
+		["_param"] = {
+		},
+		["dangerLevel"] = 3,
+		["isDangerous"] = false,
 	},
-	["Galiocombo"] = {
-		["scriptActive"] = false,
-		["silenceR"] = true,
-		["useW"] = true,
-		["drawcircles"] = true,
-		["autoignite"] = true,
-		["autolvl"] = true,
+	["Evade_spells_ZiggsE"] = {
+		["_tsInstances"] = {
+		},
+		["useSpellsInside"] = true,
+		["_param"] = {
+		},
+		["dangerLevel"] = 1,
+		["enabled"] = true,
+	},
+	["VayneAssistant_settingsSubMenu"] = {
+		["_tsInstances"] = {
+		},
+		["eyeCandy"] = true,
+		["pushDistance"] = 300,
+		["_param"] = {
+		},
+		["PushAwayGapclosers"] = true,
+		["CondemnAssistant"] = true,
+	},
+	["Evade_spells_DarkBindingMissile"] = {
+	},
+	["SV_MAIN_anticapcloser_JarvanIVQ"] = {
+	},
+	["Evade_spells_MissileBarrage!"] = {
+	},
+	["Evade_spells_Volley"] = {
+	},
+	["Karthus"] = {
+		["_tsInstances"] = {
+			[1] = {
+				["mode"] = 7,
+			},
+		},
 		["_param"] = {
 			[1] = {
 				["key"] = 88,
 			},
+			[2] = {
+				["key"] = 67,
+			},
+			[4] = {
+				["key"] = 90,
+			},
+			[5] = {
+				["key"] = 88,
+			},
+			[3] = {
+				["key"] = 84,
+			},
 		},
+		["poke"] = false,
+		["autoNotify"] = true,
+		["autoUlt"] = false,
+		["scriptActive"] = false,
+		["autoE"] = true,
+	},
+	["ziggscombo"] = {
 		["_tsInstances"] = {
 			[1] = {
 				["mode"] = 1,
 			},
 		},
-	},
-	["Evade_spells_EnchantedCrystalArrow"] = {
-	},
-	["TFHelper"] = {
-		["drawultarrow"] = true,
-		["selectgold"] = false,
-		["onlywithmana"] = true,
-		["selectblue"] = false,
-		["onlygoldcard"] = true,
+		["autoCombo"] = true,
+		["drawcircles"] = true,
 		["_param"] = {
 			[1] = {
-				["key"] = 32,
-			},
-			[8] = {
-				["key"] = 67,
-			},
-			[7] = {
 				["key"] = 88,
 			},
-			[9] = {
-				["key"] = 90,
-			},
 		},
-		["active"] = false,
-		["autoq"] = true,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 4,
-			},
-		},
-		["selectred"] = false,
-		["attackaftercard"] = true,
-	},
-	["Oriannacombo"] = {
-	},
-	["Vaynity"] = {
-	},
-	["Evade_spells_JayceShockBlast!"] = {
-	},
-	["Evade_spells_KennenShurikenHurlMissile1"] = {
-	},
-	["Evade_spells_OrianaRedactCommand"] = {
-	},
-	["Nasus"] = {
-	},
-	["Jax_harass"] = {
-	},
-	["yasuo"] = {
-		["harass"] = false,
-		["flee"] = false,
-		["sbtw"] = false,
-		["smartfarm"] = false,
-		["_param"] = {
-			[1] = {
-				["key"] = 86,
-			},
-			[2] = {
-				["key"] = 90,
-			},
-			[4] = {
-				["key"] = 88,
-			},
-			[3] = {
-				["key"] = 67,
-			},
-			[5] = {
-				["key"] = 84,
-			},
-		},
-		["farm"] = false,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 5,
-			},
-		},
-	},
-	["Evade_spells_NamiQ"] = {
-		["useSpellsInside"] = true,
-		["isDangerous"] = true,
-		["enabled"] = true,
-		["dangerLevel"] = 3,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["yasuo_SMult"] = {
-		["autoRMin"] = true,
-		["autoR"] = true,
-		["minRTargets"] = 2,
-		["autoRPercent"] = 1,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["Evade_spells_AlZaharCalloftheVoid"] = {
-	},
-	["SV_MAIN_anticapcloser_JarvanIVR"] = {
-	},
-	["Better Nerf Irelia_drawings_spells"] = {
-	},
-	["SV_MAIN_anticapcloser"] = {
-		["OverwriteLaneClear"] = false,
-		["OverwriteMixedMode"] = false,
-		["OverwriteLastHit"] = false,
-		["OverwriteAutoCarry"] = false,
-		["OverwriteAlways"] = false,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["Nasus_hp"] = {
-	},
-	["AutoSummonerBarrier"] = {
-	},
-	["Cassiopeia_Drawings_circle6"] = {
-	},
-	["SV_MAIN_targets_Vladimir"] = {
-	},
-	["sidasaclasthit"] = {
-		["Toggle"] = false,
-		["_param"] = {
-			[3] = {
-				["key"] = 67,
-			},
-		},
-		["Active"] = false,
-		["_tsInstances"] = {
-		},
-	},
-	["Cassiopeia_Ultimate"] = {
-		["AutoAim"] = false,
-		["_param"] = {
-			[2] = {
-				["key"] = 90,
-			},
-		},
-		["Auto"] = 3,
-		["_tsInstances"] = {
-		},
-	},
-	["SV_MAIN_targets_Jayce"] = {
+		["scriptActive"] = false,
 	},
 	["Cassiopeia_Drawings_circle4"] = {
-		["circle4enabled"] = false,
+		["_tsInstances"] = {
+		},
 		["circle4quality"] = 170,
-		["circle4width"] = 1,
 		["circle4color"] = {
 			[1] = 255,
 			[2] = 255,
@@ -2726,14 +2809,33 @@ return {
 		},
 		["_param"] = {
 		},
+		["circle4enabled"] = false,
+		["circle4width"] = 1,
+	},
+	["Enlightened_draw_prdraw"] = {
+	},
+	["SV_MAIN_interrupt_ShenR"] = {
+	},
+	["Evade_spells_JinxWMissile"] = {
+	},
+	["Evade_advanced"] = {
 		["_tsInstances"] = {
 		},
+		["crossRectangle"] = true,
+		["crossLinear"] = true,
+		["crossCircular"] = true,
+		["crossTriangle"] = true,
+		["_param"] = {
+		},
 	},
-	["Evade_spells_CassiopeiaNoxiousBlast"] = {
+	["Evade_spells_EliseHumanE"] = {
 	},
-	["Jinx"] = {
-		["Harass"] = false,
-		["Farm"] = false,
+	["Better Nerf Irelia_killsteal"] = {
+	},
+	["anniecombo"] = {
+		["useE"] = true,
+		["panic"] = false,
+		["drawcircles"] = true,
 		["_param"] = {
 			[1] = {
 				["key"] = 88,
@@ -2745,72 +2847,16 @@ return {
 				["key"] = 67,
 			},
 		},
-		["Combo"] = false,
-		["_tsInstances"] = {
-			[1] = {
-				["mode"] = 8,
-			},
-		},
-	},
-	["Thresh"] = {
-		["BoxCount"] = 3,
-		["Marker"] = true,
-		["BoxRange"] = 400,
-		["Push"] = false,
-		["Hook"] = false,
-		["Ignite"] = true,
-		["_param"] = {
-			[1] = {
-				["key"] = 69,
-			},
-			[2] = {
-				["key"] = 84,
-			},
-			[3] = {
-				["key"] = 81,
-			},
-			[4] = {
-				["key"] = 65,
-			},
-		},
-		["AExhaust"] = true,
-		["Pull"] = false,
-		["DrawAssist"] = true,
-		["DoubleIgnite"] = true,
-		["Box"] = true,
-		["Escape"] = false,
+		["harass"] = false,
+		["drawKillable"] = true,
+		["Mect"] = 2,
 		["_tsInstances"] = {
 			[1] = {
 				["mode"] = 1,
 			},
 		},
+		["scriptActive"] = false,
 	},
-	["sidasaclaneclear"] = {
-	},
-	["SV_MAIN_tssetting"] = {
-		["_param"] = {
-		},
-		["UsedTS"] = 1,
-		["_tsInstances"] = {
-		},
-	},
-	["aesezreal_aggressiveSubMenu_harassSettings"] = {
-		["harassW"] = true,
-		["harassQ"] = true,
-		["_param"] = {
-		},
-		["_tsInstances"] = {
-		},
-	},
-	["SV_TSS_STS"] = {
-		["1F7514D76CFF9323ABA04DBB10BDA1ED"] = 3,
-		["0527B5A0039D6493CD505200A2F6427B"] = 1,
-		["_tsInstances"] = {
-		},
-		["506BF08374358F083BCCEC9B7F66892D"] = 4,
-		["_param"] = {
-		},
-		["31062BEACC3D0885A9DA72288ACED30F"] = 2,
-		["862F10ED056F3A6CEEF950E320289EA7"] = 3,
+	["Jax_Orbwalking"] = {
 	},
 }

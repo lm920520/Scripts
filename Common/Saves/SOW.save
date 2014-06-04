@@ -1,8 +1,8 @@
 return {
-	["Mode0"] = 88,
-	["ExtraWindUpTime"] = 0,
 	["FarmDelay"] = 0,
-	["Mode2"] = 86,
-	["Mode3"] = 67,
 	["Mode1"] = 90,
+	["Mode2"] = 86,
+	["ExtraWindUpTime"] = 0,
+	["Mode0"] = 88,
+	["Mode3"] = 67,
 }

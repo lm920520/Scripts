@@ -33,6 +33,7 @@ local eBuffer = 300
 local nextTick = 0
 local waitDelay = 400
 --[[	Damage Calculation	]]--
+local MainCombo = {_Q, _AA, _AA, _Q, _R, _R, _IGNITE}
 local calculationenemy = 1
 local killable = {}
 local waittxt = {}
@@ -48,9 +49,28 @@ local ignite = nil
 local QREADY, WREADY, EREADY, RREADY  = false, false, false, false
 local BRKSlot, DFGSlot, HXGSlot, BWCSlot, TMTSlot, RAHSlot, RNDSlot, YGBSlot = nil, nil, nil, nil, nil, nil, nil, nil
 local BRKREADY, DFGREADY, HXGREADY, BWCREADY, TMTREADY, RAHREADY, RNDREADY, YGBREADY = false, false, false, false, false, false, false, false
+--[[	Libs	]]--
+local SOURCELIB_URL = "https://raw.github.com/TheRealSource/public/master/common/SourceLib.lua"
+local SOURCELIB_PATH = LIB_PATH.."SourceLib.lua"
 
-function OnLoad()
-	PrintChat("<font color='#CCCCCC'> >> Fiora Combo 1.2.2 loaded! <<</font>")
+if FileExist(SOURCELIB_PATH) then
+	require("SourceLib")
+else
+	DOWNLOADING_SOURCELIB = true
+	DownloadFile(SOURCELIB_URL, SOURCELIB_PATH, function() print("Required libraries downloaded successfully, please reload") end)
+end
+
+if DOWNLOADING_SOURCELIB then print("Downloading required libraries, please wait...") return end
+
+local RequireI = Require("SourceLib")
+RequireI:Add("vPrediction", "https://raw.githubusercontent.com/AWABoL150/BoL/master/Honda7-Scripts/common/VPrediction.lua")
+RequireI:Add("SOW", "https://raw.githubusercontent.com/AWABoL150/BoL/master/Honda7-Scripts/common/SOW.lua")
+RequireI:Check()
+
+if RequireI.downloadNeeded == true then return end
+--[[	Body	]]--
+function OnLoad()	
+	PrintChat("<font color='#ff8000'> >> Fiora Combo 1.2.2 loaded! <<</font>")
 	FCConfig = scriptConfig("Fiora Combo", "FioraCombo")
 	FCConfig:addParam("scriptActive", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
 	FCConfig:addParam("autoParry", "Auto Parry", SCRIPT_PARAM_ONKEYTOGGLE, true, 90)
@@ -64,12 +84,14 @@ function OnLoad()
 	FCConfig:addParam("drawcirclesSelf", "Draw Circles - Self", SCRIPT_PARAM_ONOFF, false)
 	FCConfig:addParam("drawcirclesEnemy", "Draw Circles - Enemy", SCRIPT_PARAM_ONOFF, false)
 	FCConfig:addParam("drawtextEnemy", "Draw Text - Enemy", SCRIPT_PARAM_ONOFF, false)
+	FCConfig:addParam("drawMinions", "Draw Killable Minions", SCRIPT_PARAM_ONOFF, true)
 	FCConfig:addParam("qBuffer", "Min Q distance",SCRIPT_PARAM_SLICE, 250, 0, 600, 2)
 	FCConfig:addParam("waitDelay", "Delay before 2nd Q(ms)",SCRIPT_PARAM_SLICE, 400, 0, 800, 2)
 	FCConfig:permaShow("scriptActive")
 	FCConfig:permaShow("autoParry")
 	FCConfig:permaShow("autoks")
-	ts = TargetSelector(TARGET_LOW_HP, qRange+50, DAMAGE_PHYSICAL)
+	FCConfig:permaShow("useR")
+	ts = TargetSelector(TARGET_LOW_HP, 650, DAMAGE_PHYSICAL)
 	ts.name = "Fiora"
 	FCConfig:addTS(ts)
 	LastBasicAttack = os.clock()
@@ -210,6 +232,7 @@ function OnTick()
 end
 
 function OnDraw()	
+	if myHero.dead then return end
 	if FCConfig.drawcirclesSelf and not myHero.dead then
 		DrawCircle(myHero.x, myHero.y, myHero.z, qRange, 0x00FF00)
 		DrawCircle(myHero.x, myHero.y, myHero.z, rRange, 0xFF0000)
@@ -244,6 +267,18 @@ function OnDraw()
 			else waittxt[i] = waittxt[i]-1
 		end
 	end
+	_draw_minion_killable()
+end
+
+function _draw_minion_killable()
+	enemyMinions:update()
+			if not FCConfig.drawMinions then return end
+				for i, minion in pairs(enemyMinions.objects) do
+				if minion ~= nil and 
+					minion.health < getDmg("AD",minion,myHero) then
+						DrawCircle3D(minion.x, minion.y, minion.z, 50, 2,  ARGB(255, 155, 255, 0))
+				end
+			end
 end
 
 --[[
