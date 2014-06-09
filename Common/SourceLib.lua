@@ -3,7 +3,7 @@
 local autoUpdate   = true
 local silentUpdate = false
 
-local version = 1.067
+local version = 1.071
 
 --[[
 
@@ -644,7 +644,7 @@ function Spell:GetPrediction(target)
             end
         elseif self.predictionType == 2 then
             local pos, info = Prodiction.GetPrediction(target, self.range, self.speed, self.delay, self.radius, self.sourcePosition)
-            if info and info.hitchance and info.hitchance >= self.hitChance then
+            if pos and info and info.hitchance then
                 if not self.collision or not info.mCollision() then
                     return pos, info.hitchance, (not self.useAoe and pos or nil)
                 else
@@ -826,7 +826,11 @@ function Spell:__Cast(param1, param2)
 
     if self.packetCast then
         if param1 ~= nil and param2 ~= nil then
-            Packet("S_CAST", {spellId = self.spellId, toX = param1, toY = param2, fromX = param1, fromY = param2}):send()
+            if type(param1) ~= "number" and type(param2) ~= "number" and VectorType(param1) and VectorType(param2) then
+                Packet("S_CAST", {spellId = self.spellId, toX = param2.x, toY = param2.z, fromX = param1.x, fromY = param1.z}):send()
+            else
+                Packet("S_CAST", {spellId = self.spellId, toX = param1, toY = param2, fromX = param1, fromY = param2}):send()
+            end
         elseif param1 ~= nil then
             Packet("S_CAST", {spellId = self.spellId, toX = param1.x, toY = param1.z, fromX = param1.x, fromY = param1.z, targetNetworkId = param1.networkID}):send()
         else
@@ -834,7 +838,11 @@ function Spell:__Cast(param1, param2)
         end
     else
         if param1 ~= nil and param2 ~= nil then
-            CastSpell(self.spellId, param1, param2)
+            if type(param1) ~= "number" and type(param2) ~= "number" and VectorType(param1) and VectorType(param2) then
+                Packet("S_CAST", {spellId = self.spellId, toX = param2.x, toY = param2.z, fromX = param1.x, fromY = param1.z}):send()
+            else
+                CastSpell(self.spellId, param1, param2)
+            end
         elseif param1 ~= nil then
             CastSpell(self.spellId, param1)
         else
@@ -1438,9 +1446,18 @@ function _Circle:Draw()
 
     -- Update values if linked spell is given
     if self._linkedSpell then
-        if self._linkedSpellReady and not self._linkedSpell:IsReady() then return end
-        -- Update the radius with the spell range
-        self.radius = self._linkedSpell.range
+        -- Temporary error prevention
+        if not self._linkedSpell.IsReady then
+            if not _G.SourceLibLinkedSpellInformed then
+                _G.SourceLibLinkedSpellInformed = true
+                print("SourceLib: The script \"" .. GetCurrentEnv().FILE_NAME .. "\" is causing issues with circle drawing. Please contact he developer of the named script so he fixes the issue, thanks.")
+            end
+            return
+        else
+            if self._linkedSpellReady and not self._linkedSpell:IsReady() then return end
+            -- Update the radius with the spell range
+            self.radius = self._linkedSpell.range
+        end
     end
 
     -- Menu found
