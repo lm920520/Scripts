@@ -1,7 +1,7 @@
 -- #################################################################################################
 -- ##                                                                                             ##
 -- ##                     Glory Ryze Script                                                       ##
--- ##                                Version 3.8 final                                            ##
+-- ##                                Version 4.0 final                                            ##
 -- ##                                         based of Ultimate Ryze by bnsfg                     ##
 -- ##                                                                                             ##
 -- ##                            Completely Rewritten by Wursti                                   ##
@@ -44,6 +44,24 @@
 -- ## 3.61- Bugfixed!                                                                             ##
 -- ## 3.7 - I hope this Relese fixed the non Save of Settings                                     ##
 -- ## 3.71- Use Ultimate in Jungle Combo is a Key Toggle again (L by default)                     ##
+-- ## 3.8 - Auto Level Up (Q or W,if 1. W then Q or 1. Q then W,E,Q,Q,R,Q,W,Q,W,R,W,W,E,E,R,E,E)  ##
+-- ## 4.0 - AA Function by Auto Carry - Extreme Orb-walking by Sida                               ##
+-- ##       with Updates by Manciuszz with help of eXtragoZ                                       ##
+-- ##       PROBLEM ATM: Needs Reload at Start (F9)                                               ##
+-- #################################################################################################
+
+-- #################################################################################################
+-- ##                                     THX & Credits                                           ##
+-- #################################################################################################
+-- ## Spudgy - Awesome Tool :)                                                                    ##
+-- ## SurfaceS & gReY & Husky - Awesome AllClass and other Syntax Things ;)                       ##
+-- ## Sida & Manciuszz & eXtragoZ & Burn- Auto Carry and other Scripts                            ##
+-- ## bnsfg & TRUS - The Basic Spribt developed by them :)                                        ##
+-- ## Whole Dev Team and Script Developer - Inspring me and their Scripts helping me to           ##
+-- ##                                       understand BOL and lua better ;)                      ##
+-- ## The nice Community of BOL - Helping me when i have Problems ;)                              ##
+-- ## Every User of this Script - Give Feedback and given Feedback improved this Script a lot ;)  ##
+-- ## Everybody Forgotten - I'm sorry if i forgot SB. Drop me a PM and next update you'll be here ##
 -- #################################################################################################
 
 -- #################################################################################################
@@ -57,9 +75,9 @@
 
 if GetMyHero().charName ~= "Ryze" then return end
 
-qRange = 600
-wRange = 600
-eRange = 600 -- Real range is 600
+qRange = 650
+wRange = 625
+eRange = 675 -- Real range is 675
 rRange = 200 -- Range of your ulti AOE
 AARange = 550
 JungleRange = 1000
@@ -70,7 +88,7 @@ local tick = nil
 killable = {}
 turrets = {}
 qcasted = true
-waitDelay = 50
+waitDelay = 400
 nextTick = 0
 CageTurret = nil
 Switch = false
@@ -79,6 +97,21 @@ local ignite = nil
 local DFGSlot, HXGSlot, BWCSlot = nil, nil, nil
 local DFGREADY, HXGREADY, BWCREADY, IREADY = false, false, false, false
 local floattext = {"Cooldown!","Murder him!"}
+local levelSequence = {nil,0,3,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3}
+local myHero = GetMyHero()
+local adjustRange = true
+local attackDelayOffset = 600
+local startAttackSpeed
+local projSpeed
+local lastAttack = GetTickCount()
+local shotFired = false
+local range = 999
+local greenRange = 999
+local isMoving = false
+
+
+
+
 
 function OnLoad()
 	lastcast = _R
@@ -136,7 +169,9 @@ function OnLoad()
 	if RyzeConfigConfig.autoQToggleshow then RyzeConfig:permaShow("autoQToggle") end
 	if RyzeConfigConfig.autoQHarassshow then RyzeConfig:permaShow("autoQHarass") end
 	if RyzeConfigConfig.ComboSwitchshow then RyzeSettings:permaShow("ComboSwitch") end
-	ts = TargetSelector(TARGET_PRIORITY,qRange,DAMAGE_MAGIC,false)
+	PrintChat ("Glory Ryze 4.0 final by Wursti loaded! Credits in Script :)!")
+	PrintChat ("Report Bugs and give Feedback Please :) THX!!")
+	ts = TargetSelector(TARGET_LOW_HP,qRange,DAMAGE_MAGIC,false)
 	ts.name = "Ryze"
 	ASLoadMinions()
 	RyzeConfig:addTS(ts)
@@ -163,6 +198,75 @@ function OnLoad()
 			}
 		end
 	end
+	autoLevelSetSequence(levelSequence)
+	autoLevelSetFunction(onChoiceFunction)
+	
+	range = getMyTrueRange()
+	greenRange = getMyTrueRange()
+	
+	if getChampTable()[myHero.charName] ~= nil then
+		if getChampTable()[myHero.charName].projSpeed ~= nil then
+			projSpeed = getChampTable()[myHero.charName].projSpeed
+		end
+	end
+	if getChampTable()[myHero.charName] ~= nil then
+		if getChampTable()[myHero.charName].startAttackSpeed ~= nil then
+			startAttackSpeed = getChampTable()[myHero.charName].startAttackSpeed
+		end
+	end
+end
+
+function attackEnemy(enemy) -- Commands our hero to attack the target
+	if enemy.dead or not enemy.valid then return end
+	myHero:Attack(enemy)
+	shotFired = true
+end
+
+function getLastAttackTime() -- Returns when we last attacked
+	return lastAttack
+end
+
+function getAttackSpeed() -- Returns our hero's attack speed
+	return myHero.attackSpeed/(1/startAttackSpeed)
+end
+
+function getHitBoxRadius(target)
+    return GetDistance(target.minBBox, target.maxBBox)/2
+end
+
+function getNextAttackTime() -- Returns when we should next attack in miliseconds
+    return getLastAttackTime() + (attackDelayOffset / getAttackSpeed()) -- ~0.5 - 0.6s aaDelay offset or "swing delay" whatever you call it. TODO Even if it works fine, needs changing.
+end
+
+function timeToShoot() -- Returns if it's time for us to attack
+	if GetTickCount() > getNextAttackTime() then
+		return true
+	end
+	return false
+end
+
+function getMyTrueRange()
+	return getRange() + GetDistance(myHero.minBBox)
+end
+
+function getDistanceOffset(enemy) -- We use this for KCConfig.adjustRange feature..
+    local distance = GetDistance(enemy) - getHitBoxRadius(enemy) + 60
+    if distance > getMyTrueRange() then return 0 end
+    return distance / 9.85
+end
+ 
+function getRange() -- Return our hero's range
+	return myHero.range
+end
+
+function isEnemyInAttackRange(enemy) -- Check if we can attack enemy
+    if enemy ~= nil then
+        local enemyTrueDistance = GetDistance(enemy) --[[- getHitBoxRadius(enemy)]]
+        if enemyTrueDistance < range then
+            return true
+        end
+    end
+    return false
 end
 
 
@@ -172,21 +276,79 @@ function doSpell(ts, spell, range)
 	end
 end
 
-function findClosestEnemy()
-local closestEnemy = nil
-local currentEnemy = nil
-for i=1, heroManager.iCount do
-	currentEnemy = heroManager:GetHero(i)
-	if currentEnemy.team ~= myHero.team and not currentEnemy.dead and currentEnemy.visible then
-		if closestEnemy == nil then
-			closestEnemy = currentEnemy
-		elseif GetDistance(currentEnemy) < GetDistance(closestEnemy) then
-			closestEnemy = currentEnemy
+function findClosestEnemy() -- Find the closest enemy
+    local closestEnemy
+    local enemyTable = GetEnemyHeros() --function from latest AllClass library. Stores all enemy champions into a table.
+    for i, currentEnemy in ipairs(enemyTable) do -- we loop the table, getting info from it
+        if currentEnemy.valid and not currentEnemy.dead and currentEnemy.visible then -- check if it's valid
+            if closestEnemy == nil then -- if closestEnemy wasn't aquired
+                closestEnemy = currentEnemy -- assign the currentEnemy as a closest one
+            elseif GetDistance(currentEnemy) < GetDistance(closestEnemy) then -- else compare distances, determine the closest one
+                closestEnemy = currentEnemy -- assign the currentEnemy as a closest one
+            end
+        end
+    end
+    return closestEnemy --make function return this object.
+end
+
+
+function updateRange()
+	if adjustRange then --Just an eye candy feature.
+		local closestEnemy = findClosestEnemy()
+		if closestEnemy ~= nil then
+			if isEnemyInAttackRange(closestEnemy) then
+				if getDistanceOffset(closestEnemy) > 0 then
+					greenRange = (GetDistance(closestEnemy) + getDistanceOffset(closestEnemy)) - getHitBoxRadius(closestEnemy)
+				else
+					greenRange = getMyTrueRange()
+				end
+			else
+				greenRange = getMyTrueRange()
+			end
+		else
+			greenRange = getMyTrueRange()
+		end
+	else
+		range = getMyTrueRange()
+		greenRange = getMyTrueRange()
+	end
+
+	ts:update()
+
+end
+
+function heroCanMove() -- Check if we are ready to step forward.
+    if shotFired == false or timeToShoot() then
+        return true
+    end
+    return false
+end
+
+function moveToCursor() -- Removes derping when mouse is in one position instead of myHero:MoveTo mousePos
+	isMoving = true
+	local moveSqr = math.sqrt((mousePos.x - myHero.x)^2+(mousePos.z - myHero.z)^2)
+	local moveX = myHero.x + 200*((mousePos.x - myHero.x)/moveSqr)
+	local moveZ = myHero.z + 200*((mousePos.z - myHero.z)/moveSqr)
+	myHero:MoveTo(moveX, moveZ)
+end
+
+function attackedSuccessfully() -- Our attack particle was fired
+	shotFired = false -- if we attacked successfully that means we get a swing delay which we have to wait out in order to attack again.
+	lastAttack = GetTickCount()
+end
+
+function doNextAction(enemy) 
+	if enemy ~= nil then
+		if timeToShoot() then
+			attackEnemy(enemy)
+		else
+			if heroCanMove() then moveToCursor() end
 		end
 	end
 end
-return closestEnemy
-end
+
+
+
 
 function OnDraw()
 	if myHero.dead then return end  
@@ -209,6 +371,7 @@ function OnDraw()
 						DrawCircle(enemydraw.x, enemydraw.y, enemydraw.z, 80, 0xFF0000)
 				end
 				if waittxt[i] == 1 and killable[i] ~= 0 then
+					PrintFloatText(enemydraw,0,floattext[killable[i]])
 				end
 				if waittxt[i] == 1 then 
 					waittxt[i] = 30
@@ -295,28 +458,34 @@ function RyzeDmg()
 end
 
 function OnTick()
-checkTurretState()
-ts:update()
-enemyMinions:update()
-if tick == nil or GetTickCount()-tick >= 100 then
-	tick = GetTickCount()
-	RyzeDmg()
-	RyzeItem()
-end
-if math.abs(myHero.cdr*100) >= RyzeSettings.minCDRnew and RyzeSettings.ComboSwitch then
-	Switch = true
-else
-	Switch = false
-end
-CageTurret = findClosestTurret()
-if myHero:GetDistance(CageTurret.object) <= 1250 and CageTurret.team == player.team then
-	InTurretRange = true
-else
-	InTurretRange = false
-end
-if not myHero.dead then
+	if myHero.dead then return end
+	updateRange()
+	checkTurretState()
+	ts:update()
+	enemyMinions:update()
+	if tick == nil or GetTickCount()-tick >= 100 then
+		tick = GetTickCount()
+		RyzeDmg()
+		RyzeItem()
+	end
+	if math.abs(myHero.cdr*100) >= RyzeSettings.minCDRnew and RyzeSettings.ComboSwitch then
+		Switch = true
+	else
+		Switch = false
+	end
+	CageTurret = findClosestTurret()
+	if myHero:GetDistance(CageTurret.object) <= 1250 and CageTurret.team == player.team then
+		InTurretRange = true
+	else
+		InTurretRange = false
+	end
 	if RyzeConfig.useMura then
 		MuramanaToggle(1000, ((player.mana / player.maxMana) > (RyzeSettings.minMuraMana / 100)))
+	end
+	if isEnemyInAttackRange(ts.target) and timeToShoot() and ValidTarget(ts.target) and (RyzeConfig.BurstActive == true or RyzeConfig.LongActive == true) then
+		doNextAction(ts.target)
+	elseif RyzeSettings.autoComboFollow and (RyzeConfig.BurstActive == true or RyzeConfig.LongActive == true) and heroCanMove() then 
+		moveToCursor() 
 	end
 	if RyzeConfig.BurstActive and ValidTarget(ts.target) and Switch == false then
 		if DFGREADY then
@@ -328,20 +497,29 @@ if not myHero.dead then
 		if BWCREADY then
 			CastSpell(BWCSlot, ts.target)
 		end
-		if myHero:CanUseSpell(_Q) == READY then
-				doSpell(ts, _Q, qRange)
-				if RyzeSettings.autoMouseFollow then player:MoveTo(mousePos.x, mousePos.z) end
-			elseif myHero:CanUseSpell(_W) == READY then
-				doSpell(ts, _W, eRange)
-			elseif myHero:CanUseSpell(_E) == READY then
-				doSpell(ts, _E, wRange)
-			if RyzeSettings.autoMouseFollow then player:MoveTo(mousePos.x, mousePos.z) end
-			elseif RyzeConfig.useUlti and myHero:CanUseSpell(_R) == READY then
+		if myHero:CanUseSpell(_W) == READY and myHero:GetDistance(ts.target) > RyzeSettings.whunt then
+			doSpell(ts, _W, wRange)
+			if RyzeSettings.autoMouseFollow then moveToCursor() end
+		elseif myHero:CanUseSpell(_Q) == READY and myHero:GetDistance(ts.target) <= RyzeSettings.whunt then
+			doSpell(ts, _Q, qRange)
+			if RyzeSettings.autoMouseFollow then moveToCursor() end
+			if RyzeConfig.useUlti and myHero:CanUseSpell(_R) == READY then
 				CastSpell(_R)
-			if RyzeSettings.autoMouseFollow then player:MoveTo(mousePos.x, mousePos.z) end
-			elseif myHero:CanUseSpell(_Q) == READY then
-				doSpell(ts, _Q, qRange)
-        end
+				if RyzeSettings.autoMouseFollow then moveToCursor() end
+			end
+		elseif myHero:CanUseSpell(_Q) == READY then
+			doSpell(ts, _Q, qRange)
+			if RyzeSettings.autoMouseFollow then moveToCursor() end
+		elseif RyzeConfig.useUlti and myHero:CanUseSpell(_R) == READY then
+			CastSpell(_R)
+			if RyzeSettings.autoMouseFollow then moveToCursor() end
+		elseif myHero:CanUseSpell(_E) == READY then
+			doSpell(ts, _E, wRange)
+			if RyzeSettings.autoMouseFollow then moveToCursor() end
+		elseif myHero:CanUseSpell(_W) == READY then
+			doSpell(ts, _W, eRange)
+			if RyzeSettings.autoMouseFollow then moveToCursor() end
+		end
 	elseif (RyzeConfig.LongActive or (Switch and RyzeConfig.BurstActive)) and ValidTarget(ts.target) then
 		if DFGREADY then
 			CastSpell(DFGSlot, ts.target)
@@ -354,41 +532,41 @@ if not myHero.dead then
 		end
 		if myHero:CanUseSpell(_Q) == READY and myHero:GetDistance(ts.target) <= RyzeSettings.whunt then
 			doSpell(ts, _Q, qRange)
-			if RyzeSettings.autoMouseFollow then player:MoveTo(mousePos.x, mousePos.z) end
+			if RyzeSettings.autoMouseFollow then moveToCursor() end
 			qcasted = true
 			if RyzeConfig.useUlti and myHero:CanUseSpell(_R) == READY and qcasted == true and myHero:CanUseSpell(_Q) == COOLDOWN then
 				CastSpell(_R)
-				if RyzeSettings.autoMouseFollow then player:MoveTo(mousePos.x, mousePos.z) end
+				if RyzeSettings.autoMouseFollow then moveToCursor() end
 				qcasted = false
 			end
 		elseif myHero:CanUseSpell(_W) == READY and myHero:GetDistance(ts.target) > RyzeSettings.whunt then
 			doSpell(ts, _W, wRange)
-			if RyzeSettings.autoMouseFollow then player:MoveTo(mousePos.x, mousePos.z) end
+			if RyzeSettings.autoMouseFollow then moveToCursor() end
 			qcasted = false
 			if myHero:CanUseSpell(_Q) == READY then
 				doSpell(ts, _Q, qRange)
-				if RyzeSettings.autoMouseFollow then player:MoveTo(mousePos.x, mousePos.z) end
+				if RyzeSettings.autoMouseFollow then moveToCursor() end
 				qcasted = true
 			end
 		elseif myHero:CanUseSpell(_Q) == READY then
 			doSpell(ts, _Q, qRange)
-			if RyzeSettings.autoMouseFollow then player:MoveTo(mousePos.x, mousePos.z) end
+			if RyzeSettings.autoMouseFollow then moveToCursor() end
 			qcasted = true
 		elseif RyzeConfig.useUlti and myHero:CanUseSpell(_R) == READY and qcasted == true and myHero:CanUseSpell(_Q) == COOLDOWN then
 			CastSpell(_R)
-			if RyzeSettings.autoMouseFollow then player:MoveTo(mousePos.x, mousePos.z) end
+			if RyzeSettings.autoMouseFollow then moveToCursor() end
 			qcasted = false
 		elseif myHero:CanUseSpell(_W) == READY and ((qcasted == true and myHero:CanUseSpell(_Q) == COOLDOWN and myHero:GetDistance(ts.target) >= RyzeSettings.wflee) or (RyzeSettings.winsta == true and myHero:GetDistance(ts.target) >= RyzeSettings.wflee)) then
 			doSpell(ts, _W, wRange)
-			if RyzeSettings.autoMouseFollow then player:MoveTo(mousePos.x, mousePos.z) end
+			if RyzeSettings.autoMouseFollow then moveToCursor() end
 			qcasted = false
 		elseif myHero:CanUseSpell(_E) == READY and qcasted == true and myHero:CanUseSpell(_Q) == COOLDOWN then
 			doSpell(ts, _E, wRange)
-			if RyzeSettings.autoMouseFollow then player:MoveTo(mousePos.x, mousePos.z) end
+			if RyzeSettings.autoMouseFollow then moveToCursor() end
 			qcasted = false
 		elseif myHero:CanUseSpell(_W) == READY and qcasted == true and myHero:CanUseSpell(_Q) == COOLDOWN then
 			doSpell(ts, _W, wRange)
-			if RyzeSettings.autoMouseFollow then player:MoveTo(mousePos.x, mousePos.z) end
+			if RyzeSettings.autoMouseFollow then moveToCursor() end
 			qcasted = false
 		end
 	elseif RyzeConfig.JungleActive then
@@ -426,19 +604,19 @@ if not myHero.dead then
 		if SaveJungle == true and MiniMonster == false and targeting == true then
 			if myHero:CanUseSpell(_Q) == READY and ValidTarget(MonsterTarget) and GetDistance(MonsterTarget)<=qRange then
 				CastSpell(_Q, MonsterTarget)
-				if RyzeSettings.autoMouseFollow then player:MoveTo(mousePos.x, mousePos.z) end
+				if RyzeSettings.autoMouseFollow then moveToCursor() end
 				qcasted = true
 			elseif RyzeConfig.useUltiJungle and myHero:CanUseSpell(_R) == READY and qcasted == true and myHero:CanUseSpell(_Q) == COOLDOWN and ValidTarget(MonsterTarget) and GetDistance(MonsterTarget)<=qRange then
 				CastSpell(_R)
-				if RyzeSettings.autoMouseFollow then player:MoveTo(mousePos.x, mousePos.z) end
+				if RyzeSettings.autoMouseFollow then moveToCursor() end
 				qcasted = false
 			elseif myHero:CanUseSpell(_E) == READY and qcasted == true and ValidTarget(MonsterTarget) and GetDistance(MonsterTarget)<=eRange then
 				CastSpell(_E, MonsterTarget)
-				if RyzeSettings.autoMouseFollow then player:MoveTo(mousePos.x, mousePos.z) end
+				if RyzeSettings.autoMouseFollow then moveToCursor() end
 				qcasted = false
 			elseif myHero:CanUseSpell(_W) == READY and qcasted == true and myHero:CanUseSpell(_Q) == COOLDOWN and ValidTarget(MonsterTarget) and GetDistance(MonsterTarget)<=wRange then
 				CastSpell(_W, MonsterTarget)
-				if RyzeSettings.autoMouseFollow then player:MoveTo(mousePos.x, mousePos.z) end
+				if RyzeSettings.autoMouseFollow then moveToCursor() end
 				qcasted = false
 			end
 		if ValidTarget(MonsterTarget) then
@@ -468,20 +646,19 @@ if not myHero.dead then
 			CheckMonster(Wraith2)
 			if myHero:CanUseSpell(_R) == READY and RyzeConfig.useUltiJungle and ValidTarget(MonsterTarget) and GetDistance(MonsterTarget)<=eRange then
 				CastSpell(_R)
-				if RyzeSettings.autoMouseFollow then player:MoveTo(mousePos.x, mousePos.z) end
+				if RyzeSettings.autoMouseFollow then moveToCursor() end
 			elseif myHero:CanUseSpell(_E) == READY and ValidTarget(MonsterTarget) and GetDistance(MonsterTarget)<=eRange then
 				CastSpell(_E, MonsterTarget)
-				if RyzeSettings.autoMouseFollow then player:MoveTo(mousePos.x, mousePos.z) end
+				if RyzeSettings.autoMouseFollow then moveToCursor() end
 			elseif myHero:CanUseSpell(_Q) == READY and ValidTarget(MonsterTarget) and GetDistance(MonsterTarget)<=qRange then
 				CastSpell(_Q, MonsterTarget)
-				if RyzeSettings.autoMouseFollow then player:MoveTo(mousePos.x, mousePos.z) end
+				if RyzeSettings.autoMouseFollow then moveToCursor() end
 			elseif myHero:CanUseSpell(_W) == READY and ValidTarget(MonsterTarget) and GetDistance(MonsterTarget)<=wRange then
 				CastSpell(_W, MonsterTarget)
-				if RyzeSettings.autoMouseFollow then player:MoveTo(mousePos.x, mousePos.z) end
+				if RyzeSettings.autoMouseFollow then moveToCursor() end
 			end
 		end
 	elseif RyzeConfig.autoQFarm and RyzeSettings.qMinMana<=((myHero.mana/myHero.maxMana)*100) and RyzeConfig.BurstActive == false and RyzeConfig.LongActive == false and RyzeConfig.autoQHarass == false and RyzeConfig.autoQToggle == false then
-		MinionSelect = {}
 		for index, minion in pairs(enemyMinions.objects) do
 			local myQ = getDmg("Q",minion,myHero)
 			local myW = getDmg("W",minion,myHero)
@@ -498,7 +675,6 @@ if not myHero.dead then
 			end
 		end
 	elseif RyzeConfig.PowerFarm and RyzeSettings.PowerMinMana<=((myHero.mana/myHero.maxMana)*100) and RyzeConfig.BurstActive == false and RyzeConfig.LongActive == false and RyzeConfig.autoQHarass == false and RyzeConfig.autoQToggle == false then
-		MinionSelect = {}
 		for index, minion in pairs(enemyMinions.objects) do
 			local myQ = getDmg("Q",minion,myHero)
 			local myW = getDmg("W",minion,myHero)
@@ -519,7 +695,7 @@ if not myHero.dead then
 	end
 	if RyzeConfig.autoAAFarm and GetTickCount() > nextTick then
 		if RyzeSettings.autoAAFollow then
-			player:MoveTo(mousePos.x, mousePos.z)
+			moveToCursor()
 		end
 		for index, minion in pairs(enemyMinions.objects) do
 			local myAA = getDmg("AD",minion,myHero)
@@ -556,10 +732,6 @@ if not myHero.dead then
 			end
 		end
 	end
-	if RyzeSettings.autoComboFollow and (RyzeConfig.BurstActive == true or RyzeConfig.LongActive == true) then
-		player:MoveTo(mousePos.x, mousePos.z)
-	end
-end
 end
 
 function OnProcessSpell(unit, spell)
@@ -574,22 +746,33 @@ function OnProcessSpell(unit, spell)
 		end            
 	end
 -- ]]
-if InTurretRange == true then
-	if unit.team == TEAM_ENEMY and GetDistance(unit) < wRange and GetDistance(spell.endPos, myHero)<10 then
-		for i=1, heroManager.iCount do
-			local enemy = heroManager:GetHero(i)
-			if ValidTarget(enemy) then
-				if enemy.name == unit.name then
-					if GetDistance(enemy)<=wRange and myHero:CanUseSpell(_W) == READY then
-						if enemy:GetDistance(CageTurret.object) < 800 then
-							CastSpell(_W, enemy)
+
+	if myHero.dead then return end
+	if object ~= nil and spell ~= nil then
+		if object.isMe then
+			if spell.name:find("Attack") then lastAttack = GetTickCount() end
+			if isAttackResetSpell(spell) then
+				lastAttack = lastAttack - (attackDelayOffset / getAttackSpeed())
+			end
+		end
+	end
+
+	if InTurretRange == true then
+		if unit.team == TEAM_ENEMY and GetDistance(unit) < wRange and GetDistance(spell.endPos, myHero)<10 then
+			for i=1, heroManager.iCount do
+				local enemy = heroManager:GetHero(i)
+				if ValidTarget(enemy) then
+					if enemy.name == unit.name then
+						if GetDistance(enemy)<=wRange and myHero:CanUseSpell(_W) == READY then
+							if enemy:GetDistance(CageTurret.object) < 800 then
+								CastSpell(_W, enemy)
+							end
 						end
 					end
 				end
 			end
 		end
 	end
-end
 end
 
 function findClosestTurret()
@@ -612,6 +795,15 @@ end
 
 
 function OnCreateObj(obj)
+	if myHero.dead then return end
+	-- We want to know when we performed our attack at all times, not when we just use a hotkey.
+	for _, v in pairs(getChampTable()[myHero.charName].aaParticles) do
+		if obj.name:lower():find(v:lower()) then
+			attackedSuccessfully()
+			if particleDebug then PrintChat("Particle found!") end
+		end
+	end
+
 	if obj ~= nil and obj.type == "obj_AI_Minion" and obj.name ~= nil then
 		if obj.name == "TT_Spiderboss7.1.1" then Vilemaw = obj
 		elseif obj.name == "Worm12.1.1" then Nashor = obj
@@ -708,3 +900,33 @@ function checkTurretState()
 		end
 	end
 end
+
+function onChoiceFunction()
+	if player:GetSpellData(SPELL_1).level < player:GetSpellData(SPELL_2).level then
+		return 1
+	else
+		return 2
+	end
+end
+
+function isAttackResetSpell(spell)
+	if spell.name == "Overload"
+		or spell.name == "SpellFlux"
+		or spell.name == "RunePrison"
+	then
+		return true
+	end
+	return false
+end
+
+function getChampTable() --Needs to have right/approx values. Most of the champions must have at least 2 or more aaParticles, because having bad aaParticles will lead to bad next attack timing.
+    return {Ryze = { projSpeed = 2.4, aaParticles = {"ManaLeach_mis"}, aaSpellName = {"RyzeBasicAttack"}, startAttackSpeed = "0.625" }}
+end
+  
+
+ quotes = { 'Let\'s go, let\'s go!',
+ 'Unpleasant? I\'ll show you unpleasant!',
+ 'Take this scroll and stick it... somewhere safe.',
+ 'I got these tattoos in rune prison!',
+ 'Right back at you!'}
+PrintFloatText(myHero, 10, quotes[math.random(5)])

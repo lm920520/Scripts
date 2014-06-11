@@ -797,7 +797,7 @@ function OnLoad()
 
 	ball = nil
 	GoodEvadeConfig = scriptConfig("Freaking Good Evade", "Freaking Good Evade")
-	GoodEvadeConfig:addParam("evadeBuffer", "Increase Skillshot width by", SCRIPT_PARAM_SLICE, 15, 0, 50, 0)
+	GoodEvadeConfig:addParam("evadeBuffer", "Increase Skillshot width by", SCRIPT_PARAM_SLICE, 30, 0, 50, 0)
 	GoodEvadeConfig:addParam("fowdelay", "Delay for skillshots from FOW", SCRIPT_PARAM_SLICE, 1, 1, 20, 0)
 	GoodEvadeConfig:addParam("dodgeEnabled", "Dodge Skillshots", SCRIPT_PARAM_ONKEYTOGGLE, false, 192)
 	GoodEvadeConfig:addParam("dodgeCConly", "Dodge CC only spells", SCRIPT_PARAM_ONKEYDOWN, false, 32)
