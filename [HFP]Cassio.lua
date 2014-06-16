@@ -288,6 +288,7 @@ function OnTick()
 		local Rtarget = STS:GetTarget(Ranges[_R])
 		R:Cast(Rtarget)
 	end
+	EnemyMinions:update()
 end
 
 function AutoR()
@@ -298,3 +299,14 @@ function AutoR()
 		R:SetAOE(true)
 	end
 end
+
+function OnDraw()
+		if player.dead or GetGame().isOver then return end
+		for index,object in pairs(EnemyMinions.objects) do
+			if object.valid and ValidTarget(object) and object.health < player:CalcDamage(object, player.totalDamage) then
+				DrawCircle(object.x, object.y, object.z, 90, 0xFFFFFF)
+				DrawCircle(object.x, object.y, object.z, 91, 0xFFFFFF)
+				DrawCircle(object.x, object.y, object.z, 92, 0xFFFFFF)
+			end
+		end
+	end
