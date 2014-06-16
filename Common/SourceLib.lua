@@ -1844,6 +1844,7 @@ function SimpleTS:AddToMenu(menu)
     STS_MENU = self.menu
 end
 
+--
 function SimpleTS:OnMsg(msg, key)
     if msg == WM_LBUTTONDOWN then
         local MinimumDistance = math.huge

@@ -10,6 +10,7 @@
 	@since First release version 0.01 on 2014/05/14
 	@credit Honda (champion table, packet decodes)
 	@credit Weee (dot class)
+	--
 --]]
 
 _G.Selector_AutoUpdate = true -- Set to false to disable auto updates

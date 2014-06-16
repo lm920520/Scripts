@@ -14,7 +14,7 @@ function OnLoad()
 	end
 
 end
-
+--
 function OnTick()
 	
 	GlobalInfo()
