@@ -1,1585 +1,850 @@
+--[[[
+
+Feel free using this, but please, report about an "unusual" moves or things
+
+http://botoflegends.com/forum/user/89725-princer007/
+Include screenshot and describing of error(what were you doing when it appear)
+
+]]
+if myHero.charName ~= "Orianna" then return end
+
+local version = 1.190
+local AUTOUPDATE = true
+local SCRIPT_NAME = "Orianna"
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+local SOURCELIB_URL = "https://raw.github.com/TheRealSource/public/master/common/SourceLib.lua"
+local SOURCELIB_PATH = LIB_PATH.."SourceLib.lua"
+
+if FileExist(SOURCELIB_PATH) then
+	require("SourceLib")
+else
+	DOWNLOADING_SOURCELIB = true
+	DownloadFile(SOURCELIB_URL, SOURCELIB_PATH, function() PrintChat("Required libraries downloaded successfully, please reload") end)
+end
+
+if DOWNLOADING_SOURCELIB then PrintChat("Downloading required libraries, please wait...") return end
+
+if AUTOUPDATE then
+	 SourceUpdater(SCRIPT_NAME, version, "raw.github.com", "/princer007/BoL/master/"..SCRIPT_NAME..".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/princer007/BoL/master/"..SCRIPT_NAME..".version"):CheckUpdate()
+end
+
+local RequireI = Require("SourceLib")
+RequireI:Add("vPrediction", "https://raw.github.com/Hellsing/BoL/master/common/VPrediction.lua")
+RequireI:Add("SOW", "https://raw.github.com/Hellsing/BoL/master/common/SOW.lua")
+RequireI:Check()
+
+if RequireI.downloadNeeded == true then return end
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+local InitiatorsList =
+{
+["Vi"] = "ViQ",--R
+["Vi"] = "ViR",--R
+["Malphite"] = "Landslide",--R UFSlash
+["Nocturne"] = "NocturneParanoia",--R
+["Zac"] = "ZacE",--E
+["MonkeyKing"] = "MonkeyKingNimbus",--R
+["MonkeyKing"] = "MonkeyKingSpinToWin",--R
+["MonkeyKing"] = "SummonerFlash",--Flash
+["Shyvana"] = "ShyvanaTransformCast",--R
+["Thresh"] = "threshqleap",--Q2
+["Aatrox"] = "AatroxQ",--Q
+["Renekton"] = "RenektonSliceAndDice",--E
+["Kennen"] = "KennenLightningRush",--E
+["Kennen"] = "SummonerFlash",--Flash
+["Olaf"] = "OlafRagnarok",--R
+["Udyr"] = "UdyrBearStance",--E
+["Volibear"] = "VolibearQ",--Q
+["Talon"] = "TalonCutthroat",--e?
+["JarvanIV"] = "JarvanIVDragonStrike",--Q
+["Warwick"] = "InfiniteDuress",--R
+["Jax"] = "JaxLeapStrike",--Q
+["Yasuo"] = "YasuoRKnockUpComboW",--Q
+["Diana"] = "DianaTeleport",
+["LeeSin"] = "BlindMonkQTwo",
+["Shen"] = "ShenShadowDash",
+["Alistar"] = "Headbutt",
+["Amumu"] = "BandageToss",
+["Urgot"] = "UrgotSwap2",
+["Rengar"] = "RengarR",
+}
+
+--[[Spell data]]
+spellData = {
+    [_Q] = { range = 800,  skillshotType = SKILLSHOT_LINEAR,   width = 90,  delay = 0, 	   speed = 1800,	  collision = false },
+    [_W] = { range = 0,    skillshotType = SKILLSHOT_CIRCULAR, width = 250, delay = 0.25,  speed = math.huge, collision = false },
+    [_E] = { range = 1000, skillshotType = SKILLSHOT_LINEAR,   width = 60,  delay = 0.25,  speed = 1400,      collision = true  },
+    [_R] = { range = 0,	   skillshotType = SKILLSHOT_CIRCULAR, width = 400, delay = 0.5,   speed = math.huge, collision = false },
+}
+------------------------------------------------------------------------------------------------
+local MainCombo = {_Q, _W, _R, _Q, _IGNITE}
+local Far = 1.3
+
+local DrawPrediction = nil
+--[[Ball]]
+local BallPos
+local BallMoving = false
+
+--[[CDS]]
+local IGNITEREADY = true
+
+local NCounter = nil
 
 
+local EnemyMinions = minionManager(MINION_ENEMY, spellData[_Q].range, myHero, MINION_SORT_MAXHEALTH_DEC)
+local JungleMinions = minionManager(MINION_JUNGLE, spellData[_Q].range, myHero, MINION_SORT_MAXHEALTH_DEC)
+--[[VPrediction]]
+local VP
+
+local Menu = nil
+
+local SelectedTarget = nil
+
+local DamageToHeros = {}
+local lastrefresh = 0
+
+local ComboMode
+local _ST, _TF  = 1,2
+
+local LastChampionSpell = {}
+
+function OnLoad()
+	Menu = scriptConfig("Orianna", "Orianna")
+	BallPos = myHero
+	--[[Spells]]
+	spellQ = Spell(_Q, spellData[_Q].range, false)
+	spellW = Spell(_W, spellData[_W].range, false)
+	spellE = Spell(_E, spellData[_E].range, false)
+	spellR = Spell(_R, spellData[_R].range, false)
+	--[[Combo]]
+
+	VP = VPrediction()
+	SOWi = SOW(VP)
+	STS = SimpleTS(STS_PRIORITY_LESS_CAST_MAGIC)
+	DLib = DamageLib()
+	DManager = DrawManager()
+	
+	Menu:addSubMenu("Orbwalking", "Orbwalking")
+	SOWi:LoadToMenu(Menu.Orbwalking)
+	Menu:addSubMenu("Target selector", "STS")
+		STS:AddToMenu(Menu.STS)
+	Menu:addSubMenu("Combo", "Combo")
+		Menu.Combo:addParam("UseQ", "Use Q", SCRIPT_PARAM_ONOFF , true)
+		Menu.Combo:addParam("UseW", "Use W", SCRIPT_PARAM_ONOFF, true)
+		Menu.Combo:addParam("UseE", "Use E", SCRIPT_PARAM_ONOFF, true)
+		Menu.Combo:addParam("UseR", "Use R", SCRIPT_PARAM_ONOFF, true)
+		Menu.Combo:addParam("UseRN", "Use R at least in", SCRIPT_PARAM_LIST, 1, { "1 target", "2 targets", "3 targets", "4 targets" , "5 targets"})
+		Menu.Combo:addParam("UseI", "Use Ignite if enemy is killable", SCRIPT_PARAM_ONOFF, true)
+		Menu.Combo:addParam("Enabled", "Normal combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
+
+	Menu:addSubMenu("Misc", "Misc")
+		Menu.Misc:addParam("UseW", "Auto-W if it will hit", SCRIPT_PARAM_LIST, 1, { "No", ">0 targets", ">1 targets", ">2 targets", ">3 targets", ">4 targets" })
+		Menu.Misc:addParam("UseR", "Auto-ultimate if it will hit", SCRIPT_PARAM_LIST, 1, { "No", ">0 targets", ">1 targets", ">2 targets", ">3 targets", ">4 targets" })
+		Menu.Misc:addParam("EQ", "Use E + Q if tEQ < %x * tQ", SCRIPT_PARAM_SLICE, 100, 0, 200)
+		Menu.Misc:addParam("PaR", "Cast R if hit 1 enemy in combo(hold)", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("J"))
+		Menu.Misc:addParam("AARange", "NOT CONFIGURABLE", SCRIPT_PARAM_SLICE, 300, 300, 300)
+		Menu.Misc:addSubMenu("Auto-E on initiators", "AutoEInitiate")
+		local added = false
+		for champion, spell in pairs(InitiatorsList) do
+			for i, ally in ipairs(GetAllyHeroes()) do
+				if ally.charName == champion then
+					added = true
+					Menu.Misc.AutoEInitiate:addParam(champion..spell, champion.." ("..spell..")", SCRIPT_PARAM_ONOFF, true)
+				end
+			end
+		end
+	
+		if not added then
+			Menu.Misc.AutoEInitiate:addParam("info", "Info", SCRIPT_PARAM_INFO, "Not supported initiators found")
+		else
+			Menu.Misc.AutoEInitiate:addParam("Active", "Active", SCRIPT_PARAM_ONOFF, true)
+		end
+		Menu.Misc:addSubMenu("Auto-Interrupt", "Interrupt")
+			Interrupter(Menu.Misc.Interrupt, OnInterruptSpell)
+		--Menu.Misc:addParam("BlockR", "Block R if it is not going to hit", SCRIPT_PARAM_ONOFF, true)
+
+	--[[Harassing]]
+	Menu:addSubMenu("Harass", "Harass")
+		Menu.Harass:addParam("UseQ", "Use Q", SCRIPT_PARAM_ONOFF , true)
+		Menu.Harass:addParam("UseW", "Use W", SCRIPT_PARAM_ONOFF, false)
+		Menu.Harass:addParam("ManaCheck", "Don't harass if mana < %", SCRIPT_PARAM_SLICE, 0, 0, 100)
+		Menu.Harass:addParam("Enabled", "Harass!", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("C"))
+		Menu.Harass:addParam("Enabled2", "Harass (TOGGLE)!", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("L"))
+	
+	--[[Farming]]
+	Menu:addSubMenu("Farm", "Farm")
+		Menu.Farm:addParam("UseQ",  "Use Q", SCRIPT_PARAM_LIST, 4, { "No", "Freezing", "LaneClear", "Both" })
+		Menu.Farm:addParam("UseW",  "Use W", SCRIPT_PARAM_LIST, 3, { "No", "Freezing", "LaneClear", "Both" })
+		Menu.Farm:addParam("UseE",  "Use E", SCRIPT_PARAM_LIST, 3, { "No", "Freezing", "LaneClear", "Both" })
+		Menu.Farm:addParam("ManaCheck", "Don't laneclear if mana < %", SCRIPT_PARAM_SLICE, 0, 0, 100)
+		Menu.Farm:addParam("Freeze", "Farm Freezing", SCRIPT_PARAM_ONKEYDOWN, false,   string.byte("C"))
+		Menu.Farm:addParam("LaneClear", "Farm LaneClear", SCRIPT_PARAM_ONKEYDOWN, false,   string.byte("V"))
+	
+	--[[Jungle farming]]
+	Menu:addSubMenu("JungleFarm", "JungleFarm")
+		Menu.JungleFarm:addParam("UseQ", "Use Q", SCRIPT_PARAM_ONOFF, true)
+		Menu.JungleFarm:addParam("UseW", "Use W", SCRIPT_PARAM_ONOFF, true)
+		Menu.JungleFarm:addParam("UseE", "Use E", SCRIPT_PARAM_ONOFF, true)
+		Menu.JungleFarm:addParam("Enabled", "Farm jungle!", SCRIPT_PARAM_ONKEYDOWN, false,   string.byte("V"))
+	
+	--[[Drawing]]
+	Menu:addSubMenu("Drawing", "Drawing")
+	--[[
+		DManager:CreateCircle(myHero,  spellData[_Q].range, 1, {255, 255, 255, 255}):AddToMenu(Menu.Drawing, "Q Range", true, true, true)
+		DManager:CreateCircle(BallPos, spellData[_W].width, 1, {255, 255, 255, 255}):AddToMenu(Menu.Drawing, "W Range", true, true, true)
+		DManager:CreateCircle(myHero,  spellData[_E].range, 1, {255, 255, 255, 255}):AddToMenu(Menu.Drawing, "E Range", true, true, true)
+		DManager:CreateCircle(BallPos, spellData[_R].width, 1, {255, 255, 255, 255}):AddToMenu(Menu.Drawing, "R Range", true, true, true)
+		DManager:CreateCircle(myHero,  tonumber(Menu.Misc.AARange),   1, {255, 255, 255, 255}):AddToMenu(Menu.Drawing, "AA Distance", true, true, true)
+	]]
+		Menu.Drawing:addParam("AADistance", "Draw AA distance", SCRIPT_PARAM_ONOFF, false)
+		Menu.Drawing:addParam("Qrange", "Draw Q range", SCRIPT_PARAM_ONOFF, true)
+		Menu.Drawing:addParam("Wrange", "Draw W radius", SCRIPT_PARAM_ONOFF, false)
+		Menu.Drawing:addParam("Erange", "Draw E radius", SCRIPT_PARAM_ONOFF, false)
+		Menu.Drawing:addParam("Rrange", "Draw R radius", SCRIPT_PARAM_ONOFF, false)
+		Menu.Drawing:addParam("DrawBall", "Draw ball position", SCRIPT_PARAM_ONOFF, true)
+		DLib:AddToMenu(Menu.Drawing, MainCombo)
+	Menu:addSubMenu("Debug", "Debug")
+		Menu.Debug:addParam("DebugQ",  "Draw Q prediction", SCRIPT_PARAM_ONOFF, false)
+	Menu:addParam("Version", "Version", SCRIPT_PARAM_INFO, version)
+	spellW:SetAOE(true)
+	spellR:SetAOE(true)
+	local passiveDmg = {10, 10, 10, 18, 18, 18, 26, 26, 26, 34, 34, 34, 42, 42, 42, 50, 50, 50}
+	DLib:RegisterDamageSource(_Q, _MAGIC, 30,  30,  _MAGIC, _AP, 0.5, function() return spellQ:IsReady() end)
+	DLib:RegisterDamageSource(_W, _MAGIC, 35, 45, _MAGIC, _AP, 0.7, function() return spellW:IsReady() end)
+	DLib:RegisterDamageSource(_E, _MAGIC, 30,  30,  _MAGIC, _AP, 0.3, function() return spellE:IsReady() end)
+	DLib:RegisterDamageSource(_R, _MAGIC, 75, 75, _MAGIC, _AP, 0.15, function() return spellR:IsReady() end)
+	--DLib:RegisterDamageSource(_AA, _PHYSICAL, 0, 0, _PHYSICAL, _AP, 0, function() return SOWi:CanAttack() end, function() return myHero.totalDamage+passiveDmg[myHero.lvl] end)
+	
+	
+ 	if myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") then
+		_IGNITE = SUMMONER_1
+	elseif myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") then
+		_IGNITE = SUMMONER_2
+	else
+		_IGNITE = nil
+	end
+	PrintChat("<font color=\"#81BEF7\">[Orianna] Command: Load</font>")
+end
+
+--[[Check the number of enemies hit by casting W]]
+function CheckEnemiesHitByW()
+	local enemieshit = {}
+	for i, enemy in ipairs(GetEnemyHeroes()) do
+		local position = VP:GetPredictedPos(enemy, spellData[_W].delay)
+		if ValidTarget(enemy) and GetDistance(position, BallPos) <= spellData[_W].width and GetDistance(enemy.visionPos, BallPos) <= spellData[_W].width then
+			table.insert(enemieshit, enemy)
+		end
+	end
+	return #enemieshit, enemieshit
+end
+
+--[[Check the number of enemies hit by casting E]]
+function CheckEnemiesHitByE(To)
+	local enemieshit = {}
+	local StartPoint = Vector(BallPos.x, 0, BallPos.z)
+	local EndPoint = Vector(To.x, 0, To.z)
+	for i, enemy in ipairs(GetEnemyHeroes()) do
+		local cp, hc, position = VP:GetLineCastPosition(enemy, spellData[_E].delay, spellData[_E].width, math.huge, spellData[_E].speed, StartPoint)
+		if position then
+			local PointInLine, tmp, isOnSegment = VectorPointProjectionOnLineSegment(StartPoint, EndPoint, position)
+			if ValidTarget(enemy) and isOnSegment and GetDistance(PointInLine, position) <= (spellData[_E].width + VP:GetHitBox(enemy)) and GetDistance(PointInLine, enemy.visionPos) < (spellData[_E].width) * 2 + 30 then
+				table.insert(enemieshit, enemy)
+			end
+		end
+	end
+	return #enemieshit, enemieshit
+end
+
+--[[Check number of enemies hit by casting R]]
+function CheckEnemiesHitByR()
+	local enemieshit = {}
+	for i, enemy in ipairs(GetEnemyHeroes()) do
+		local position = VP:GetPredictedPos(enemy, spellData[_R].delay)
+		if ValidTarget(enemy) and GetDistance(position, BallPos) <= spellData[_R].width and GetDistance(enemy.visionPos, BallPos) <= 1.25 * spellData[_R].width  then
+			table.insert(enemieshit, enemy)
+		end
+	end
+	return #enemieshit, enemieshit
+end
+
+function CastQ(target, fast)
+	local Speed = spellData[_Q].speed
+	local CastPosition,  HitChance,  Position = VP:GetLineCastPosition(target, spellData[_Q].delay, spellData[_Q].width, spellData[_Q].range, Speed, BallPos)
+	local CastPoint = CastPosition
+	if (HitChance < 2) then return end
+	DrawPrediction = CastPoint
+
+	if GetDistance(myHero.visionPos, Position) > spellData[_Q].range + spellData[_W].width + VP:GetHitBox(target) then
+		target2 = GetBestTarget(spellData[_Q].range, target)
+		if target2 then
+			CastPosition,  HitChance,  Position = VP:GetLineCastPosition(target2, spellData[_Q].delay, spellData[_Q].width, spellData[_Q].range, Speed, BallPos)
+			CastPoint = CastPosition
+	DrawPrediction = CastPoint
+		else
+			do return end
+		end
+	end
+
+	if GetDistance(myHero.visionPos, Position) > (spellData[_Q].range + spellData[_W].width + VP:GetHitBox(target))  then
+		do return end
+	end
+
+	if spellE:IsReady() and Menu.Misc.EQ ~= 0 then
+		local TravelTime = GetDistance(BallPos, CastPoint) / spellData[_Q].speed
+		local MinTravelTime = GetDistance(myHero, CastPoint) / spellData[_Q].speed + GetDistance(myHero, BallPos) / spellData[_E].speed
+		local Etarget = myHero
+
+		for i, ally in ipairs(GetAllyHeroes()) do
+			if ValidTarget(ally, spellData[_E].range, false) then
+				local t = GetDistance(ally, CastPoint) / spellData[_Q].speed + GetDistance(ally, BallPos) / spellData[_E].speed
+				if t < MinTravelTime then
+					MinTravelTime = t
+					Etarget = ally
+				end
+			end
+		end
 
 
+		if MinTravelTime < (Menu.Misc.EQ / 100) * TravelTime and (not Etarget.isMe or GetDistance(BallPos, myHero) > 100) and GetDistance(Etarget) < GetDistance(CastPoint) then
+			CastE(Etarget)
+			do return end
+		end
+	end
+	if GetDistanceSqr(myHero.visionPos, CastPoint) < spellData[_Q].range^2 then
+		spellQ:Cast(CastPoint.x, CastPoint.z)
+	else
+		CastPoint = Vector(myHero.visionPos) + spellData[_Q].range * (Vector(CastPoint) - Vector(myHero)):normalized()
+		spellQ:Cast(CastPoint.x, CastPoint.z)
+	end
+end
 
-<!DOCTYPE html>
-<html class="   ">
-  <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# object: http://ogp.me/ns/object# article: http://ogp.me/ns/article# profile: http://ogp.me/ns/profile#">
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    
-    
-    <title>BoL/Orianna.lua at master · princer007/BoL</title>
-    <link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="GitHub" />
-    <link rel="fluid-icon" href="https://github.com/fluidicon.png" title="GitHub" />
-    <link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon-114.png" />
-    <link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon-114.png" />
-    <link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon-144.png" />
-    <link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon-144.png" />
-    <meta property="fb:app_id" content="1401488693436528"/>
+function CastW()
+	local hitcount, hit = CheckEnemiesHitByW()
+	if hitcount >= 1 then
+		spellW:Cast()
+	end
+end
 
-      <meta content="@github" name="twitter:site" /><meta content="summary" name="twitter:card" /><meta content="princer007/BoL" name="twitter:title" /><meta content="Scripts for BoL" name="twitter:description" /><meta content="https://avatars3.githubusercontent.com/u/7760115?s=400" name="twitter:image:src" />
-<meta content="GitHub" property="og:site_name" /><meta content="object" property="og:type" /><meta content="https://avatars3.githubusercontent.com/u/7760115?s=400" property="og:image" /><meta content="princer007/BoL" property="og:title" /><meta content="https://github.com/princer007/BoL" property="og:url" /><meta content="Scripts for BoL" property="og:description" />
+function CastE(target)
+	if target then
+		spellE:Cast(target)
+	end
+end
 
-    <link rel="assets" href="https://assets-cdn.github.com/">
-    <link rel="conduit-xhr" href="https://ghconduit.com:25035">
-    <link rel="xhr-socket" href="/_sockets" />
+function CastECH(target, n)
+	local hitcount, hit = CheckEnemiesHitByE(target)
+	if hitcount >= n then
+		CastE(target)
+	end
+end
 
-    <meta name="msapplication-TileImage" content="/windows-tile.png" />
-    <meta name="msapplication-TileColor" content="#ffffff" />
-    <meta name="selected-link" value="repo_source" data-pjax-transient />
-      <meta name="google-analytics" content="UA-3769691-2">
+function CastR(target)
+	local position = VP:GetPredictedPos(target, spellData[_R].delay)
+	if GetDistance(position, BallPos) < spellData[_R].width and GetDistance(target, BallPos) < spellData[_R].width then
+		spellR:Cast()
+	end
+end
 
-    <meta content="collector.githubapp.com" name="octolytics-host" /><meta content="collector-cdn.github.com" name="octolytics-script-host" /><meta content="github" name="octolytics-app-id" /><meta content="5C64B976:6284:99306C:539DBF73" name="octolytics-dimension-request_id" /><meta content="7712442" name="octolytics-actor-id" /><meta content="HFPDarkAlex" name="octolytics-actor-login" /><meta content="508bf95899bdb87f15ff4edc538f1c835a370b110e88f047da633d8194562a1c" name="octolytics-actor-hash" />
-    
+function GetNMinionsHit(Pos, radius)
+	local count = 0
+	for i, minion in pairs(EnemyMinions.objects) do
+		if GetDistance(minion, Pos) < radius then
+			count = count + 1
+		end
+	end
+	return count
+end
 
-    
-    
-    <link rel="icon" type="image/x-icon" href="https://assets-cdn.github.com/favicon.ico" />
+function GetNMinionsHitE(Pos)
+	local count = 0
+	local StartPoint = Vector(Pos.x, 0, Pos.z)
+	local EndPoint = Vector(myHero.x, 0, myHero.z)
+	for i, minion in pairs(EnemyMinions.objects) do
+		local position = Vector(minion.x, 0, minion.z)
+		local PointInLine = VectorPointProjectionOnLineSegment(StartPoint, EndPoint, position)
+		if GetDistance(PointInLine, position) < spellData[_E].width then
+			count = count + 1
+		end
+	end
+	return count
+end
+
+function Farm(Mode)
+	local UseQ
+	local UseW
+	local UseE
+	if not SOWi:CanMove() then return end
+
+	EnemyMinions:update()
+	if Mode == "Freeze" then
+		UseQ =  Menu.Farm.UseQ == 2
+		UseW =  Menu.Farm.UseW == 2 
+		UseE =  Menu.Farm.UseE == 2 
+	elseif Mode == "LaneClear" then
+		UseQ =  Menu.Farm.UseQ == 3
+		UseW =  Menu.Farm.UseW == 3 
+		UseE =  Menu.Farm.UseE == 3 
+	end
+	
+	UseQ =  Menu.Farm.UseQ == 4 or UseQ
+	UseW =  Menu.Farm.UseW == 4  or UseW
+	UseE =  Menu.Farm.UseE == 4 or UseE
+	
+	if UseQ and spellQ:IsReady() then
+		if UseW then
+			local MaxHit = 0
+			local MaxPos = 0
+			for i, minion in pairs(EnemyMinions.objects) do
+				if GetDistance(minion) <= spellData[_Q].range then
+					local MinionPos = VP:GetPredictedPos(minion, spellData[_Q].delay, spellData[_Q].speed, BallPos)
+					local Hit = GetNMinionsHit(minion, spellData[_W].width)
+					if Hit >= MaxHit then
+						MaxHit = Hit
+						MaxPos = MinionPos
+					end
+				end
+			end
+			if MaxHit > 0 and MaxPos then
+				spellQ:Cast(MaxPos.x, MaxPos.z)
+			end
+		else
+			for i, minion in pairs(EnemyMinions.objects) do
+				if minion.health + 15 < DLib:CalcSpellDamage(minion, _Q) and not SOWi:InRange(minion) then
+					local MinionPos = VP:GetPredictedPos(minion, spellData[_Q].delay, spellData[_Q].speed, BallPos)
+					spellQ:Cast(MinionPos.x, MinionPos.z)
+					break
+				end
+			end
+		end
+	end
+
+	if UseW and spellW:IsReady() then
+		local Hit = GetNMinionsHit(BallPos, spellData[_W].width)
+		if Hit >= 3 then
+			spellW:Cast()
+		end
+	end
+	
+	if UseE and spellE:IsReady() then
+		local Hit = GetNMinionsHitE(BallPos)
+		if Hit >= 3 and (not spellW:IsReady() or not UseW) then
+			CastE(myHero)
+		end
+	end
+end
+
+function FarmJungle()
+	JungleMinions:update()
+	local UseQ = Menu.JungleFarm.UseQ 
+	local UseW = Menu.JungleFarm.UseW 
+	local UseE = Menu.JungleFarm.UseE 
+	
+	local Minion = JungleMinions.objects[1] and JungleMinions.objects[1] or nil
+	
+	if Minion then
+		local Position = VP:GetPredictedPos(Minion, spellData[_Q].delay, spellData[_Q].speed, BallPos)
+		if UseQ and spellQ:IsReady() then
+			spellQ:Cast(Position.x, Position.z)
+		end
+		
+		if UseW and spellW:IsReady() and GetDistance(BallPos, Minion) < spellData[_W].width then
+			spellW:Cast()
+		end
+		
+		if UseE and (not spellW:IsReady() or not UseW) and spellE:IsReady() and GetDistance(Minion) < 700 then
+			local starget = myHero
+			local dist = GetDistanceSqr(Minion)
+			for i, ally in ipairs(GetAllyHeroes()) do
+				local dist2 = GetDistanceSqr(ally, Minion)
+				if ValidTarget(ally, spellData[_E].range, false) and dist2 < dist then
+					dist = dist2
+					starget = ally
+				end
+			end
+			CastE(starget)
+		end
+	end
+end
+
+function FindBestLocationToQ(target)
+	local points = {}
+	local targets = {}
+	
+	local CastPosition,  HitChance,  Position = VP:GetLineCastPosition(target, spellData[_Q].delay, spellData[_Q].width, spellData[_Q].range, spellData[_Q].speed, BallPos)
+	table.insert(points, Position)
+	table.insert(targets, target)
+	
+	for i, enemy in ipairs(GetEnemyHeroes()) do
+		if ValidTarget(enemy, spellData[_Q].range + spellData[_R].width) and enemy.networkID ~= target.networkID then
+			CastPosition,  HitChance,  Position = VP:GetLineCastPosition(enemy, spellData[_Q].delay, spellData[_Q].width, spellData[_Q].range, spellData[_Q].speed, BallPos)
+			table.insert(points, Position)
+			table.insert(targets, enemy)
+		end
+	end
+	
+
+	for o = 1, 5 do
+		local MECa = MEC(points)
+		local Circle = MECa:Compute()
+		
+		if Circle.radius <= spellData[_R].width and #points >= 3 and spellR:IsReady() then
+			return Circle.center, 3
+		end
+	
+		if Circle.radius <= spellData[_W].width and #points >= 2 and spellW:IsReady() then
+			return Circle.center, 2
+		end
+		
+		if #points == 1 then
+			return Circle.center, 1
+		elseif Circle.radius <= (spellData[_Q].width + 50) and #points >= 1 then
+			return Circle.center, 2
+		end
+		
+		local Dist = -1
+		local MyPoint = points[1]
+		local index = 0
+		
+		for i=2, #points, 1 do
+			if GetDistance(points[i], MyPoint) >= Dist then
+				Dist = GetDistance(points[i], MyPoint)
+				index = i
+			end
+		end
+		if index > 0 then
+			table.remove(points, index)
+		end
+	end
+end
 
 
-    <meta content="authenticity_token" name="csrf-param" />
-<meta content="TvruJmmrMN1ruQRmOIHTZlIKSPilXnTMh65FAoSwBME3ksAseGueWjAb8yOCIcZ8X8PU96JcFY6MVMRORw3oAw==" name="csrf-token" />
+function GetBestTarget(Range, Ignore)
+	local LessToKill = 100
+	local LessToKilli = 0
+	local target = nil
+	
+	local target = STS:GetTarget(Range)
+	
+	if SelectedTarget ~= nil and ValidTarget(SelectedTarget, Range) and (Ignore == nil or (Ignore.networkID ~= SelectedTarget.networkID)) then
+		target = SelectedTarget
+	end
+	
+	return target
+end
 
-    <link href="https://assets-cdn.github.com/assets/github-6c82cc0e89bda6215820bc9504f6789519bb1e38.css" media="all" rel="stylesheet" type="text/css" />
-    <link href="https://assets-cdn.github.com/assets/github2-86c2efc9edae70ed18c76b856d22e0b7eead05f1.css" media="all" rel="stylesheet" type="text/css" />
-    
+function OnTickChecks()
+	DrawPrediction = nil
+	IGNITEREADY = _IGNITE and myHero:CanUseSpell(_IGNITE) == READY or false
+	--[[When the ball reaches an ally]]
+	for i,ally in ipairs(GetAllyHeroes()) do
+		if TargetHaveBuff("orianaghostself", ally) then
+			BallMoving = false
+			BallPos = ally
+		end
+	end
+	if CountEnemyHeroInRange(spellData[_Q].range + spellData[_R].width, myHero) == 1 then
+		ComboMode = _ST
+	else
+		ComboMode = _TF
+	end
 
+	
+	if Menu.Misc.UseW > 1 and spellW:IsReady() then
+		local hitcount, hit = CheckEnemiesHitByW()
+		if hitcount >= (Menu.Misc.UseW -1) then
+			spellW:Cast()
+		end		
+	end
+	
+	if Menu.Misc.UseR > 1 and spellR:IsReady() then
+		local hitcount, hit = CheckEnemiesHitByR()
+		if (hitcount >= (Menu.Misc.UseR - 1)) and GetDistanceToClosestAlly(BallPos) < spellData[_Q].range * Far then
+			spellR:Cast()
+		end		
+	end
+	
+	if Menu.Misc.AutoEInitiate.Active and spellE:IsReady() then
+		for i, unit in ipairs(GetAllyHeroes()) do
+			if GetDistance(unit) < spellData[_E].range then
+				for champion, spell in pairs(InitiatorsList) do
+					if LastChampionSpell[unit.networkID] and LastChampionSpell[unit.networkID].name ~=nil and Menu.Misc.AutoEInitiate[champion.. LastChampionSpell[unit.networkID].name] and (os.clock() - LastChampionSpell[unit.networkID].time < 1.5) then
+						spellE:Cast(Unit)
+					end
+				end
+			end
+		end
+	end
+end
 
-    <meta http-equiv="x-pjax-version" content="cb873626bb273f7f45fd28847173f562">
+function OnWndMsg(Msg, Key)
+	if Msg == WM_LBUTTONDOWN then
+		local minD = 0
+		local starget = nil
+		for i, enemy in ipairs(GetEnemyHeroes()) do
+			if ValidTarget(enemy) then
+				if GetDistance(enemy, mousePos) <= minD or starget == nil then
+					minD = GetDistance(enemy, mousePos)
+					starget = enemy
+				end
+			end
+		end
+		
+		if starget and minD < 100 then
+			if SelectedTarget and starget.charName == SelectedTarget.charName then
+				SelectedTarget = nil
+			else
+				SelectedTarget = starget
+				print("<font color=\"#FF0000\">Orianna: New target selected: "..starget.charName.."</font>")
+			end
+		end
+	end
+end
 
-      
-  <meta name="description" content="Scripts for BoL" />
+function Harass(target)
+	if Menu.Harass.UseQ and target then
+		CastQ(target)
+	end
+	if Menu.Harass.UseW then
+		CastW()
+	end
+end
 
-  <meta content="7760115" name="octolytics-dimension-user_id" /><meta content="princer007" name="octolytics-dimension-user_login" /><meta content="20376398" name="octolytics-dimension-repository_id" /><meta content="princer007/BoL" name="octolytics-dimension-repository_nwo" /><meta content="true" name="octolytics-dimension-repository_public" /><meta content="false" name="octolytics-dimension-repository_is_fork" /><meta content="20376398" name="octolytics-dimension-repository_network_root_id" /><meta content="princer007/BoL" name="octolytics-dimension-repository_network_root_nwo" />
-  <link href="https://github.com/princer007/BoL/commits/master.atom" rel="alternate" title="Recent Commits to BoL:master" type="application/atom+xml" />
+function GetDistanceToClosestAlly(p)
+	local d = GetDistance(p, myHero)
+	for i, ally in ipairs(GetAllyHeroes()) do
+		if ValidTarget(ally, math.huge, false) then
+			local dist = GetDistance(p, ally)
+			if dist < d then
+				d = dist
+			end
+		end
+	end
+	return d
+end
 
-  </head>
+function CountAllyHeroInRange(range, point)
+	local n = 0
+	for i, ally in ipairs(GetAllyHeroes()) do
+		if ValidTarget(ally, math.huge, false) and GetDistanceSqr(point, ally) <= range * range then
+			n = n + 1
+		end
+	end
+	return n
+end
 
+function Combo(target)
+		if Menu.Combo.UseI and target and _IGNITE and IGNITEREADY and GetDistanceSqr(target.visionPos, myHero.visionPos) < 600 * 600 and DLib:IsKillable(target, MainCombo) then
+			CastSpell(_IGNITE, target)
+		end
+    -- TODO: Single target / team fight checks
+    if SINGLE_TARGET then
+        if target and ((GetDistanceSqr(target) > tonumber(Menu.Misc.AARange)^2) or ((player.health/player.maxHealth <= 0.25) and (player.health/player.maxHealth < target.health/target.maxHealth))) then
+            SOWi:DisableAttacks()
+		end
 
-  <body class="logged_in  env-production windows vis-public page-blob">
-    <a href="#start-of-content" tabindex="1" class="accessibility-aid js-skip-to-content">Skip to content</a>
-    <div class="wrapper">
-      
-      
-      
-      
+        if target and Menu.Combo.UseR and CountEnemyHeroInRange(1000, target) >= CountAllyHeroInRange(1000, target)  then
+            if target and DLib:CalcComboDamage(target, MainCombo) > target.health and GetDistanceToClosestAlly(BallPos) < spellData[_Q].range * Far then
+                local hitcount, hit = CheckEnemiesHitByR()
+                if hitcount >= NCounter then
+                    spellR:Cast()
+                end
+            end
+        end
 
-
-      <div class="header header-logged-in true">
-  <div class="container clearfix">
-
-    <a class="header-logo-invertocat" href="https://github.com/" aria-label="Homepage">
-  <span class="mega-octicon octicon-mark-github"></span>
-</a>
-
-
-    
-    <a href="/notifications" aria-label="You have no unread notifications" class="notification-indicator tooltipped tooltipped-s" data-hotkey="g n">
-        <span class="mail-status all-read"></span>
-</a>
-
-      <div class="command-bar js-command-bar  in-repository">
-          <form accept-charset="UTF-8" action="/search" class="command-bar-form" id="top_search_form" method="get">
-
-<div class="commandbar">
-  <span class="message"></span>
-  <input type="text" data-hotkey="s" name="q" id="js-command-bar-field" placeholder="Search or type a command" tabindex="1" autocapitalize="off"
-    
-    data-username="HFPDarkAlex"
-      data-repo="princer007/BoL"
-      data-branch="master"
-      data-sha="fa3b341d159642016e4c47ca07b377bd4cfe57b2"
-  >
-  <div class="display hidden"></div>
-</div>
-
-    <input type="hidden" name="nwo" value="princer007/BoL" />
-
-    <div class="select-menu js-menu-container js-select-menu search-context-select-menu">
-      <span class="minibutton select-menu-button js-menu-target" role="button" aria-haspopup="true">
-        <span class="js-select-button">This repository</span>
-      </span>
-
-      <div class="select-menu-modal-holder js-menu-content js-navigation-container" aria-hidden="true">
-        <div class="select-menu-modal">
-
-          <div class="select-menu-item js-navigation-item js-this-repository-navigation-item selected">
-            <span class="select-menu-item-icon octicon octicon-check"></span>
-            <input type="radio" class="js-search-this-repository" name="search_target" value="repository" checked="checked" />
-            <div class="select-menu-item-text js-select-button-text">This repository</div>
-          </div> <!-- /.select-menu-item -->
-
-          <div class="select-menu-item js-navigation-item js-all-repositories-navigation-item">
-            <span class="select-menu-item-icon octicon octicon-check"></span>
-            <input type="radio" name="search_target" value="global" />
-            <div class="select-menu-item-text js-select-button-text">All repositories</div>
-          </div> <!-- /.select-menu-item -->
-
-        </div>
-      </div>
-    </div>
-
-  <span class="help tooltipped tooltipped-s" aria-label="Show command bar help">
-    <span class="octicon octicon-question"></span>
-  </span>
-
-
-  <input type="hidden" name="ref" value="cmdform">
-
-</form>
-        <ul class="top-nav">
-          <li class="explore"><a href="/explore">Explore</a></li>
-            <li><a href="https://gist.github.com">Gist</a></li>
-            <li><a href="/blog">Blog</a></li>
-          <li><a href="https://help.github.com">Help</a></li>
-        </ul>
-      </div>
-
-    
-
-
-  <ul id="user-links">
-    <li>
-      <a href="/HFPDarkAlex" class="name">
-        <img alt="HFPDarkAlex" class=" js-avatar" data-user="7712442" height="20" src="https://avatars3.githubusercontent.com/u/7712442?s=140" width="20" /> HFPDarkAlex
-      </a>
-    </li>
-
-    <li class="new-menu dropdown-toggle js-menu-container">
-      <a href="#" class="js-menu-target tooltipped tooltipped-s" aria-label="Create new...">
-        <span class="octicon octicon-plus"></span>
-        <span class="dropdown-arrow"></span>
-      </a>
-
-      <div class="new-menu-content js-menu-content">
-      </div>
-    </li>
-
-    <li>
-      <a href="/settings/profile" id="account_settings"
-        class="tooltipped tooltipped-s"
-        aria-label="Account settings ">
-        <span class="octicon octicon-tools"></span>
-      </a>
-    </li>
-    <li>
-      <form class="logout-form" action="/logout" method="post">
-        <button class="sign-out-button tooltipped tooltipped-s" aria-label="Sign out">
-          <span class="octicon octicon-sign-out"></span>
-        </button>
-      </form>
-    </li>
-
-  </ul>
-
-<div class="js-new-dropdown-contents hidden">
-  
-
-<ul class="dropdown-menu">
-  <li>
-    <a href="/new"><span class="octicon octicon-repo"></span> New repository</a>
-  </li>
-  <li>
-    <a href="/organizations/new"><span class="octicon octicon-organization"></span> New organization</a>
-  </li>
-
-
-    <li class="section-title">
-      <span title="princer007/BoL">This repository</span>
-    </li>
-      <li>
-        <a href="/princer007/BoL/issues/new"><span class="octicon octicon-issue-opened"></span> New issue</a>
-      </li>
-</ul>
-
-</div>
-
-
-    
-  </div>
-</div>
-
-      
-
+        if Menu.Combo.UseW then
+            CastW()
+        end
         
-
-
-
-      <div id="start-of-content" class="accessibility-aid"></div>
-          <div class="site" itemscope itemtype="http://schema.org/WebPage">
-    <div id="js-flash-container">
-      
-    </div>
-    <div class="pagehead repohead instapaper_ignore readability-menu">
-      <div class="container">
+        if Menu.Combo.UseQ and target then
+            CastQ(target)
+        end
         
+        if Menu.Combo.UseE then
+            for i, ally in ipairs(GetAllyHeroes()) do
+                if ValidTarget(ally, math.huge, false) and GetDistance(ally) < spellData[_E].range and CountEnemyHeroInRange(400, ally) >= 1 and (target == nil or GetDistance(ally, target) < 400) then
+                    CastE(ally)
+                end
+            end
+        end
+        
+        if Menu.Combo.UseE then
+            CastECH(player, 1)
+        end
+    else
+        for i, enemy in ipairs(GetEnemyHeroes()) do
+            if ValidTarget(enemy) and (GetDistanceSqr(enemy) < tonumber(Menu.Misc.AARange)^2) and (player.health/player.maxHealth <= 0.25) then
+                SOWi:DisableAttacks()
+            end
+        end
+        if Menu.Combo.UseR then
+            if CountEnemyHeroInRange(800, BallPos) > 1 then
+                local hitcount, hit = CheckEnemiesHitByR()
+                local potentialkills, kills = 0, 0
+                if hitcount >= 2 then
+                    for i, champion in ipairs(hit) do
+                        if (champion.health - DLib:CalcComboDamage(champion, MainCombo)) < 0.4*champion.maxHealth or (DLib:CalcComboDamage(champion, MainCombo) >= 0.4*champion.maxHealth) then
+                            potentialkills = potentialkills + 1
+                        end
+                        if (champion.health - DLib:CalcComboDamage(champion, MainCombo)) < 0 then
+                            kills = kills + 1
+                        end
+                    end
+                end
+				if ((GetDistanceToClosestAlly(BallPos) < spellData[_Q].range) and (hitcount >= CountEnemyHeroInRange(spellData[_R].width, BallPos) or potentialkills >= 2 or kills >= 1) and hitcount >= NCounter) then
+                    spellR:Cast()
+                end
+            elseif NCounter == 1 then
+                if (Menu.Misc.PaR and target) or (target and DLib:CalcComboDamage(target, {_Q, _W, _R}) > target.health and GetDistanceToClosestAlly(BallPos) < spellData[_Q].range * Far) then
+					CastR(target)
+                end
+            end
+        end
+        
+        if Menu.Combo.UseW then
+            CastW()
+        end
+        if target and SOWi:InRange(target) then
+            SOWi:ForceTarget(target)
+        end
 
-<ul class="pagehead-actions">
-
-    <li class="subscription">
-      <form accept-charset="UTF-8" action="/notifications/subscribe" class="js-social-container" data-autosubmit="true" data-remote="true" method="post"><div style="margin:0;padding:0;display:inline"><input name="authenticity_token" type="hidden" value="q8jYC5NT1AnX1mlCNFyDXT5zBc+2Anl9LxV3wiL0JHHk7EGrpaDb+nnkcMli2gltmf0h3d0b0MNzC9vOtTs5Gw==" /></div>  <input id="repository_id" name="repository_id" type="hidden" value="20376398" />
-
-    <div class="select-menu js-menu-container js-select-menu">
-      <a class="social-count js-social-count" href="/princer007/BoL/watchers">
-        1
-      </a>
-      <span class="minibutton select-menu-button with-count js-menu-target" role="button" tabindex="0" aria-haspopup="true">
-        <span class="js-select-button">
-          <span class="octicon octicon-eye"></span>
-          Watch
-        </span>
-      </span>
-
-      <div class="select-menu-modal-holder">
-        <div class="select-menu-modal subscription-menu-modal js-menu-content" aria-hidden="true">
-          <div class="select-menu-header">
-            <span class="select-menu-title">Notification status</span>
-            <span class="octicon octicon-x js-menu-close"></span>
-          </div> <!-- /.select-menu-header -->
-
-          <div class="select-menu-list js-navigation-container" role="menu">
-
-            <div class="select-menu-item js-navigation-item selected" role="menuitem" tabindex="0">
-              <span class="select-menu-item-icon octicon octicon-check"></span>
-              <div class="select-menu-item-text">
-                <input checked="checked" id="do_included" name="do" type="radio" value="included" />
-                <h4>Not watching</h4>
-                <span class="description">You only receive notifications for conversations in which you participate or are @mentioned.</span>
-                <span class="js-select-button-text hidden-select-button-text">
-                  <span class="octicon octicon-eye"></span>
-                  Watch
-                </span>
-              </div>
-            </div> <!-- /.select-menu-item -->
-
-            <div class="select-menu-item js-navigation-item " role="menuitem" tabindex="0">
-              <span class="select-menu-item-icon octicon octicon octicon-check"></span>
-              <div class="select-menu-item-text">
-                <input id="do_subscribed" name="do" type="radio" value="subscribed" />
-                <h4>Watching</h4>
-                <span class="description">You receive notifications for all conversations in this repository.</span>
-                <span class="js-select-button-text hidden-select-button-text">
-                  <span class="octicon octicon-eye"></span>
-                  Unwatch
-                </span>
-              </div>
-            </div> <!-- /.select-menu-item -->
-
-            <div class="select-menu-item js-navigation-item " role="menuitem" tabindex="0">
-              <span class="select-menu-item-icon octicon octicon-check"></span>
-              <div class="select-menu-item-text">
-                <input id="do_ignore" name="do" type="radio" value="ignore" />
-                <h4>Ignoring</h4>
-                <span class="description">You do not receive any notifications for conversations in this repository.</span>
-                <span class="js-select-button-text hidden-select-button-text">
-                  <span class="octicon octicon-mute"></span>
-                  Stop ignoring
-                </span>
-              </div>
-            </div> <!-- /.select-menu-item -->
-
-          </div> <!-- /.select-menu-list -->
-
-        </div> <!-- /.select-menu-modal -->
-      </div> <!-- /.select-menu-modal-holder -->
-    </div> <!-- /.select-menu -->
-
-</form>
-    </li>
-
-  <li>
-  
-
-  <div class="js-toggler-container js-social-container starring-container ">
-
-    <form accept-charset="UTF-8" action="/princer007/BoL/unstar" class="js-toggler-form starred" data-remote="true" method="post"><div style="margin:0;padding:0;display:inline"><input name="authenticity_token" type="hidden" value="bV7J21Ob4zZr75uW4T5u5sWF0pP54zKXxHftuelmv/sjDEbFuVPEaJfojAmfByH4zDyJtucPr6wtotpaQ/58Rw==" /></div>
-      <button
-        class="minibutton with-count js-toggler-target star-button"
-        aria-label="Unstar this repository" title="Unstar princer007/BoL">
-        <span class="octicon octicon-star"></span><span class="text">Unstar</span>
-      </button>
-        <a class="social-count js-social-count" href="/princer007/BoL/stargazers">
-          1
-        </a>
-</form>
-    <form accept-charset="UTF-8" action="/princer007/BoL/star" class="js-toggler-form unstarred" data-remote="true" method="post"><div style="margin:0;padding:0;display:inline"><input name="authenticity_token" type="hidden" value="j+0n3Qdq2W9HuhamwywHALNj/DgENS/nzOfXY2+fpS1UA/yqrPSetsu/Mf8ksMAYmPjAag0Vw2NoT7w7qpaZjQ==" /></div>
-      <button
-        class="minibutton with-count js-toggler-target star-button"
-        aria-label="Star this repository" title="Star princer007/BoL">
-        <span class="octicon octicon-star"></span><span class="text">Star</span>
-      </button>
-        <a class="social-count js-social-count" href="/princer007/BoL/stargazers">
-          1
-        </a>
-</form>  </div>
-
-  </li>
-
-
-        <li>
-          <a href="/princer007/BoL/fork" class="minibutton with-count js-toggler-target fork-button lighter tooltipped-n" title="Fork your own copy of princer007/BoL to your account" aria-label="Fork your own copy of princer007/BoL to your account" rel="nofollow" data-method="post">
-            <span class="octicon octicon-repo-forked"></span><span class="text">Fork</span>
-          </a>
-          <a href="/princer007/BoL/network" class="social-count">7</a>
-        </li>
-
-
-</ul>
-
-        <h1 itemscope itemtype="http://data-vocabulary.org/Breadcrumb" class="entry-title public">
-          <span class="repo-label"><span>public</span></span>
-          <span class="mega-octicon octicon-repo"></span>
-          <span class="author"><a href="/princer007" class="url fn" itemprop="url" rel="author"><span itemprop="title">princer007</span></a></span><!--
-       --><span class="path-divider">/</span><!--
-       --><strong><a href="/princer007/BoL" class="js-current-repository js-repo-home-link">BoL</a></strong>
-
-          <span class="page-context-loader">
-            <img alt="" height="16" src="https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif" width="16" />
-          </span>
-
-        </h1>
-      </div><!-- /.container -->
-    </div><!-- /.repohead -->
-
-    <div class="container">
-      <div class="repository-with-sidebar repo-container new-discussion-timeline js-new-discussion-timeline  ">
-        <div class="repository-sidebar clearfix">
+        if Menu.Combo.UseQ and target then
+            local Qposition, hit = FindBestLocationToQ(target)
             
-
-<div class="sunken-menu vertical-right repo-nav js-repo-nav js-repository-container-pjax js-octicon-loaders">
-  <div class="sunken-menu-contents">
-    <ul class="sunken-menu-group">
-      <li class="tooltipped tooltipped-w" aria-label="Code">
-        <a href="/princer007/BoL" aria-label="Code" class="selected js-selected-navigation-item sunken-menu-item" data-hotkey="g c" data-pjax="true" data-selected-links="repo_source repo_downloads repo_commits repo_releases repo_tags repo_branches /princer007/BoL">
-          <span class="octicon octicon-code"></span> <span class="full-word">Code</span>
-          <img alt="" class="mini-loader" height="16" src="https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif" width="16" />
-</a>      </li>
-
-        <li class="tooltipped tooltipped-w" aria-label="Issues">
-          <a href="/princer007/BoL/issues" aria-label="Issues" class="js-selected-navigation-item sunken-menu-item js-disable-pjax" data-hotkey="g i" data-selected-links="repo_issues /princer007/BoL/issues">
-            <span class="octicon octicon-issue-opened"></span> <span class="full-word">Issues</span>
-            <span class='counter'>0</span>
-            <img alt="" class="mini-loader" height="16" src="https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif" width="16" />
-</a>        </li>
-
-      <li class="tooltipped tooltipped-w" aria-label="Pull Requests">
-        <a href="/princer007/BoL/pulls" aria-label="Pull Requests" class="js-selected-navigation-item sunken-menu-item js-disable-pjax" data-hotkey="g p" data-selected-links="repo_pulls /princer007/BoL/pulls">
-            <span class="octicon octicon-git-pull-request"></span> <span class="full-word">Pull Requests</span>
-            <span class='counter'>0</span>
-            <img alt="" class="mini-loader" height="16" src="https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif" width="16" />
-</a>      </li>
-
-
-        <li class="tooltipped tooltipped-w" aria-label="Wiki">
-          <a href="/princer007/BoL/wiki" aria-label="Wiki" class="js-selected-navigation-item sunken-menu-item js-disable-pjax" data-hotkey="g w" data-selected-links="repo_wiki /princer007/BoL/wiki">
-            <span class="octicon octicon-book"></span> <span class="full-word">Wiki</span>
-            <img alt="" class="mini-loader" height="16" src="https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif" width="16" />
-</a>        </li>
-    </ul>
-    <div class="sunken-menu-separator"></div>
-    <ul class="sunken-menu-group">
-
-      <li class="tooltipped tooltipped-w" aria-label="Pulse">
-        <a href="/princer007/BoL/pulse" aria-label="Pulse" class="js-selected-navigation-item sunken-menu-item" data-pjax="true" data-selected-links="pulse /princer007/BoL/pulse">
-          <span class="octicon octicon-pulse"></span> <span class="full-word">Pulse</span>
-          <img alt="" class="mini-loader" height="16" src="https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif" width="16" />
-</a>      </li>
-
-      <li class="tooltipped tooltipped-w" aria-label="Graphs">
-        <a href="/princer007/BoL/graphs" aria-label="Graphs" class="js-selected-navigation-item sunken-menu-item" data-pjax="true" data-selected-links="repo_graphs repo_contributors /princer007/BoL/graphs">
-          <span class="octicon octicon-graph"></span> <span class="full-word">Graphs</span>
-          <img alt="" class="mini-loader" height="16" src="https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif" width="16" />
-</a>      </li>
-
-      <li class="tooltipped tooltipped-w" aria-label="Network">
-        <a href="/princer007/BoL/network" aria-label="Network" class="js-selected-navigation-item sunken-menu-item js-disable-pjax" data-selected-links="repo_network /princer007/BoL/network">
-          <span class="octicon octicon-repo-forked"></span> <span class="full-word">Network</span>
-          <img alt="" class="mini-loader" height="16" src="https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif" width="16" />
-</a>      </li>
-    </ul>
-
-
-  </div>
-</div>
-
-              <div class="only-with-full-nav">
-                
-
-  
-
-<div class="clone-url open"
-  data-protocol-type="http"
-  data-url="/users/set_protocol?protocol_selector=http&amp;protocol_type=clone">
-  <h3><strong>HTTPS</strong> clone URL</h3>
-  <div class="clone-url-box">
-    <input type="text" class="clone js-url-field"
-           value="https://github.com/princer007/BoL.git" readonly="readonly">
-    <span class="url-box-clippy">
-    <button aria-label="copy to clipboard" class="js-zeroclipboard minibutton zeroclipboard-button" data-clipboard-text="https://github.com/princer007/BoL.git" data-copied-hint="copied!" type="button"><span class="octicon octicon-clippy"></span></button>
-    </span>
-  </div>
-</div>
-
-  
-
-<div class="clone-url "
-  data-protocol-type="ssh"
-  data-url="/users/set_protocol?protocol_selector=ssh&amp;protocol_type=clone">
-  <h3><strong>SSH</strong> clone URL</h3>
-  <div class="clone-url-box">
-    <input type="text" class="clone js-url-field"
-           value="git@github.com:princer007/BoL.git" readonly="readonly">
-    <span class="url-box-clippy">
-    <button aria-label="copy to clipboard" class="js-zeroclipboard minibutton zeroclipboard-button" data-clipboard-text="git@github.com:princer007/BoL.git" data-copied-hint="copied!" type="button"><span class="octicon octicon-clippy"></span></button>
-    </span>
-  </div>
-</div>
-
-  
-
-<div class="clone-url "
-  data-protocol-type="subversion"
-  data-url="/users/set_protocol?protocol_selector=subversion&amp;protocol_type=clone">
-  <h3><strong>Subversion</strong> checkout URL</h3>
-  <div class="clone-url-box">
-    <input type="text" class="clone js-url-field"
-           value="https://github.com/princer007/BoL" readonly="readonly">
-    <span class="url-box-clippy">
-    <button aria-label="copy to clipboard" class="js-zeroclipboard minibutton zeroclipboard-button" data-clipboard-text="https://github.com/princer007/BoL" data-copied-hint="copied!" type="button"><span class="octicon octicon-clippy"></span></button>
-    </span>
-  </div>
-</div>
-
-
-<p class="clone-options">You can clone with
-      <a href="#" class="js-clone-selector" data-protocol="http">HTTPS</a>,
-      <a href="#" class="js-clone-selector" data-protocol="ssh">SSH</a>,
-      or <a href="#" class="js-clone-selector" data-protocol="subversion">Subversion</a>.
-  <a href="https://help.github.com/articles/which-remote-url-should-i-use" class="help tooltipped tooltipped-n" aria-label="Get help on which URL is right for you.">
-    <span class="octicon octicon-question"></span>
-  </a>
-</p>
-
-
-  <a href="github-windows://openRepo/https://github.com/princer007/BoL" class="minibutton sidebar-button" title="Save princer007/BoL to your computer and use it in GitHub Desktop." aria-label="Save princer007/BoL to your computer and use it in GitHub Desktop.">
-    <span class="octicon octicon-device-desktop"></span>
-    Clone in Desktop
-  </a>
-
-                <a href="/princer007/BoL/archive/master.zip"
-                   class="minibutton sidebar-button"
-                   aria-label="Download princer007/BoL as a zip file"
-                   title="Download princer007/BoL as a zip file"
-                   rel="nofollow">
-                  <span class="octicon octicon-cloud-download"></span>
-                  Download ZIP
-                </a>
-              </div>
-        </div><!-- /.repository-sidebar -->
-
-        <div id="js-repo-pjax-container" class="repository-content context-loader-container" data-pjax-container>
-          
-
-
-<a href="/princer007/BoL/blob/7708e0a28776fb3ed9e42ad32a2d372ea66465a9/Orianna.lua" class="hidden js-permalink-shortcut" data-hotkey="y">Permalink</a>
-
-<!-- blob contrib key: blob_contributors:v21:05152d74f868cd92dd8f298e63b498f6 -->
-
-<p title="This is a placeholder element" class="js-history-link-replace hidden"></p>
-
-<div class="file-navigation">
-  
-
-<div class="select-menu js-menu-container js-select-menu" >
-  <span class="minibutton select-menu-button js-menu-target css-truncate" data-hotkey="w"
-    data-master-branch="master"
-    data-ref="master"
-    title="master"
-    role="button" aria-label="Switch branches or tags" tabindex="0" aria-haspopup="true">
-    <span class="octicon octicon-git-branch"></span>
-    <i>branch:</i>
-    <span class="js-select-button css-truncate-target">master</span>
-  </span>
-
-  <div class="select-menu-modal-holder js-menu-content js-navigation-container" data-pjax aria-hidden="true">
-
-    <div class="select-menu-modal">
-      <div class="select-menu-header">
-        <span class="select-menu-title">Switch branches/tags</span>
-        <span class="octicon octicon-x js-menu-close"></span>
-      </div> <!-- /.select-menu-header -->
-
-      <div class="select-menu-filters">
-        <div class="select-menu-text-filter">
-          <input type="text" aria-label="Filter branches/tags" id="context-commitish-filter-field" class="js-filterable-field js-navigation-enable" placeholder="Filter branches/tags">
-        </div>
-        <div class="select-menu-tabs">
-          <ul>
-            <li class="select-menu-tab">
-              <a href="#" data-tab-filter="branches" class="js-select-menu-tab">Branches</a>
-            </li>
-            <li class="select-menu-tab">
-              <a href="#" data-tab-filter="tags" class="js-select-menu-tab">Tags</a>
-            </li>
-          </ul>
-        </div><!-- /.select-menu-tabs -->
-      </div><!-- /.select-menu-filters -->
-
-      <div class="select-menu-list select-menu-tab-bucket js-select-menu-tab-bucket" data-tab-filter="branches">
-
-        <div data-filterable-for="context-commitish-filter-field" data-filterable-type="substring">
-
-
-            <div class="select-menu-item js-navigation-item selected">
-              <span class="select-menu-item-icon octicon octicon-check"></span>
-              <a href="/princer007/BoL/blob/master/Orianna.lua"
-                 data-name="master"
-                 data-skip-pjax="true"
-                 rel="nofollow"
-                 class="js-navigation-open select-menu-item-text js-select-button-text css-truncate-target"
-                 title="master">master</a>
-            </div> <!-- /.select-menu-item -->
-        </div>
-
-          <div class="select-menu-no-results">Nothing to show</div>
-      </div> <!-- /.select-menu-list -->
-
-      <div class="select-menu-list select-menu-tab-bucket js-select-menu-tab-bucket" data-tab-filter="tags">
-        <div data-filterable-for="context-commitish-filter-field" data-filterable-type="substring">
-
-
-        </div>
-
-        <div class="select-menu-no-results">Nothing to show</div>
-      </div> <!-- /.select-menu-list -->
-
-    </div> <!-- /.select-menu-modal -->
-  </div> <!-- /.select-menu-modal-holder -->
-</div> <!-- /.select-menu -->
-
-  <div class="button-group right">
-    <a href="/princer007/BoL/find/master"
-          class="js-show-file-finder minibutton empty-icon tooltipped tooltipped-s"
-          data-pjax
-          data-hotkey="t"
-          aria-label="Quickly jump between files">
-      <span class="octicon octicon-list-unordered"></span>
-    </a>
-    <button class="js-zeroclipboard minibutton zeroclipboard-button"
-          data-clipboard-text="Orianna.lua"
-          aria-label="Copy to clipboard"
-          data-copied-hint="Copied!">
-      <span class="octicon octicon-clippy"></span>
-    </button>
-  </div>
-
-  <div class="breadcrumb">
-    <span class='repo-root js-repo-root'><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/princer007/BoL" data-branch="master" data-direction="back" data-pjax="true" itemscope="url"><span itemprop="title">BoL</span></a></span></span><span class="separator"> / </span><strong class="final-path">Orianna.lua</strong>
-  </div>
-</div>
-
-
-  <div class="commit file-history-tease">
-      <img alt="princer007" class="main-avatar js-avatar" data-user="7760115" height="24" src="https://avatars0.githubusercontent.com/u/7760115?s=140" width="24" />
-      <span class="author"><a href="/princer007" rel="author">princer007</a></span>
-      <time datetime="2014-06-11T18:42:16+03:00" is="relative-time">June 11, 2014</time>
-      <div class="commit-title">
-          <a href="/princer007/BoL/commit/2925855f6fad047dee1d2ac82e5c970168775809" class="message" data-pjax="true" title="Update Orianna.lua">Update Orianna.lua</a>
-      </div>
-
-    <div class="participation">
-      <p class="quickstat"><a href="#blob_contributors_box" rel="facebox"><strong>1</strong>  contributor</a></p>
-      
-    </div>
-    <div id="blob_contributors_box" style="display:none">
-      <h2 class="facebox-header">Users who have contributed to this file</h2>
-      <ul class="facebox-user-list">
-          <li class="facebox-user-list-item">
-            <img alt="princer007" class=" js-avatar" data-user="7760115" height="24" src="https://avatars0.githubusercontent.com/u/7760115?s=140" width="24" />
-            <a href="/princer007">princer007</a>
-          </li>
-      </ul>
-    </div>
-  </div>
-
-<div class="file-box">
-  <div class="file">
-    <div class="meta clearfix">
-      <div class="info file-name">
-        <span class="icon"><b class="octicon octicon-file-text"></b></span>
-        <span class="mode" title="File Mode">file</span>
-        <span class="meta-divider"></span>
-          <span>851 lines (737 sloc)</span>
-          <span class="meta-divider"></span>
-        <span>30.889 kb</span>
-      </div>
-      <div class="actions">
-        <div class="button-group">
-            <a class="minibutton tooltipped tooltipped-w"
-               href="github-windows://openRepo/https://github.com/princer007/BoL?branch=master&amp;filepath=Orianna.lua" aria-label="Open this file in GitHub for Windows">
-                <span class="octicon octicon-device-desktop"></span> Open
-            </a>
-                <a class="minibutton tooltipped tooltipped-n js-update-url-with-hash"
-                   aria-label="Clicking this button will automatically fork this project so you can edit the file"
-                   href="/princer007/BoL/edit/master/Orianna.lua"
-                   data-method="post" rel="nofollow">Edit</a>
-          <a href="/princer007/BoL/raw/master/Orianna.lua" class="button minibutton " id="raw-url">Raw</a>
-            <a href="/princer007/BoL/blame/master/Orianna.lua" class="button minibutton js-update-url-with-hash">Blame</a>
-          <a href="/princer007/BoL/commits/master/Orianna.lua" class="button minibutton " rel="nofollow">History</a>
-        </div><!-- /.button-group -->
-
-            <a class="minibutton danger empty-icon tooltipped tooltipped-s"
-               href="/princer007/BoL/delete/master/Orianna.lua"
-               aria-label="Fork this project and delete file"
-               data-method="post" data-test-id="delete-blob-file" rel="nofollow">
-
-          Delete
-        </a>
-      </div><!-- /.actions -->
-    </div>
-      
-  <div class="blob-wrapper data type-lua js-blob-data">
-       <table class="file-code file-diff tab-size-8">
-         <tr class="file-code-line">
-           <td class="blob-line-nums">
-             <span id="L1" rel="#L1">1</span>
-<span id="L2" rel="#L2">2</span>
-<span id="L3" rel="#L3">3</span>
-<span id="L4" rel="#L4">4</span>
-<span id="L5" rel="#L5">5</span>
-<span id="L6" rel="#L6">6</span>
-<span id="L7" rel="#L7">7</span>
-<span id="L8" rel="#L8">8</span>
-<span id="L9" rel="#L9">9</span>
-<span id="L10" rel="#L10">10</span>
-<span id="L11" rel="#L11">11</span>
-<span id="L12" rel="#L12">12</span>
-<span id="L13" rel="#L13">13</span>
-<span id="L14" rel="#L14">14</span>
-<span id="L15" rel="#L15">15</span>
-<span id="L16" rel="#L16">16</span>
-<span id="L17" rel="#L17">17</span>
-<span id="L18" rel="#L18">18</span>
-<span id="L19" rel="#L19">19</span>
-<span id="L20" rel="#L20">20</span>
-<span id="L21" rel="#L21">21</span>
-<span id="L22" rel="#L22">22</span>
-<span id="L23" rel="#L23">23</span>
-<span id="L24" rel="#L24">24</span>
-<span id="L25" rel="#L25">25</span>
-<span id="L26" rel="#L26">26</span>
-<span id="L27" rel="#L27">27</span>
-<span id="L28" rel="#L28">28</span>
-<span id="L29" rel="#L29">29</span>
-<span id="L30" rel="#L30">30</span>
-<span id="L31" rel="#L31">31</span>
-<span id="L32" rel="#L32">32</span>
-<span id="L33" rel="#L33">33</span>
-<span id="L34" rel="#L34">34</span>
-<span id="L35" rel="#L35">35</span>
-<span id="L36" rel="#L36">36</span>
-<span id="L37" rel="#L37">37</span>
-<span id="L38" rel="#L38">38</span>
-<span id="L39" rel="#L39">39</span>
-<span id="L40" rel="#L40">40</span>
-<span id="L41" rel="#L41">41</span>
-<span id="L42" rel="#L42">42</span>
-<span id="L43" rel="#L43">43</span>
-<span id="L44" rel="#L44">44</span>
-<span id="L45" rel="#L45">45</span>
-<span id="L46" rel="#L46">46</span>
-<span id="L47" rel="#L47">47</span>
-<span id="L48" rel="#L48">48</span>
-<span id="L49" rel="#L49">49</span>
-<span id="L50" rel="#L50">50</span>
-<span id="L51" rel="#L51">51</span>
-<span id="L52" rel="#L52">52</span>
-<span id="L53" rel="#L53">53</span>
-<span id="L54" rel="#L54">54</span>
-<span id="L55" rel="#L55">55</span>
-<span id="L56" rel="#L56">56</span>
-<span id="L57" rel="#L57">57</span>
-<span id="L58" rel="#L58">58</span>
-<span id="L59" rel="#L59">59</span>
-<span id="L60" rel="#L60">60</span>
-<span id="L61" rel="#L61">61</span>
-<span id="L62" rel="#L62">62</span>
-<span id="L63" rel="#L63">63</span>
-<span id="L64" rel="#L64">64</span>
-<span id="L65" rel="#L65">65</span>
-<span id="L66" rel="#L66">66</span>
-<span id="L67" rel="#L67">67</span>
-<span id="L68" rel="#L68">68</span>
-<span id="L69" rel="#L69">69</span>
-<span id="L70" rel="#L70">70</span>
-<span id="L71" rel="#L71">71</span>
-<span id="L72" rel="#L72">72</span>
-<span id="L73" rel="#L73">73</span>
-<span id="L74" rel="#L74">74</span>
-<span id="L75" rel="#L75">75</span>
-<span id="L76" rel="#L76">76</span>
-<span id="L77" rel="#L77">77</span>
-<span id="L78" rel="#L78">78</span>
-<span id="L79" rel="#L79">79</span>
-<span id="L80" rel="#L80">80</span>
-<span id="L81" rel="#L81">81</span>
-<span id="L82" rel="#L82">82</span>
-<span id="L83" rel="#L83">83</span>
-<span id="L84" rel="#L84">84</span>
-<span id="L85" rel="#L85">85</span>
-<span id="L86" rel="#L86">86</span>
-<span id="L87" rel="#L87">87</span>
-<span id="L88" rel="#L88">88</span>
-<span id="L89" rel="#L89">89</span>
-<span id="L90" rel="#L90">90</span>
-<span id="L91" rel="#L91">91</span>
-<span id="L92" rel="#L92">92</span>
-<span id="L93" rel="#L93">93</span>
-<span id="L94" rel="#L94">94</span>
-<span id="L95" rel="#L95">95</span>
-<span id="L96" rel="#L96">96</span>
-<span id="L97" rel="#L97">97</span>
-<span id="L98" rel="#L98">98</span>
-<span id="L99" rel="#L99">99</span>
-<span id="L100" rel="#L100">100</span>
-<span id="L101" rel="#L101">101</span>
-<span id="L102" rel="#L102">102</span>
-<span id="L103" rel="#L103">103</span>
-<span id="L104" rel="#L104">104</span>
-<span id="L105" rel="#L105">105</span>
-<span id="L106" rel="#L106">106</span>
-<span id="L107" rel="#L107">107</span>
-<span id="L108" rel="#L108">108</span>
-<span id="L109" rel="#L109">109</span>
-<span id="L110" rel="#L110">110</span>
-<span id="L111" rel="#L111">111</span>
-<span id="L112" rel="#L112">112</span>
-<span id="L113" rel="#L113">113</span>
-<span id="L114" rel="#L114">114</span>
-<span id="L115" rel="#L115">115</span>
-<span id="L116" rel="#L116">116</span>
-<span id="L117" rel="#L117">117</span>
-<span id="L118" rel="#L118">118</span>
-<span id="L119" rel="#L119">119</span>
-<span id="L120" rel="#L120">120</span>
-<span id="L121" rel="#L121">121</span>
-<span id="L122" rel="#L122">122</span>
-<span id="L123" rel="#L123">123</span>
-<span id="L124" rel="#L124">124</span>
-<span id="L125" rel="#L125">125</span>
-<span id="L126" rel="#L126">126</span>
-<span id="L127" rel="#L127">127</span>
-<span id="L128" rel="#L128">128</span>
-<span id="L129" rel="#L129">129</span>
-<span id="L130" rel="#L130">130</span>
-<span id="L131" rel="#L131">131</span>
-<span id="L132" rel="#L132">132</span>
-<span id="L133" rel="#L133">133</span>
-<span id="L134" rel="#L134">134</span>
-<span id="L135" rel="#L135">135</span>
-<span id="L136" rel="#L136">136</span>
-<span id="L137" rel="#L137">137</span>
-<span id="L138" rel="#L138">138</span>
-<span id="L139" rel="#L139">139</span>
-<span id="L140" rel="#L140">140</span>
-<span id="L141" rel="#L141">141</span>
-<span id="L142" rel="#L142">142</span>
-<span id="L143" rel="#L143">143</span>
-<span id="L144" rel="#L144">144</span>
-<span id="L145" rel="#L145">145</span>
-<span id="L146" rel="#L146">146</span>
-<span id="L147" rel="#L147">147</span>
-<span id="L148" rel="#L148">148</span>
-<span id="L149" rel="#L149">149</span>
-<span id="L150" rel="#L150">150</span>
-<span id="L151" rel="#L151">151</span>
-<span id="L152" rel="#L152">152</span>
-<span id="L153" rel="#L153">153</span>
-<span id="L154" rel="#L154">154</span>
-<span id="L155" rel="#L155">155</span>
-<span id="L156" rel="#L156">156</span>
-<span id="L157" rel="#L157">157</span>
-<span id="L158" rel="#L158">158</span>
-<span id="L159" rel="#L159">159</span>
-<span id="L160" rel="#L160">160</span>
-<span id="L161" rel="#L161">161</span>
-<span id="L162" rel="#L162">162</span>
-<span id="L163" rel="#L163">163</span>
-<span id="L164" rel="#L164">164</span>
-<span id="L165" rel="#L165">165</span>
-<span id="L166" rel="#L166">166</span>
-<span id="L167" rel="#L167">167</span>
-<span id="L168" rel="#L168">168</span>
-<span id="L169" rel="#L169">169</span>
-<span id="L170" rel="#L170">170</span>
-<span id="L171" rel="#L171">171</span>
-<span id="L172" rel="#L172">172</span>
-<span id="L173" rel="#L173">173</span>
-<span id="L174" rel="#L174">174</span>
-<span id="L175" rel="#L175">175</span>
-<span id="L176" rel="#L176">176</span>
-<span id="L177" rel="#L177">177</span>
-<span id="L178" rel="#L178">178</span>
-<span id="L179" rel="#L179">179</span>
-<span id="L180" rel="#L180">180</span>
-<span id="L181" rel="#L181">181</span>
-<span id="L182" rel="#L182">182</span>
-<span id="L183" rel="#L183">183</span>
-<span id="L184" rel="#L184">184</span>
-<span id="L185" rel="#L185">185</span>
-<span id="L186" rel="#L186">186</span>
-<span id="L187" rel="#L187">187</span>
-<span id="L188" rel="#L188">188</span>
-<span id="L189" rel="#L189">189</span>
-<span id="L190" rel="#L190">190</span>
-<span id="L191" rel="#L191">191</span>
-<span id="L192" rel="#L192">192</span>
-<span id="L193" rel="#L193">193</span>
-<span id="L194" rel="#L194">194</span>
-<span id="L195" rel="#L195">195</span>
-<span id="L196" rel="#L196">196</span>
-<span id="L197" rel="#L197">197</span>
-<span id="L198" rel="#L198">198</span>
-<span id="L199" rel="#L199">199</span>
-<span id="L200" rel="#L200">200</span>
-<span id="L201" rel="#L201">201</span>
-<span id="L202" rel="#L202">202</span>
-<span id="L203" rel="#L203">203</span>
-<span id="L204" rel="#L204">204</span>
-<span id="L205" rel="#L205">205</span>
-<span id="L206" rel="#L206">206</span>
-<span id="L207" rel="#L207">207</span>
-<span id="L208" rel="#L208">208</span>
-<span id="L209" rel="#L209">209</span>
-<span id="L210" rel="#L210">210</span>
-<span id="L211" rel="#L211">211</span>
-<span id="L212" rel="#L212">212</span>
-<span id="L213" rel="#L213">213</span>
-<span id="L214" rel="#L214">214</span>
-<span id="L215" rel="#L215">215</span>
-<span id="L216" rel="#L216">216</span>
-<span id="L217" rel="#L217">217</span>
-<span id="L218" rel="#L218">218</span>
-<span id="L219" rel="#L219">219</span>
-<span id="L220" rel="#L220">220</span>
-<span id="L221" rel="#L221">221</span>
-<span id="L222" rel="#L222">222</span>
-<span id="L223" rel="#L223">223</span>
-<span id="L224" rel="#L224">224</span>
-<span id="L225" rel="#L225">225</span>
-<span id="L226" rel="#L226">226</span>
-<span id="L227" rel="#L227">227</span>
-<span id="L228" rel="#L228">228</span>
-<span id="L229" rel="#L229">229</span>
-<span id="L230" rel="#L230">230</span>
-<span id="L231" rel="#L231">231</span>
-<span id="L232" rel="#L232">232</span>
-<span id="L233" rel="#L233">233</span>
-<span id="L234" rel="#L234">234</span>
-<span id="L235" rel="#L235">235</span>
-<span id="L236" rel="#L236">236</span>
-<span id="L237" rel="#L237">237</span>
-<span id="L238" rel="#L238">238</span>
-<span id="L239" rel="#L239">239</span>
-<span id="L240" rel="#L240">240</span>
-<span id="L241" rel="#L241">241</span>
-<span id="L242" rel="#L242">242</span>
-<span id="L243" rel="#L243">243</span>
-<span id="L244" rel="#L244">244</span>
-<span id="L245" rel="#L245">245</span>
-<span id="L246" rel="#L246">246</span>
-<span id="L247" rel="#L247">247</span>
-<span id="L248" rel="#L248">248</span>
-<span id="L249" rel="#L249">249</span>
-<span id="L250" rel="#L250">250</span>
-<span id="L251" rel="#L251">251</span>
-<span id="L252" rel="#L252">252</span>
-<span id="L253" rel="#L253">253</span>
-<span id="L254" rel="#L254">254</span>
-<span id="L255" rel="#L255">255</span>
-<span id="L256" rel="#L256">256</span>
-<span id="L257" rel="#L257">257</span>
-<span id="L258" rel="#L258">258</span>
-<span id="L259" rel="#L259">259</span>
-<span id="L260" rel="#L260">260</span>
-<span id="L261" rel="#L261">261</span>
-<span id="L262" rel="#L262">262</span>
-<span id="L263" rel="#L263">263</span>
-<span id="L264" rel="#L264">264</span>
-<span id="L265" rel="#L265">265</span>
-<span id="L266" rel="#L266">266</span>
-<span id="L267" rel="#L267">267</span>
-<span id="L268" rel="#L268">268</span>
-<span id="L269" rel="#L269">269</span>
-<span id="L270" rel="#L270">270</span>
-<span id="L271" rel="#L271">271</span>
-<span id="L272" rel="#L272">272</span>
-<span id="L273" rel="#L273">273</span>
-<span id="L274" rel="#L274">274</span>
-<span id="L275" rel="#L275">275</span>
-<span id="L276" rel="#L276">276</span>
-<span id="L277" rel="#L277">277</span>
-<span id="L278" rel="#L278">278</span>
-<span id="L279" rel="#L279">279</span>
-<span id="L280" rel="#L280">280</span>
-<span id="L281" rel="#L281">281</span>
-<span id="L282" rel="#L282">282</span>
-<span id="L283" rel="#L283">283</span>
-<span id="L284" rel="#L284">284</span>
-<span id="L285" rel="#L285">285</span>
-<span id="L286" rel="#L286">286</span>
-<span id="L287" rel="#L287">287</span>
-<span id="L288" rel="#L288">288</span>
-<span id="L289" rel="#L289">289</span>
-<span id="L290" rel="#L290">290</span>
-<span id="L291" rel="#L291">291</span>
-<span id="L292" rel="#L292">292</span>
-<span id="L293" rel="#L293">293</span>
-<span id="L294" rel="#L294">294</span>
-<span id="L295" rel="#L295">295</span>
-<span id="L296" rel="#L296">296</span>
-<span id="L297" rel="#L297">297</span>
-<span id="L298" rel="#L298">298</span>
-<span id="L299" rel="#L299">299</span>
-<span id="L300" rel="#L300">300</span>
-<span id="L301" rel="#L301">301</span>
-<span id="L302" rel="#L302">302</span>
-<span id="L303" rel="#L303">303</span>
-<span id="L304" rel="#L304">304</span>
-<span id="L305" rel="#L305">305</span>
-<span id="L306" rel="#L306">306</span>
-<span id="L307" rel="#L307">307</span>
-<span id="L308" rel="#L308">308</span>
-<span id="L309" rel="#L309">309</span>
-<span id="L310" rel="#L310">310</span>
-<span id="L311" rel="#L311">311</span>
-<span id="L312" rel="#L312">312</span>
-<span id="L313" rel="#L313">313</span>
-<span id="L314" rel="#L314">314</span>
-<span id="L315" rel="#L315">315</span>
-<span id="L316" rel="#L316">316</span>
-<span id="L317" rel="#L317">317</span>
-<span id="L318" rel="#L318">318</span>
-<span id="L319" rel="#L319">319</span>
-<span id="L320" rel="#L320">320</span>
-<span id="L321" rel="#L321">321</span>
-<span id="L322" rel="#L322">322</span>
-<span id="L323" rel="#L323">323</span>
-<span id="L324" rel="#L324">324</span>
-<span id="L325" rel="#L325">325</span>
-<span id="L326" rel="#L326">326</span>
-<span id="L327" rel="#L327">327</span>
-<span id="L328" rel="#L328">328</span>
-<span id="L329" rel="#L329">329</span>
-<span id="L330" rel="#L330">330</span>
-<span id="L331" rel="#L331">331</span>
-<span id="L332" rel="#L332">332</span>
-<span id="L333" rel="#L333">333</span>
-<span id="L334" rel="#L334">334</span>
-<span id="L335" rel="#L335">335</span>
-<span id="L336" rel="#L336">336</span>
-<span id="L337" rel="#L337">337</span>
-<span id="L338" rel="#L338">338</span>
-<span id="L339" rel="#L339">339</span>
-<span id="L340" rel="#L340">340</span>
-<span id="L341" rel="#L341">341</span>
-<span id="L342" rel="#L342">342</span>
-<span id="L343" rel="#L343">343</span>
-<span id="L344" rel="#L344">344</span>
-<span id="L345" rel="#L345">345</span>
-<span id="L346" rel="#L346">346</span>
-<span id="L347" rel="#L347">347</span>
-<span id="L348" rel="#L348">348</span>
-<span id="L349" rel="#L349">349</span>
-<span id="L350" rel="#L350">350</span>
-<span id="L351" rel="#L351">351</span>
-<span id="L352" rel="#L352">352</span>
-<span id="L353" rel="#L353">353</span>
-<span id="L354" rel="#L354">354</span>
-<span id="L355" rel="#L355">355</span>
-<span id="L356" rel="#L356">356</span>
-<span id="L357" rel="#L357">357</span>
-<span id="L358" rel="#L358">358</span>
-<span id="L359" rel="#L359">359</span>
-<span id="L360" rel="#L360">360</span>
-<span id="L361" rel="#L361">361</span>
-<span id="L362" rel="#L362">362</span>
-<span id="L363" rel="#L363">363</span>
-<span id="L364" rel="#L364">364</span>
-<span id="L365" rel="#L365">365</span>
-<span id="L366" rel="#L366">366</span>
-<span id="L367" rel="#L367">367</span>
-<span id="L368" rel="#L368">368</span>
-<span id="L369" rel="#L369">369</span>
-<span id="L370" rel="#L370">370</span>
-<span id="L371" rel="#L371">371</span>
-<span id="L372" rel="#L372">372</span>
-<span id="L373" rel="#L373">373</span>
-<span id="L374" rel="#L374">374</span>
-<span id="L375" rel="#L375">375</span>
-<span id="L376" rel="#L376">376</span>
-<span id="L377" rel="#L377">377</span>
-<span id="L378" rel="#L378">378</span>
-<span id="L379" rel="#L379">379</span>
-<span id="L380" rel="#L380">380</span>
-<span id="L381" rel="#L381">381</span>
-<span id="L382" rel="#L382">382</span>
-<span id="L383" rel="#L383">383</span>
-<span id="L384" rel="#L384">384</span>
-<span id="L385" rel="#L385">385</span>
-<span id="L386" rel="#L386">386</span>
-<span id="L387" rel="#L387">387</span>
-<span id="L388" rel="#L388">388</span>
-<span id="L389" rel="#L389">389</span>
-<span id="L390" rel="#L390">390</span>
-<span id="L391" rel="#L391">391</span>
-<span id="L392" rel="#L392">392</span>
-<span id="L393" rel="#L393">393</span>
-<span id="L394" rel="#L394">394</span>
-<span id="L395" rel="#L395">395</span>
-<span id="L396" rel="#L396">396</span>
-<span id="L397" rel="#L397">397</span>
-<span id="L398" rel="#L398">398</span>
-<span id="L399" rel="#L399">399</span>
-<span id="L400" rel="#L400">400</span>
-<span id="L401" rel="#L401">401</span>
-<span id="L402" rel="#L402">402</span>
-<span id="L403" rel="#L403">403</span>
-<span id="L404" rel="#L404">404</span>
-<span id="L405" rel="#L405">405</span>
-<span id="L406" rel="#L406">406</span>
-<span id="L407" rel="#L407">407</span>
-<span id="L408" rel="#L408">408</span>
-<span id="L409" rel="#L409">409</span>
-<span id="L410" rel="#L410">410</span>
-<span id="L411" rel="#L411">411</span>
-<span id="L412" rel="#L412">412</span>
-<span id="L413" rel="#L413">413</span>
-<span id="L414" rel="#L414">414</span>
-<span id="L415" rel="#L415">415</span>
-<span id="L416" rel="#L416">416</span>
-<span id="L417" rel="#L417">417</span>
-<span id="L418" rel="#L418">418</span>
-<span id="L419" rel="#L419">419</span>
-<span id="L420" rel="#L420">420</span>
-<span id="L421" rel="#L421">421</span>
-<span id="L422" rel="#L422">422</span>
-<span id="L423" rel="#L423">423</span>
-<span id="L424" rel="#L424">424</span>
-<span id="L425" rel="#L425">425</span>
-<span id="L426" rel="#L426">426</span>
-<span id="L427" rel="#L427">427</span>
-<span id="L428" rel="#L428">428</span>
-<span id="L429" rel="#L429">429</span>
-<span id="L430" rel="#L430">430</span>
-<span id="L431" rel="#L431">431</span>
-<span id="L432" rel="#L432">432</span>
-<span id="L433" rel="#L433">433</span>
-<span id="L434" rel="#L434">434</span>
-<span id="L435" rel="#L435">435</span>
-<span id="L436" rel="#L436">436</span>
-<span id="L437" rel="#L437">437</span>
-<span id="L438" rel="#L438">438</span>
-<span id="L439" rel="#L439">439</span>
-<span id="L440" rel="#L440">440</span>
-<span id="L441" rel="#L441">441</span>
-<span id="L442" rel="#L442">442</span>
-<span id="L443" rel="#L443">443</span>
-<span id="L444" rel="#L444">444</span>
-<span id="L445" rel="#L445">445</span>
-<span id="L446" rel="#L446">446</span>
-<span id="L447" rel="#L447">447</span>
-<span id="L448" rel="#L448">448</span>
-<span id="L449" rel="#L449">449</span>
-<span id="L450" rel="#L450">450</span>
-<span id="L451" rel="#L451">451</span>
-<span id="L452" rel="#L452">452</span>
-<span id="L453" rel="#L453">453</span>
-<span id="L454" rel="#L454">454</span>
-<span id="L455" rel="#L455">455</span>
-<span id="L456" rel="#L456">456</span>
-<span id="L457" rel="#L457">457</span>
-<span id="L458" rel="#L458">458</span>
-<span id="L459" rel="#L459">459</span>
-<span id="L460" rel="#L460">460</span>
-<span id="L461" rel="#L461">461</span>
-<span id="L462" rel="#L462">462</span>
-<span id="L463" rel="#L463">463</span>
-<span id="L464" rel="#L464">464</span>
-<span id="L465" rel="#L465">465</span>
-<span id="L466" rel="#L466">466</span>
-<span id="L467" rel="#L467">467</span>
-<span id="L468" rel="#L468">468</span>
-<span id="L469" rel="#L469">469</span>
-<span id="L470" rel="#L470">470</span>
-<span id="L471" rel="#L471">471</span>
-<span id="L472" rel="#L472">472</span>
-<span id="L473" rel="#L473">473</span>
-<span id="L474" rel="#L474">474</span>
-<span id="L475" rel="#L475">475</span>
-<span id="L476" rel="#L476">476</span>
-<span id="L477" rel="#L477">477</span>
-<span id="L478" rel="#L478">478</span>
-<span id="L479" rel="#L479">479</span>
-<span id="L480" rel="#L480">480</span>
-<span id="L481" rel="#L481">481</span>
-<span id="L482" rel="#L482">482</span>
-<span id="L483" rel="#L483">483</span>
-<span id="L484" rel="#L484">484</span>
-<span id="L485" rel="#L485">485</span>
-<span id="L486" rel="#L486">486</span>
-<span id="L487" rel="#L487">487</span>
-<span id="L488" rel="#L488">488</span>
-<span id="L489" rel="#L489">489</span>
-<span id="L490" rel="#L490">490</span>
-<span id="L491" rel="#L491">491</span>
-<span id="L492" rel="#L492">492</span>
-<span id="L493" rel="#L493">493</span>
-<span id="L494" rel="#L494">494</span>
-<span id="L495" rel="#L495">495</span>
-<span id="L496" rel="#L496">496</span>
-<span id="L497" rel="#L497">497</span>
-<span id="L498" rel="#L498">498</span>
-<span id="L499" rel="#L499">499</span>
-<span id="L500" rel="#L500">500</span>
-<span id="L501" rel="#L501">501</span>
-<span id="L502" rel="#L502">502</span>
-<span id="L503" rel="#L503">503</span>
-<span id="L504" rel="#L504">504</span>
-<span id="L505" rel="#L505">505</span>
-<span id="L506" rel="#L506">506</span>
-<span id="L507" rel="#L507">507</span>
-<span id="L508" rel="#L508">508</span>
-<span id="L509" rel="#L509">509</span>
-<span id="L510" rel="#L510">510</span>
-<span id="L511" rel="#L511">511</span>
-<span id="L512" rel="#L512">512</span>
-<span id="L513" rel="#L513">513</span>
-<span id="L514" rel="#L514">514</span>
-<span id="L515" rel="#L515">515</span>
-<span id="L516" rel="#L516">516</span>
-<span id="L517" rel="#L517">517</span>
-<span id="L518" rel="#L518">518</span>
-<span id="L519" rel="#L519">519</span>
-<span id="L520" rel="#L520">520</span>
-<span id="L521" rel="#L521">521</span>
-<span id="L522" rel="#L522">522</span>
-<span id="L523" rel="#L523">523</span>
-<span id="L524" rel="#L524">524</span>
-<span id="L525" rel="#L525">525</span>
-<span id="L526" rel="#L526">526</span>
-<span id="L527" rel="#L527">527</span>
-<span id="L528" rel="#L528">528</span>
-<span id="L529" rel="#L529">529</span>
-<span id="L530" rel="#L530">530</span>
-<span id="L531" rel="#L531">531</span>
-<span id="L532" rel="#L532">532</span>
-<span id="L533" rel="#L533">533</span>
-<span id="L534" rel="#L534">534</span>
-<span id="L535" rel="#L535">535</span>
-<span id="L536" rel="#L536">536</span>
-<span id="L537" rel="#L537">537</span>
-<span id="L538" rel="#L538">538</span>
-<span id="L539" rel="#L539">539</span>
-<span id="L540" rel="#L540">540</span>
-<span id="L541" rel="#L541">541</span>
-<span id="L542" rel="#L542">542</span>
-<span id="L543" rel="#L543">543</span>
-<span id="L544" rel="#L544">544</span>
-<span id="L545" rel="#L545">545</span>
-<span id="L546" rel="#L546">546</span>
-<span id="L547" rel="#L547">547</span>
-<span id="L548" rel="#L548">548</span>
-<span id="L549" rel="#L549">549</span>
-<span id="L550" rel="#L550">550</span>
-<span id="L551" rel="#L551">551</span>
-<span id="L552" rel="#L552">552</span>
-<span id="L553" rel="#L553">553</span>
-<span id="L554" rel="#L554">554</span>
-<span id="L555" rel="#L555">555</span>
-<span id="L556" rel="#L556">556</span>
-<span id="L557" rel="#L557">557</span>
-<span id="L558" rel="#L558">558</span>
-<span id="L559" rel="#L559">559</span>
-<span id="L560" rel="#L560">560</span>
-<span id="L561" rel="#L561">561</span>
-<span id="L562" rel="#L562">562</span>
-<span id="L563" rel="#L563">563</span>
-<span id="L564" rel="#L564">564</span>
-<span id="L565" rel="#L565">565</span>
-<span id="L566" rel="#L566">566</span>
-<span id="L567" rel="#L567">567</span>
-<span id="L568" rel="#L568">568</span>
-<span id="L569" rel="#L569">569</span>
-<span id="L570" rel="#L570">570</span>
-<span id="L571" rel="#L571">571</span>
-<span id="L572" rel="#L572">572</span>
-<span id="L573" rel="#L573">573</span>
-<span id="L574" rel="#L574">574</span>
-<span id="L575" rel="#L575">575</span>
-<span id="L576" rel="#L576">576</span>
-<span id="L577" rel="#L577">577</span>
-<span id="L578" rel="#L578">578</span>
-<span id="L579" rel="#L579">579</span>
-<span id="L580" rel="#L580">580</span>
-<span id="L581" rel="#L581">581</span>
-<span id="L582" rel="#L582">582</span>
-<span id="L583" rel="#L583">583</span>
-<span id="L584" rel="#L584">584</span>
-<span id="L585" rel="#L585">585</span>
-<span id="L586" rel="#L586">586</span>
-<span id="L587" rel="#L587">587</span>
-<span id="L588" rel="#L588">588</span>
-<span id="L589" rel="#L589">589</span>
-<span id="L590" rel="#L590">590</span>
-<span id="L591" rel="#L591">591</span>
-<span id="L592" rel="#L592">592</span>
-<span id="L593" rel="#L593">593</span>
-<span id="L594" rel="#L594">594</span>
-<span id="L595" rel="#L595">595</span>
-<span id="L596" rel="#L596">596</span>
-<span id="L597" rel="#L597">597</span>
-<span id="L598" rel="#L598">598</span>
-<span id="L599" rel="#L599">599</span>
-<span id="L600" rel="#L600">600</span>
-<span id="L601" rel="#L601">601</span>
-<span id="L602" rel="#L602">602</span>
-<span id="L603" rel="#L603">603</span>
-<span id="L604" rel="#L604">604</span>
-<span id="L605" rel="#L605">605</span>
-<span id="L606" rel="#L606">606</span>
-<span id="L607" rel="#L607">607</span>
-<span id="L608" rel="#L608">608</span>
-<span id="L609" rel="#L609">609</span>
-<span id="L610" rel="#L610">610</span>
-<span id="L611" rel="#L611">611</span>
-<span id="L612" rel="#L612">612</span>
-<span id="L613" rel="#L613">613</span>
-<span id="L614" rel="#L614">614</span>
-<span id="L615" rel="#L615">615</span>
-<span id="L616" rel="#L616">616</span>
-<span id="L617" rel="#L617">617</span>
-<span id="L618" rel="#L618">618</span>
-<span id="L619" rel="#L619">619</span>
-<span id="L620" rel="#L620">620</span>
-<span id="L621" rel="#L621">621</span>
-<span id="L622" rel="#L622">622</span>
-<span id="L623" rel="#L623">623</span>
-<span id="L624" rel="#L624">624</span>
-<span id="L625" rel="#L625">625</span>
-<span id="L626" rel="#L626">626</span>
-<span id="L627" rel="#L627">627</span>
-<span id="L628" rel="#L628">628</span>
-<span id="L629" rel="#L629">629</span>
-<span id="L630" rel="#L630">630</span>
-<span id="L631" rel="#L631">631</span>
-<span id="L632" rel="#L632">632</span>
-<span id="L633" rel="#L633">633</span>
-<span id="L634" rel="#L634">634</span>
-<span id="L635" rel="#L635">635</span>
-<span id="L636" rel="#L636">636</span>
-<span id="L637" rel="#L637">637</span>
-<span id="L638" rel="#L638">638</span>
-<span id="L639" rel="#L639">639</span>
-<span id="L640" rel="#L640">640</span>
-<span id="L641" rel="#L641">641</span>
-<span id="L642" rel="#L642">642</span>
-<span id="L643" rel="#L643">643</span>
-<span id="L644" rel="#L644">644</span>
-<span id="L645" rel="#L645">645</span>
-<span id="L646" rel="#L646">646</span>
-<span id="L647" rel="#L647">647</span>
-<span id="L648" rel="#L648">648</span>
-<span id="L649" rel="#L649">649</span>
-<span id="L650" rel="#L650">650</span>
-<span id="L651" rel="#L651">651</span>
-<span id="L652" rel="#L652">652</span>
-<span id="L653" rel="#L653">653</span>
-<span id="L654" rel="#L654">654</span>
-<span id="L655" rel="#L655">655</span>
-<span id="L656" rel="#L656">656</span>
-<span id="L657" rel="#L657">657</span>
-<span id="L658" rel="#L658">658</span>
-<span id="L659" rel="#L659">659</span>
-<span id="L660" rel="#L660">660</span>
-<span id="L661" rel="#L661">661</span>
-<span id="L662" rel="#L662">662</span>
-<span id="L663" rel="#L663">663</span>
-<span id="L664" rel="#L664">664</span>
-<span id="L665" rel="#L665">665</span>
-<span id="L666" rel="#L666">666</span>
-<span id="L667" rel="#L667">667</span>
-<span id="L668" rel="#L668">668</span>
-<span id="L669" rel="#L669">669</span>
-<span id="L670" rel="#L670">670</span>
-<span id="L671" rel="#L671">671</span>
-<span id="L672" rel="#L672">672</span>
-<span id="L673" rel="#L673">673</span>
-<span id="L674" rel="#L674">674</span>
-<span id="L675" rel="#L675">675</span>
-<span id="L676" rel="#L676">676</span>
-<span id="L677" rel="#L677">677</span>
-<span id="L678" rel="#L678">678</span>
-<span id="L679" rel="#L679">679</span>
-<span id="L680" rel="#L680">680</span>
-<span id="L681" rel="#L681">681</span>
-<span id="L682" rel="#L682">682</span>
-<span id="L683" rel="#L683">683</span>
-<span id="L684" rel="#L684">684</span>
-<span id="L685" rel="#L685">685</span>
-<span id="L686" rel="#L686">686</span>
-<span id="L687" rel="#L687">687</span>
-<span id="L688" rel="#L688">688</span>
-<span id="L689" rel="#L689">689</span>
-<span id="L690" rel="#L690">690</span>
-<span id="L691" rel="#L691">691</span>
-<span id="L692" rel="#L692">692</span>
-<span id="L693" rel="#L693">693</span>
-<span id="L694" rel="#L694">694</span>
-<span id="L695" rel="#L695">695</span>
-<span id="L696" rel="#L696">696</span>
-<span id="L697" rel="#L697">697</span>
-<span id="L698" rel="#L698">698</span>
-<span id="L699" rel="#L699">699</span>
-<span id="L700" rel="#L700">700</span>
-<span id="L701" rel="#L701">701</span>
-<span id="L702" rel="#L702">702</span>
-<span id="L703" rel="#L703">703</span>
-<span id="L704" rel="#L704">704</span>
-<span id="L705" rel="#L705">705</span>
-<span id="L706" rel="#L706">706</span>
-<span id="L707" rel="#L707">707</span>
-<span id="L708" rel="#L708">708</span>
-<span id="L709" rel="#L709">709</span>
-<span id="L710" rel="#L710">710</span>
-<span id="L711" rel="#L711">711</span>
-<span id="L712" rel="#L712">712</span>
-<span id="L713" rel="#L713">713</span>
-<span id="L714" rel="#L714">714</span>
-<span id="L715" rel="#L715">715</span>
-<span id="L716" rel="#L716">716</span>
-<span id="L717" rel="#L717">717</span>
-<span id="L718" rel="#L718">718</span>
-<span id="L719" rel="#L719">719</span>
-<span id="L720" rel="#L720">720</span>
-<span id="L721" rel="#L721">721</span>
-<span id="L722" rel="#L722">722</span>
-<span id="L723" rel="#L723">723</span>
-<span id="L724" rel="#L724">724</span>
-<span id="L725" rel="#L725">725</span>
-<span id="L726" rel="#L726">726</span>
-<span id="L727" rel="#L727">727</span>
-<span id="L728" rel="#L728">728</span>
-<span id="L729" rel="#L729">729</span>
-<span id="L730" rel="#L730">730</span>
-<span id="L731" rel="#L731">731</span>
-<span id="L732" rel="#L732">732</span>
-<span id="L733" rel="#L733">733</span>
-<span id="L734" rel="#L734">734</span>
-<span id="L735" rel="#L735">735</span>
-<span id="L736" rel="#L736">736</span>
-<span id="L737" rel="#L737">737</span>
-<span id="L738" rel="#L738">738</span>
-<span id="L739" rel="#L739">739</span>
-<span id="L740" rel="#L740">740</span>
-<span id="L741" rel="#L741">741</span>
-<span id="L742" rel="#L742">742</span>
-<span id="L743" rel="#L743">743</span>
-<span id="L744" rel="#L744">744</span>
-<span id="L745" rel="#L745">745</span>
-<span id="L746" rel="#L746">746</span>
-<span id="L747" rel="#L747">747</span>
-<span id="L748" rel="#L748">748</span>
-<span id="L749" rel="#L749">749</span>
-<span id="L750" rel="#L750">750</span>
-<span id="L751" rel="#L751">751</span>
-<span id="L752" rel="#L752">752</span>
-<span id="L753" rel="#L753">753</span>
-<span id="L754" rel="#L754">754</span>
-<span id="L755" rel="#L755">755</span>
-<span id="L756" rel="#L756">756</span>
-<span id="L757" rel="#L757">757</span>
-<span id="L758" rel="#L758">758</span>
-<span id="L759" rel="#L759">759</span>
-<span id="L760" rel="#L760">760</span>
-<span id="L761" rel="#L761">761</span>
-<span id="L762" rel="#L762">762</span>
-<span id="L763" rel="#L763">763</span>
-<span id="L764" rel="#L764">764</span>
-<span id="L765" rel="#L765">765</span>
-<span id="L766" rel="#L766">766</span>
-<span id="L767" rel="#L767">767</span>
-<span id="L768" rel="#L768">768</span>
-<span id="L769" rel="#L769">769</span>
-<span id="L770" rel="#L770">770</span>
-<span id="L771" rel="#L771">771</span>
-<span id="L772" rel="#L772">772</span>
-<span id="L773" rel="#L773">773</span>
-<span id="L774" rel="#L774">774</span>
-<span id="L775" rel="#L775">775</span>
-<span id="L776" rel="#L776">776</span>
-<span id="L777" rel="#L777">777</span>
-<span id="L778" rel="#L778">778</span>
-<span id="L779" rel="#L779">779</span>
-<span id="L780" rel="#L780">780</span>
-<span id="L781" rel="#L781">781</span>
-<span id="L782" rel="#L782">782</span>
-<span id="L783" rel="#L783">783</span>
-<span id="L784" rel="#L784">784</span>
-<span id="L785" rel="#L785">785</span>
-<span id="L786" rel="#L786">786</span>
-<span id="L787" rel="#L787">787</span>
-<span id="L788" rel="#L788">788</span>
-<span id="L789" rel="#L789">789</span>
-<span id="L790" rel="#L790">790</span>
-<span id="L791" rel="#L791">791</span>
-<span id="L792" rel="#L792">792</span>
-<span id="L793" rel="#L793">793</span>
-<span id="L794" rel="#L794">794</span>
-<span id="L795" rel="#L795">795</span>
-<span id="L796" rel="#L796">796</span>
-<span id="L797" rel="#L797">797</span>
-<span id="L798" rel="#L798">798</span>
-<span id="L799" rel="#L799">799</span>
-<span id="L800" rel="#L800">800</span>
-<span id="L801" rel="#L801">801</span>
-<span id="L802" rel="#L802">802</span>
-<span id="L803" rel="#L803">803</span>
-<span id="L804" rel="#L804">804</span>
-<span id="L805" rel="#L805">805</span>
-<span id="L806" rel="#L806">806</span>
-<span id="L807" rel="#L807">807</span>
-<span id="L808" rel="#L808">808</span>
-<span id="L809" rel="#L809">809</span>
-<span id="L810" rel="#L810">810</span>
-<span id="L811" rel="#L811">811</span>
-<span id="L812" rel="#L812">812</span>
-<span id="L813" rel="#L813">813</span>
-<span id="L814" rel="#L814">814</span>
-<span id="L815" rel="#L815">815</span>
-<span id="L816" rel="#L816">816</span>
-<span id="L817" rel="#L817">817</span>
-<span id="L818" rel="#L818">818</span>
-<span id="L819" rel="#L819">819</span>
-<span id="L820" rel="#L820">820</span>
-<span id="L821" rel="#L821">821</span>
-<span id="L822" rel="#L822">822</span>
-<span id="L823" rel="#L823">823</span>
-<span id="L824" rel="#L824">824</span>
-<span id="L825" rel="#L825">825</span>
-<span id="L826" rel="#L826">826</span>
-<span id="L827" rel="#L827">827</span>
-<span id="L828" rel="#L828">828</span>
-<span id="L829" rel="#L829">829</span>
-<span id="L830" rel="#L830">830</span>
-<span id="L831" rel="#L831">831</span>
-<span id="L832" rel="#L832">832</span>
-<span id="L833" rel="#L833">833</span>
-<span id="L834" rel="#L834">834</span>
-<span id="L835" rel="#L835">835</span>
-<span id="L836" rel="#L836">836</span>
-<span id="L837" rel="#L837">837</span>
-<span id="L838" rel="#L838">838</span>
-<span id="L839" rel="#L839">839</span>
-<span id="L840" rel="#L840">840</span>
-<span id="L841" rel="#L841">841</span>
-<span id="L842" rel="#L842">842</span>
-<span id="L843" rel="#L843">843</span>
-<span id="L844" rel="#L844">844</span>
-<span id="L845" rel="#L845">845</span>
-<span id="L846" rel="#L846">846</span>
-<span id="L847" rel="#L847">847</span>
-<span id="L848" rel="#L848">848</span>
-<span id="L849" rel="#L849">849</span>
-<span id="L850" rel="#L850">850</span>
-
-           </td>
-           <td class="blob-line-code"><div class="code-body highlight"><pre><div class='line' id='LC1'><span class="cm">--[[[</span></div><div class='line' id='LC2'><br/></div><div class='line' id='LC3'><span class="cm">Feel free using this, but please, report about an &quot;unusual&quot; moves or things</span></div><div class='line' id='LC4'><br/></div><div class='line' id='LC5'><span class="cm">http://botoflegends.com/forum/user/89725-princer007/</span></div><div class='line' id='LC6'><span class="cm">Include screenshot and describing of error(what were you doing when it appear)</span></div><div class='line' id='LC7'><br/></div><div class='line' id='LC8'><span class="cm">]]</span></div><div class='line' id='LC9'><span class="k">if</span> <span class="n">myHero</span><span class="p">.</span><span class="n">charName</span> <span class="o">~=</span> <span class="s2">&quot;</span><span class="s">Orianna&quot;</span> <span class="k">then</span> <span class="k">return</span> <span class="k">end</span></div><div class='line' id='LC10'><br/></div><div class='line' id='LC11'><span class="kd">local</span> <span class="n">version</span> <span class="o">=</span> <span class="mf">1.190</span></div><div class='line' id='LC12'><span class="kd">local</span> <span class="n">AUTOUPDATE</span> <span class="o">=</span> <span class="kc">true</span></div><div class='line' id='LC13'><span class="kd">local</span> <span class="n">SCRIPT_NAME</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">Orianna&quot;</span></div><div class='line' id='LC14'><span class="c1">---------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span></div><div class='line' id='LC15'><span class="c1">---------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span></div><div class='line' id='LC16'><span class="c1">---------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span></div><div class='line' id='LC17'><br/></div><div class='line' id='LC18'><span class="kd">local</span> <span class="n">SOURCELIB_URL</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">https://raw.github.com/TheRealSource/public/master/common/SourceLib.lua&quot;</span></div><div class='line' id='LC19'><span class="kd">local</span> <span class="n">SOURCELIB_PATH</span> <span class="o">=</span> <span class="n">LIB_PATH</span><span class="o">..</span><span class="s2">&quot;</span><span class="s">SourceLib.lua&quot;</span></div><div class='line' id='LC20'><br/></div><div class='line' id='LC21'><span class="k">if</span> <span class="n">FileExist</span><span class="p">(</span><span class="n">SOURCELIB_PATH</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC22'>	<span class="nb">require</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">SourceLib&quot;</span><span class="p">)</span></div><div class='line' id='LC23'><span class="k">else</span></div><div class='line' id='LC24'>	<span class="n">DOWNLOADING_SOURCELIB</span> <span class="o">=</span> <span class="kc">true</span></div><div class='line' id='LC25'>	<span class="n">DownloadFile</span><span class="p">(</span><span class="n">SOURCELIB_URL</span><span class="p">,</span> <span class="n">SOURCELIB_PATH</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span> <span class="n">PrintChat</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Required libraries downloaded successfully, please reload&quot;</span><span class="p">)</span> <span class="k">end</span><span class="p">)</span></div><div class='line' id='LC26'><span class="k">end</span></div><div class='line' id='LC27'><br/></div><div class='line' id='LC28'><span class="k">if</span> <span class="n">DOWNLOADING_SOURCELIB</span> <span class="k">then</span> <span class="n">PrintChat</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Downloading required libraries, please wait...&quot;</span><span class="p">)</span> <span class="k">return</span> <span class="k">end</span></div><div class='line' id='LC29'><br/></div><div class='line' id='LC30'><span class="k">if</span> <span class="n">AUTOUPDATE</span> <span class="k">then</span></div><div class='line' id='LC31'>	 <span class="n">SourceUpdater</span><span class="p">(</span><span class="n">SCRIPT_NAME</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">raw.github.com&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">/princer007/BoL/master/&quot;</span><span class="o">..</span><span class="n">SCRIPT_NAME</span><span class="o">..</span><span class="s2">&quot;</span><span class="s">.lua&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PATH</span> <span class="o">..</span> <span class="n">GetCurrentEnv</span><span class="p">().</span><span class="n">FILE_NAME</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">/princer007/BoL/master/&quot;</span><span class="o">..</span><span class="n">SCRIPT_NAME</span><span class="o">..</span><span class="s2">&quot;</span><span class="s">.version&quot;</span><span class="p">):</span><span class="n">CheckUpdate</span><span class="p">()</span></div><div class='line' id='LC32'><span class="k">end</span></div><div class='line' id='LC33'><br/></div><div class='line' id='LC34'><span class="kd">local</span> <span class="n">RequireI</span> <span class="o">=</span> <span class="n">Require</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">SourceLib&quot;</span><span class="p">)</span></div><div class='line' id='LC35'><span class="n">RequireI</span><span class="p">:</span><span class="n">Add</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">vPrediction&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">https://raw.github.com/Hellsing/BoL/master/common/VPrediction.lua&quot;</span><span class="p">)</span></div><div class='line' id='LC36'><span class="n">RequireI</span><span class="p">:</span><span class="n">Add</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">SOW&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">https://raw.github.com/Hellsing/BoL/master/common/SOW.lua&quot;</span><span class="p">)</span></div><div class='line' id='LC37'><span class="n">RequireI</span><span class="p">:</span><span class="n">Check</span><span class="p">()</span></div><div class='line' id='LC38'><br/></div><div class='line' id='LC39'><span class="k">if</span> <span class="n">RequireI</span><span class="p">.</span><span class="n">downloadNeeded</span> <span class="o">==</span> <span class="kc">true</span> <span class="k">then</span> <span class="k">return</span> <span class="k">end</span></div><div class='line' id='LC40'><span class="c1">---------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span></div><div class='line' id='LC41'><span class="c1">---------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span></div><div class='line' id='LC42'><span class="c1">---------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span></div><div class='line' id='LC43'><br/></div><div class='line' id='LC44'><span class="kd">local</span> <span class="n">InitiatorsList</span> <span class="o">=</span></div><div class='line' id='LC45'><span class="p">{</span></div><div class='line' id='LC46'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Vi&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">ViQ&quot;</span><span class="p">,</span><span class="c1">--R</span></div><div class='line' id='LC47'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Vi&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">ViR&quot;</span><span class="p">,</span><span class="c1">--R</span></div><div class='line' id='LC48'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Malphite&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">Landslide&quot;</span><span class="p">,</span><span class="c1">--R UFSlash</span></div><div class='line' id='LC49'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Nocturne&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">NocturneParanoia&quot;</span><span class="p">,</span><span class="c1">--R</span></div><div class='line' id='LC50'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Zac&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">ZacE&quot;</span><span class="p">,</span><span class="c1">--E</span></div><div class='line' id='LC51'><span class="p">[</span><span class="s2">&quot;</span><span class="s">MonkeyKing&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">MonkeyKingNimbus&quot;</span><span class="p">,</span><span class="c1">--R</span></div><div class='line' id='LC52'><span class="p">[</span><span class="s2">&quot;</span><span class="s">MonkeyKing&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">MonkeyKingSpinToWin&quot;</span><span class="p">,</span><span class="c1">--R</span></div><div class='line' id='LC53'><span class="p">[</span><span class="s2">&quot;</span><span class="s">MonkeyKing&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">SummonerFlash&quot;</span><span class="p">,</span><span class="c1">--Flash</span></div><div class='line' id='LC54'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Shyvana&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">ShyvanaTransformCast&quot;</span><span class="p">,</span><span class="c1">--R</span></div><div class='line' id='LC55'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Thresh&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">threshqleap&quot;</span><span class="p">,</span><span class="c1">--Q2</span></div><div class='line' id='LC56'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Aatrox&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">AatroxQ&quot;</span><span class="p">,</span><span class="c1">--Q</span></div><div class='line' id='LC57'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Renekton&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">RenektonSliceAndDice&quot;</span><span class="p">,</span><span class="c1">--E</span></div><div class='line' id='LC58'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Kennen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">KennenLightningRush&quot;</span><span class="p">,</span><span class="c1">--E</span></div><div class='line' id='LC59'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Kennen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">SummonerFlash&quot;</span><span class="p">,</span><span class="c1">--Flash</span></div><div class='line' id='LC60'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Olaf&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">OlafRagnarok&quot;</span><span class="p">,</span><span class="c1">--R</span></div><div class='line' id='LC61'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Udyr&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">UdyrBearStance&quot;</span><span class="p">,</span><span class="c1">--E</span></div><div class='line' id='LC62'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Volibear&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">VolibearQ&quot;</span><span class="p">,</span><span class="c1">--Q</span></div><div class='line' id='LC63'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Talon&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">TalonCutthroat&quot;</span><span class="p">,</span><span class="c1">--e?</span></div><div class='line' id='LC64'><span class="p">[</span><span class="s2">&quot;</span><span class="s">JarvanIV&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">JarvanIVDragonStrike&quot;</span><span class="p">,</span><span class="c1">--Q</span></div><div class='line' id='LC65'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Warwick&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">InfiniteDuress&quot;</span><span class="p">,</span><span class="c1">--R</span></div><div class='line' id='LC66'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Jax&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">JaxLeapStrike&quot;</span><span class="p">,</span><span class="c1">--Q</span></div><div class='line' id='LC67'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Yasuo&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">YasuoRKnockUpComboW&quot;</span><span class="p">,</span><span class="c1">--Q</span></div><div class='line' id='LC68'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Diana&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">DianaTeleport&quot;</span><span class="p">,</span></div><div class='line' id='LC69'><span class="p">[</span><span class="s2">&quot;</span><span class="s">LeeSin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">BlindMonkQTwo&quot;</span><span class="p">,</span></div><div class='line' id='LC70'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Shen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">ShenShadowDash&quot;</span><span class="p">,</span></div><div class='line' id='LC71'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Alistar&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">Headbutt&quot;</span><span class="p">,</span></div><div class='line' id='LC72'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Amumu&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">BandageToss&quot;</span><span class="p">,</span></div><div class='line' id='LC73'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Urgot&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">UrgotSwap2&quot;</span><span class="p">,</span></div><div class='line' id='LC74'><span class="p">[</span><span class="s2">&quot;</span><span class="s">Rengar&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">RengarR&quot;</span><span class="p">,</span></div><div class='line' id='LC75'><span class="p">}</span></div><div class='line' id='LC76'><br/></div><div class='line' id='LC77'><span class="cm">--[[Spell data]]</span></div><div class='line' id='LC78'><span class="n">spellData</span> <span class="o">=</span> <span class="p">{</span></div><div class='line' id='LC79'>&nbsp;&nbsp;&nbsp;&nbsp;<span class="p">[</span><span class="n">_Q</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="n">range</span> <span class="o">=</span> <span class="mi">800</span><span class="p">,</span>  <span class="n">skillshotType</span> <span class="o">=</span> <span class="n">SKILLSHOT_LINEAR</span><span class="p">,</span>   <span class="n">width</span> <span class="o">=</span> <span class="mi">90</span><span class="p">,</span>  <span class="n">delay</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> 	   <span class="n">speed</span> <span class="o">=</span> <span class="mi">1800</span><span class="p">,</span>	  <span class="n">collision</span> <span class="o">=</span> <span class="kc">false</span> <span class="p">},</span></div><div class='line' id='LC80'>&nbsp;&nbsp;&nbsp;&nbsp;<span class="p">[</span><span class="n">_W</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="n">range</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>    <span class="n">skillshotType</span> <span class="o">=</span> <span class="n">SKILLSHOT_CIRCULAR</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="mi">250</span><span class="p">,</span> <span class="n">delay</span> <span class="o">=</span> <span class="mf">0.25</span><span class="p">,</span>  <span class="n">speed</span> <span class="o">=</span> <span class="nb">math.huge</span><span class="p">,</span> <span class="n">collision</span> <span class="o">=</span> <span class="kc">false</span> <span class="p">},</span></div><div class='line' id='LC81'>&nbsp;&nbsp;&nbsp;&nbsp;<span class="p">[</span><span class="n">_E</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="n">range</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">skillshotType</span> <span class="o">=</span> <span class="n">SKILLSHOT_LINEAR</span><span class="p">,</span>   <span class="n">width</span> <span class="o">=</span> <span class="mi">60</span><span class="p">,</span>  <span class="n">delay</span> <span class="o">=</span> <span class="mf">0.25</span><span class="p">,</span>  <span class="n">speed</span> <span class="o">=</span> <span class="mi">1400</span><span class="p">,</span>      <span class="n">collision</span> <span class="o">=</span> <span class="kc">true</span>  <span class="p">},</span></div><div class='line' id='LC82'>&nbsp;&nbsp;&nbsp;&nbsp;<span class="p">[</span><span class="n">_R</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="n">range</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>	   <span class="n">skillshotType</span> <span class="o">=</span> <span class="n">SKILLSHOT_CIRCULAR</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="mi">400</span><span class="p">,</span> <span class="n">delay</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>   <span class="n">speed</span> <span class="o">=</span> <span class="nb">math.huge</span><span class="p">,</span> <span class="n">collision</span> <span class="o">=</span> <span class="kc">false</span> <span class="p">},</span></div><div class='line' id='LC83'><span class="p">}</span></div><div class='line' id='LC84'><span class="c1">------------------------------------------------------------------------------------------------</span></div><div class='line' id='LC85'><span class="kd">local</span> <span class="n">MainCombo</span> <span class="o">=</span> <span class="p">{</span><span class="n">_Q</span><span class="p">,</span> <span class="n">_W</span><span class="p">,</span> <span class="n">_R</span><span class="p">,</span> <span class="n">_Q</span><span class="p">,</span> <span class="n">_IGNITE</span><span class="p">}</span></div><div class='line' id='LC86'><span class="kd">local</span> <span class="n">Far</span> <span class="o">=</span> <span class="mf">1.3</span></div><div class='line' id='LC87'><br/></div><div class='line' id='LC88'><span class="kd">local</span> <span class="n">DrawPrediction</span> <span class="o">=</span> <span class="kc">nil</span></div><div class='line' id='LC89'><span class="cm">--[[Ball]]</span></div><div class='line' id='LC90'><span class="kd">local</span> <span class="n">BallPos</span></div><div class='line' id='LC91'><span class="kd">local</span> <span class="n">BallMoving</span> <span class="o">=</span> <span class="kc">false</span></div><div class='line' id='LC92'><br/></div><div class='line' id='LC93'><span class="cm">--[[CDS]]</span></div><div class='line' id='LC94'><span class="kd">local</span> <span class="n">IGNITEREADY</span> <span class="o">=</span> <span class="kc">true</span></div><div class='line' id='LC95'><br/></div><div class='line' id='LC96'><span class="kd">local</span> <span class="n">NCounter</span> <span class="o">=</span> <span class="kc">nil</span></div><div class='line' id='LC97'><br/></div><div class='line' id='LC98'><br/></div><div class='line' id='LC99'><span class="kd">local</span> <span class="n">EnemyMinions</span> <span class="o">=</span> <span class="n">minionManager</span><span class="p">(</span><span class="n">MINION_ENEMY</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span><span class="p">,</span> <span class="n">myHero</span><span class="p">,</span> <span class="n">MINION_SORT_MAXHEALTH_DEC</span><span class="p">)</span></div><div class='line' id='LC100'><span class="kd">local</span> <span class="n">JungleMinions</span> <span class="o">=</span> <span class="n">minionManager</span><span class="p">(</span><span class="n">MINION_JUNGLE</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span><span class="p">,</span> <span class="n">myHero</span><span class="p">,</span> <span class="n">MINION_SORT_MAXHEALTH_DEC</span><span class="p">)</span></div><div class='line' id='LC101'><span class="cm">--[[VPrediction]]</span></div><div class='line' id='LC102'><span class="kd">local</span> <span class="n">VP</span></div><div class='line' id='LC103'><br/></div><div class='line' id='LC104'><span class="kd">local</span> <span class="n">Menu</span> <span class="o">=</span> <span class="kc">nil</span></div><div class='line' id='LC105'><br/></div><div class='line' id='LC106'><span class="kd">local</span> <span class="n">SelectedTarget</span> <span class="o">=</span> <span class="kc">nil</span></div><div class='line' id='LC107'><br/></div><div class='line' id='LC108'><span class="kd">local</span> <span class="n">DamageToHeros</span> <span class="o">=</span> <span class="p">{}</span></div><div class='line' id='LC109'><span class="kd">local</span> <span class="n">lastrefresh</span> <span class="o">=</span> <span class="mi">0</span></div><div class='line' id='LC110'><br/></div><div class='line' id='LC111'><span class="kd">local</span> <span class="n">ComboMode</span></div><div class='line' id='LC112'><span class="kd">local</span> <span class="n">_ST</span><span class="p">,</span> <span class="n">_TF</span>  <span class="o">=</span> <span class="mi">1</span><span class="p">,</span><span class="mi">2</span></div><div class='line' id='LC113'><br/></div><div class='line' id='LC114'><span class="kd">local</span> <span class="n">LastChampionSpell</span> <span class="o">=</span> <span class="p">{}</span></div><div class='line' id='LC115'><br/></div><div class='line' id='LC116'><span class="k">function</span> <span class="nf">OnLoad</span><span class="p">()</span></div><div class='line' id='LC117'>	<span class="n">Menu</span> <span class="o">=</span> <span class="n">scriptConfig</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Orianna&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Orianna&quot;</span><span class="p">)</span></div><div class='line' id='LC118'>	<span class="n">BallPos</span> <span class="o">=</span> <span class="n">myHero</span></div><div class='line' id='LC119'>	<span class="cm">--[[Spells]]</span></div><div class='line' id='LC120'>	<span class="n">spellQ</span> <span class="o">=</span> <span class="n">Spell</span><span class="p">(</span><span class="n">_Q</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span></div><div class='line' id='LC121'>	<span class="n">spellW</span> <span class="o">=</span> <span class="n">Spell</span><span class="p">(</span><span class="n">_W</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_W</span><span class="p">].</span><span class="n">range</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span></div><div class='line' id='LC122'>	<span class="n">spellE</span> <span class="o">=</span> <span class="n">Spell</span><span class="p">(</span><span class="n">_E</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_E</span><span class="p">].</span><span class="n">range</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span></div><div class='line' id='LC123'>	<span class="n">spellR</span> <span class="o">=</span> <span class="n">Spell</span><span class="p">(</span><span class="n">_R</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_R</span><span class="p">].</span><span class="n">range</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span></div><div class='line' id='LC124'>	<span class="cm">--[[Combo]]</span></div><div class='line' id='LC125'><br/></div><div class='line' id='LC126'>	<span class="n">VP</span> <span class="o">=</span> <span class="n">VPrediction</span><span class="p">()</span></div><div class='line' id='LC127'>	<span class="n">SOWi</span> <span class="o">=</span> <span class="n">SOW</span><span class="p">(</span><span class="n">VP</span><span class="p">)</span></div><div class='line' id='LC128'>	<span class="n">STS</span> <span class="o">=</span> <span class="n">SimpleTS</span><span class="p">(</span><span class="n">STS_PRIORITY_LESS_CAST_MAGIC</span><span class="p">)</span></div><div class='line' id='LC129'>	<span class="n">DLib</span> <span class="o">=</span> <span class="n">DamageLib</span><span class="p">()</span></div><div class='line' id='LC130'>	<span class="n">DManager</span> <span class="o">=</span> <span class="n">DrawManager</span><span class="p">()</span></div><div class='line' id='LC131'><br/></div><div class='line' id='LC132'>	<span class="n">Menu</span><span class="p">:</span><span class="n">addSubMenu</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Orbwalking&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Orbwalking&quot;</span><span class="p">)</span></div><div class='line' id='LC133'>	<span class="n">SOWi</span><span class="p">:</span><span class="n">LoadToMenu</span><span class="p">(</span><span class="n">Menu</span><span class="p">.</span><span class="n">Orbwalking</span><span class="p">)</span></div><div class='line' id='LC134'>	<span class="n">Menu</span><span class="p">:</span><span class="n">addSubMenu</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Target selector&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">STS&quot;</span><span class="p">)</span></div><div class='line' id='LC135'>		<span class="n">STS</span><span class="p">:</span><span class="n">AddToMenu</span><span class="p">(</span><span class="n">Menu</span><span class="p">.</span><span class="n">STS</span><span class="p">)</span></div><div class='line' id='LC136'>	<span class="n">Menu</span><span class="p">:</span><span class="n">addSubMenu</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Combo&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Combo&quot;</span><span class="p">)</span></div><div class='line' id='LC137'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Combo</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">UseQ&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Use Q&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONOFF</span> <span class="p">,</span> <span class="kc">true</span><span class="p">)</span></div><div class='line' id='LC138'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Combo</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">UseW&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Use W&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONOFF</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span></div><div class='line' id='LC139'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Combo</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">UseE&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Use E&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONOFF</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span></div><div class='line' id='LC140'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Combo</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">UseR&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Use R&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONOFF</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span></div><div class='line' id='LC141'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Combo</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">UseRN&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Use R at least in&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_LIST</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">{</span> <span class="s2">&quot;</span><span class="s">1 target&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">2 targets&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">3 targets&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">4 targets&quot;</span> <span class="p">,</span> <span class="s2">&quot;</span><span class="s">5 targets&quot;</span><span class="p">})</span></div><div class='line' id='LC142'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Combo</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">UseI&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Use Ignite if enemy is killable&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONOFF</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span></div><div class='line' id='LC143'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Combo</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Enabled&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Normal combo&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONKEYDOWN</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span></div><div class='line' id='LC144'><br/></div><div class='line' id='LC145'>	<span class="n">Menu</span><span class="p">:</span><span class="n">addSubMenu</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Misc&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Misc&quot;</span><span class="p">)</span></div><div class='line' id='LC146'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">UseW&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Auto-W if it will hit&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_LIST</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">{</span> <span class="s2">&quot;</span><span class="s">No&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">&gt;0 targets&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">&gt;1 targets&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">&gt;2 targets&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">&gt;3 targets&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">&gt;4 targets&quot;</span> <span class="p">})</span></div><div class='line' id='LC147'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">UseR&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Auto-ultimate if it will hit&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_LIST</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">{</span> <span class="s2">&quot;</span><span class="s">No&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">&gt;0 targets&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">&gt;1 targets&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">&gt;2 targets&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">&gt;3 targets&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">&gt;4 targets&quot;</span> <span class="p">})</span></div><div class='line' id='LC148'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">EQ&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Use E + Q if tEQ &lt; %x * tQ&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_SLICE</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span></div><div class='line' id='LC149'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">PaR&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Cast R if hit 1 enemy in combo(hold)&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONKEYDOWN</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="nb">string.byte</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">J&quot;</span><span class="p">))</span></div><div class='line' id='LC150'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">AARange&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">NOT CONFIGURABLE&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_SLICE</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">300</span><span class="p">)</span></div><div class='line' id='LC151'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">:</span><span class="n">addSubMenu</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Auto-E on initiators&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">AutoEInitiate&quot;</span><span class="p">)</span></div><div class='line' id='LC152'>		<span class="kd">local</span> <span class="n">added</span> <span class="o">=</span> <span class="kc">false</span></div><div class='line' id='LC153'>		<span class="k">for</span> <span class="n">champion</span><span class="p">,</span> <span class="n">spell</span> <span class="k">in</span> <span class="nb">pairs</span><span class="p">(</span><span class="n">InitiatorsList</span><span class="p">)</span> <span class="k">do</span></div><div class='line' id='LC154'>			<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ally</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">GetAllyHeroes</span><span class="p">())</span> <span class="k">do</span></div><div class='line' id='LC155'>				<span class="k">if</span> <span class="n">ally</span><span class="p">.</span><span class="n">charName</span> <span class="o">==</span> <span class="n">champion</span> <span class="k">then</span></div><div class='line' id='LC156'>					<span class="n">added</span> <span class="o">=</span> <span class="kc">true</span></div><div class='line' id='LC157'>					<span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">.</span><span class="n">AutoEInitiate</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="n">champion</span><span class="o">..</span><span class="n">spell</span><span class="p">,</span> <span class="n">champion</span><span class="o">..</span><span class="s2">&quot;</span><span class="s"> (&quot;</span><span class="o">..</span><span class="n">spell</span><span class="o">..</span><span class="s2">&quot;</span><span class="s">)&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONOFF</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span></div><div class='line' id='LC158'>				<span class="k">end</span></div><div class='line' id='LC159'>			<span class="k">end</span></div><div class='line' id='LC160'>		<span class="k">end</span></div><div class='line' id='LC161'><br/></div><div class='line' id='LC162'>		<span class="k">if</span> <span class="ow">not</span> <span class="n">added</span> <span class="k">then</span></div><div class='line' id='LC163'>			<span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">.</span><span class="n">AutoEInitiate</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">info&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Info&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_INFO</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Not supported initiators found&quot;</span><span class="p">)</span></div><div class='line' id='LC164'>		<span class="k">else</span></div><div class='line' id='LC165'>			<span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">.</span><span class="n">AutoEInitiate</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Active&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Active&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONOFF</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span></div><div class='line' id='LC166'>		<span class="k">end</span></div><div class='line' id='LC167'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">:</span><span class="n">addSubMenu</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Auto-Interrupt&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Interrupt&quot;</span><span class="p">)</span></div><div class='line' id='LC168'>			<span class="n">Interrupter</span><span class="p">(</span><span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">.</span><span class="n">Interrupt</span><span class="p">,</span> <span class="n">OnInterruptSpell</span><span class="p">)</span></div><div class='line' id='LC169'>		<span class="c1">--Menu.Misc:addParam(&quot;BlockR&quot;, &quot;Block R if it is not going to hit&quot;, SCRIPT_PARAM_ONOFF, true)</span></div><div class='line' id='LC170'><br/></div><div class='line' id='LC171'>	<span class="cm">--[[Harassing]]</span></div><div class='line' id='LC172'>	<span class="n">Menu</span><span class="p">:</span><span class="n">addSubMenu</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Harass&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Harass&quot;</span><span class="p">)</span></div><div class='line' id='LC173'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Harass</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">UseQ&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Use Q&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONOFF</span> <span class="p">,</span> <span class="kc">true</span><span class="p">)</span></div><div class='line' id='LC174'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Harass</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">UseW&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Use W&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONOFF</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span></div><div class='line' id='LC175'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Harass</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">ManaCheck&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Don&#39;t harass if mana &lt; %&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_SLICE</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span></div><div class='line' id='LC176'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Harass</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Enabled&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Harass!&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONKEYDOWN</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="nb">string.byte</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">C&quot;</span><span class="p">))</span></div><div class='line' id='LC177'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Harass</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Enabled2&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Harass (TOGGLE)!&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONKEYTOGGLE</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="nb">string.byte</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">L&quot;</span><span class="p">))</span></div><div class='line' id='LC178'><br/></div><div class='line' id='LC179'>	<span class="cm">--[[Farming]]</span></div><div class='line' id='LC180'>	<span class="n">Menu</span><span class="p">:</span><span class="n">addSubMenu</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Farm&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Farm&quot;</span><span class="p">)</span></div><div class='line' id='LC181'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Farm</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">UseQ&quot;</span><span class="p">,</span>  <span class="s2">&quot;</span><span class="s">Use Q&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_LIST</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="p">{</span> <span class="s2">&quot;</span><span class="s">No&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Freezing&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">LaneClear&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Both&quot;</span> <span class="p">})</span></div><div class='line' id='LC182'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Farm</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">UseW&quot;</span><span class="p">,</span>  <span class="s2">&quot;</span><span class="s">Use W&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_LIST</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="p">{</span> <span class="s2">&quot;</span><span class="s">No&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Freezing&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">LaneClear&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Both&quot;</span> <span class="p">})</span></div><div class='line' id='LC183'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Farm</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">UseE&quot;</span><span class="p">,</span>  <span class="s2">&quot;</span><span class="s">Use E&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_LIST</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="p">{</span> <span class="s2">&quot;</span><span class="s">No&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Freezing&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">LaneClear&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Both&quot;</span> <span class="p">})</span></div><div class='line' id='LC184'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Farm</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">ManaCheck&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Don&#39;t laneclear if mana &lt; %&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_SLICE</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span></div><div class='line' id='LC185'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Farm</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Freeze&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Farm Freezing&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONKEYDOWN</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span>   <span class="nb">string.byte</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">C&quot;</span><span class="p">))</span></div><div class='line' id='LC186'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Farm</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">LaneClear&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Farm LaneClear&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONKEYDOWN</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span>   <span class="nb">string.byte</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">V&quot;</span><span class="p">))</span></div><div class='line' id='LC187'><br/></div><div class='line' id='LC188'>	<span class="cm">--[[Jungle farming]]</span></div><div class='line' id='LC189'>	<span class="n">Menu</span><span class="p">:</span><span class="n">addSubMenu</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">JungleFarm&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">JungleFarm&quot;</span><span class="p">)</span></div><div class='line' id='LC190'>		<span class="n">Menu</span><span class="p">.</span><span class="n">JungleFarm</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">UseQ&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Use Q&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONOFF</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span></div><div class='line' id='LC191'>		<span class="n">Menu</span><span class="p">.</span><span class="n">JungleFarm</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">UseW&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Use W&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONOFF</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span></div><div class='line' id='LC192'>		<span class="n">Menu</span><span class="p">.</span><span class="n">JungleFarm</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">UseE&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Use E&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONOFF</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span></div><div class='line' id='LC193'>		<span class="n">Menu</span><span class="p">.</span><span class="n">JungleFarm</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Enabled&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Farm jungle!&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONKEYDOWN</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span>   <span class="nb">string.byte</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">V&quot;</span><span class="p">))</span></div><div class='line' id='LC194'><br/></div><div class='line' id='LC195'>	<span class="cm">--[[Drawing]]</span></div><div class='line' id='LC196'>	<span class="n">Menu</span><span class="p">:</span><span class="n">addSubMenu</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Drawing&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Drawing&quot;</span><span class="p">)</span></div><div class='line' id='LC197'>	<span class="cm">--[[</span></div><div class='line' id='LC198'><span class="cm">		DManager:CreateCircle(myHero,  spellData[_Q].range, 1, {255, 255, 255, 255}):AddToMenu(Menu.Drawing, &quot;Q Range&quot;, true, true, true)</span></div><div class='line' id='LC199'><span class="cm">		DManager:CreateCircle(BallPos, spellData[_W].width, 1, {255, 255, 255, 255}):AddToMenu(Menu.Drawing, &quot;W Range&quot;, true, true, true)</span></div><div class='line' id='LC200'><span class="cm">		DManager:CreateCircle(myHero,  spellData[_E].range, 1, {255, 255, 255, 255}):AddToMenu(Menu.Drawing, &quot;E Range&quot;, true, true, true)</span></div><div class='line' id='LC201'><span class="cm">		DManager:CreateCircle(BallPos, spellData[_R].width, 1, {255, 255, 255, 255}):AddToMenu(Menu.Drawing, &quot;R Range&quot;, true, true, true)</span></div><div class='line' id='LC202'><span class="cm">		DManager:CreateCircle(myHero,  tonumber(Menu.Misc.AARange),   1, {255, 255, 255, 255}):AddToMenu(Menu.Drawing, &quot;AA Distance&quot;, true, true, true)</span></div><div class='line' id='LC203'><span class="cm">	]]</span></div><div class='line' id='LC204'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Drawing</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">AADistance&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Draw AA distance&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONOFF</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span></div><div class='line' id='LC205'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Drawing</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Qrange&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Draw Q range&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONOFF</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span></div><div class='line' id='LC206'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Drawing</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Wrange&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Draw W radius&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONOFF</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span></div><div class='line' id='LC207'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Drawing</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Erange&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Draw E radius&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONOFF</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span></div><div class='line' id='LC208'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Drawing</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Rrange&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Draw R radius&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONOFF</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span></div><div class='line' id='LC209'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Drawing</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">DrawBall&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Draw ball position&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONOFF</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span></div><div class='line' id='LC210'>		<span class="n">DLib</span><span class="p">:</span><span class="n">AddToMenu</span><span class="p">(</span><span class="n">Menu</span><span class="p">.</span><span class="n">Drawing</span><span class="p">,</span> <span class="n">MainCombo</span><span class="p">)</span></div><div class='line' id='LC211'>	<span class="n">Menu</span><span class="p">:</span><span class="n">addSubMenu</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Debug&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Debug&quot;</span><span class="p">)</span></div><div class='line' id='LC212'>		<span class="n">Menu</span><span class="p">.</span><span class="n">Debug</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">DebugQ&quot;</span><span class="p">,</span>  <span class="s2">&quot;</span><span class="s">Draw Q prediction&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_ONOFF</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span></div><div class='line' id='LC213'>	<span class="n">Menu</span><span class="p">:</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">Version&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s">Version&quot;</span><span class="p">,</span> <span class="n">SCRIPT_PARAM_INFO</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span></div><div class='line' id='LC214'>	<span class="n">spellW</span><span class="p">:</span><span class="n">SetAOE</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span></div><div class='line' id='LC215'>	<span class="n">spellR</span><span class="p">:</span><span class="n">SetAOE</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span></div><div class='line' id='LC216'>	<span class="kd">local</span> <span class="n">passiveDmg</span> <span class="o">=</span> <span class="p">{</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">18</span><span class="p">,</span> <span class="mi">18</span><span class="p">,</span> <span class="mi">18</span><span class="p">,</span> <span class="mi">26</span><span class="p">,</span> <span class="mi">26</span><span class="p">,</span> <span class="mi">26</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">}</span></div><div class='line' id='LC217'>	<span class="n">DLib</span><span class="p">:</span><span class="n">RegisterDamageSource</span><span class="p">(</span><span class="n">_Q</span><span class="p">,</span> <span class="n">_MAGIC</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span>  <span class="mi">30</span><span class="p">,</span>  <span class="n">_MAGIC</span><span class="p">,</span> <span class="n">_AP</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span> <span class="k">return</span> <span class="n">spellQ</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="k">end</span><span class="p">)</span></div><div class='line' id='LC218'>	<span class="n">DLib</span><span class="p">:</span><span class="n">RegisterDamageSource</span><span class="p">(</span><span class="n">_W</span><span class="p">,</span> <span class="n">_MAGIC</span><span class="p">,</span> <span class="mi">35</span><span class="p">,</span> <span class="mi">45</span><span class="p">,</span> <span class="n">_MAGIC</span><span class="p">,</span> <span class="n">_AP</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span> <span class="k">return</span> <span class="n">spellW</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="k">end</span><span class="p">)</span></div><div class='line' id='LC219'>	<span class="n">DLib</span><span class="p">:</span><span class="n">RegisterDamageSource</span><span class="p">(</span><span class="n">_E</span><span class="p">,</span> <span class="n">_MAGIC</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span>  <span class="mi">30</span><span class="p">,</span>  <span class="n">_MAGIC</span><span class="p">,</span> <span class="n">_AP</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span> <span class="k">return</span> <span class="n">spellE</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="k">end</span><span class="p">)</span></div><div class='line' id='LC220'>	<span class="n">DLib</span><span class="p">:</span><span class="n">RegisterDamageSource</span><span class="p">(</span><span class="n">_R</span><span class="p">,</span> <span class="n">_MAGIC</span><span class="p">,</span> <span class="mi">75</span><span class="p">,</span> <span class="mi">75</span><span class="p">,</span> <span class="n">_MAGIC</span><span class="p">,</span> <span class="n">_AP</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span> <span class="k">return</span> <span class="n">spellR</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="k">end</span><span class="p">)</span></div><div class='line' id='LC221'>	<span class="c1">--DLib:RegisterDamageSource(_AA, _PHYSICAL, 0, 0, _PHYSICAL, _AP, 0, function() return SOWi:CanAttack() end, function() return myHero.totalDamage+passiveDmg[myHero.lvl] end)</span></div><div class='line' id='LC222'><br/></div><div class='line' id='LC223'><br/></div><div class='line' id='LC224'>&nbsp;	<span class="k">if</span> <span class="n">myHero</span><span class="p">:</span><span class="n">GetSpellData</span><span class="p">(</span><span class="n">SUMMONER_1</span><span class="p">).</span><span class="n">name</span><span class="p">:</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">SummonerDot&quot;</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC225'>		<span class="n">_IGNITE</span> <span class="o">=</span> <span class="n">SUMMONER_1</span></div><div class='line' id='LC226'>	<span class="k">elseif</span> <span class="n">myHero</span><span class="p">:</span><span class="n">GetSpellData</span><span class="p">(</span><span class="n">SUMMONER_2</span><span class="p">).</span><span class="n">name</span><span class="p">:</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">SummonerDot&quot;</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC227'>		<span class="n">_IGNITE</span> <span class="o">=</span> <span class="n">SUMMONER_2</span></div><div class='line' id='LC228'>	<span class="k">else</span></div><div class='line' id='LC229'>		<span class="n">_IGNITE</span> <span class="o">=</span> <span class="kc">nil</span></div><div class='line' id='LC230'>	<span class="k">end</span></div><div class='line' id='LC231'>	<span class="n">PrintChat</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">&lt;font color=</span><span class="se">\&quot;</span><span class="s">#81BEF7</span><span class="se">\&quot;</span><span class="s">&gt;[Orianna] Command: Load&lt;/font&gt;&quot;</span><span class="p">)</span></div><div class='line' id='LC232'><span class="k">end</span></div><div class='line' id='LC233'><br/></div><div class='line' id='LC234'><span class="cm">--[[Check the number of enemies hit by casting W]]</span></div><div class='line' id='LC235'><span class="k">function</span> <span class="nf">CheckEnemiesHitByW</span><span class="p">()</span></div><div class='line' id='LC236'>	<span class="kd">local</span> <span class="n">enemieshit</span> <span class="o">=</span> <span class="p">{}</span></div><div class='line' id='LC237'>	<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">enemy</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">GetEnemyHeroes</span><span class="p">())</span> <span class="k">do</span></div><div class='line' id='LC238'>		<span class="kd">local</span> <span class="n">position</span> <span class="o">=</span> <span class="n">VP</span><span class="p">:</span><span class="n">GetPredictedPos</span><span class="p">(</span><span class="n">enemy</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_W</span><span class="p">].</span><span class="n">delay</span><span class="p">)</span></div><div class='line' id='LC239'>		<span class="k">if</span> <span class="n">ValidTarget</span><span class="p">(</span><span class="n">enemy</span><span class="p">)</span> <span class="ow">and</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_W</span><span class="p">].</span><span class="n">width</span> <span class="ow">and</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">enemy</span><span class="p">.</span><span class="n">visionPos</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_W</span><span class="p">].</span><span class="n">width</span> <span class="k">then</span></div><div class='line' id='LC240'>			<span class="nb">table.insert</span><span class="p">(</span><span class="n">enemieshit</span><span class="p">,</span> <span class="n">enemy</span><span class="p">)</span></div><div class='line' id='LC241'>		<span class="k">end</span></div><div class='line' id='LC242'>	<span class="k">end</span></div><div class='line' id='LC243'>	<span class="k">return</span> <span class="o">#</span><span class="n">enemieshit</span><span class="p">,</span> <span class="n">enemieshit</span></div><div class='line' id='LC244'><span class="k">end</span></div><div class='line' id='LC245'><br/></div><div class='line' id='LC246'><span class="cm">--[[Check the number of enemies hit by casting E]]</span></div><div class='line' id='LC247'><span class="k">function</span> <span class="nf">CheckEnemiesHitByE</span><span class="p">(</span><span class="n">To</span><span class="p">)</span></div><div class='line' id='LC248'>	<span class="kd">local</span> <span class="n">enemieshit</span> <span class="o">=</span> <span class="p">{}</span></div><div class='line' id='LC249'>	<span class="kd">local</span> <span class="n">StartPoint</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">BallPos</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">.</span><span class="n">z</span><span class="p">)</span></div><div class='line' id='LC250'>	<span class="kd">local</span> <span class="n">EndPoint</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">To</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">To</span><span class="p">.</span><span class="n">z</span><span class="p">)</span></div><div class='line' id='LC251'>	<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">enemy</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">GetEnemyHeroes</span><span class="p">())</span> <span class="k">do</span></div><div class='line' id='LC252'>		<span class="kd">local</span> <span class="n">cp</span><span class="p">,</span> <span class="n">hc</span><span class="p">,</span> <span class="n">position</span> <span class="o">=</span> <span class="n">VP</span><span class="p">:</span><span class="n">GetLineCastPosition</span><span class="p">(</span><span class="n">enemy</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_E</span><span class="p">].</span><span class="n">delay</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_E</span><span class="p">].</span><span class="n">width</span><span class="p">,</span> <span class="nb">math.huge</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_E</span><span class="p">].</span><span class="n">speed</span><span class="p">,</span> <span class="n">StartPoint</span><span class="p">)</span></div><div class='line' id='LC253'>		<span class="k">if</span> <span class="n">position</span> <span class="k">then</span></div><div class='line' id='LC254'>			<span class="kd">local</span> <span class="n">PointInLine</span><span class="p">,</span> <span class="n">tmp</span><span class="p">,</span> <span class="n">isOnSegment</span> <span class="o">=</span> <span class="n">VectorPointProjectionOnLineSegment</span><span class="p">(</span><span class="n">StartPoint</span><span class="p">,</span> <span class="n">EndPoint</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span></div><div class='line' id='LC255'>			<span class="k">if</span> <span class="n">ValidTarget</span><span class="p">(</span><span class="n">enemy</span><span class="p">)</span> <span class="ow">and</span> <span class="n">isOnSegment</span> <span class="ow">and</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">PointInLine</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">spellData</span><span class="p">[</span><span class="n">_E</span><span class="p">].</span><span class="n">width</span> <span class="o">+</span> <span class="n">VP</span><span class="p">:</span><span class="n">GetHitBox</span><span class="p">(</span><span class="n">enemy</span><span class="p">))</span> <span class="ow">and</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">PointInLine</span><span class="p">,</span> <span class="n">enemy</span><span class="p">.</span><span class="n">visionPos</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">spellData</span><span class="p">[</span><span class="n">_E</span><span class="p">].</span><span class="n">width</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">30</span> <span class="k">then</span></div><div class='line' id='LC256'>				<span class="nb">table.insert</span><span class="p">(</span><span class="n">enemieshit</span><span class="p">,</span> <span class="n">enemy</span><span class="p">)</span></div><div class='line' id='LC257'>			<span class="k">end</span></div><div class='line' id='LC258'>		<span class="k">end</span></div><div class='line' id='LC259'>	<span class="k">end</span></div><div class='line' id='LC260'>	<span class="k">return</span> <span class="o">#</span><span class="n">enemieshit</span><span class="p">,</span> <span class="n">enemieshit</span></div><div class='line' id='LC261'><span class="k">end</span></div><div class='line' id='LC262'><br/></div><div class='line' id='LC263'><span class="cm">--[[Check number of enemies hit by casting R]]</span></div><div class='line' id='LC264'><span class="k">function</span> <span class="nf">CheckEnemiesHitByR</span><span class="p">()</span></div><div class='line' id='LC265'>	<span class="kd">local</span> <span class="n">enemieshit</span> <span class="o">=</span> <span class="p">{}</span></div><div class='line' id='LC266'>	<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">enemy</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">GetEnemyHeroes</span><span class="p">())</span> <span class="k">do</span></div><div class='line' id='LC267'>		<span class="kd">local</span> <span class="n">position</span> <span class="o">=</span> <span class="n">VP</span><span class="p">:</span><span class="n">GetPredictedPos</span><span class="p">(</span><span class="n">enemy</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_R</span><span class="p">].</span><span class="n">delay</span><span class="p">)</span></div><div class='line' id='LC268'>		<span class="k">if</span> <span class="n">ValidTarget</span><span class="p">(</span><span class="n">enemy</span><span class="p">)</span> <span class="ow">and</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_R</span><span class="p">].</span><span class="n">width</span> <span class="ow">and</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">enemy</span><span class="p">.</span><span class="n">visionPos</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">1.25</span> <span class="o">*</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_R</span><span class="p">].</span><span class="n">width</span>  <span class="k">then</span></div><div class='line' id='LC269'>			<span class="nb">table.insert</span><span class="p">(</span><span class="n">enemieshit</span><span class="p">,</span> <span class="n">enemy</span><span class="p">)</span></div><div class='line' id='LC270'>		<span class="k">end</span></div><div class='line' id='LC271'>	<span class="k">end</span></div><div class='line' id='LC272'>	<span class="k">return</span> <span class="o">#</span><span class="n">enemieshit</span><span class="p">,</span> <span class="n">enemieshit</span></div><div class='line' id='LC273'><span class="k">end</span></div><div class='line' id='LC274'><br/></div><div class='line' id='LC275'><span class="k">function</span> <span class="nf">CastQ</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">fast</span><span class="p">)</span></div><div class='line' id='LC276'>	<span class="kd">local</span> <span class="n">Speed</span> <span class="o">=</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">speed</span></div><div class='line' id='LC277'>	<span class="kd">local</span> <span class="n">CastPosition</span><span class="p">,</span>  <span class="n">HitChance</span><span class="p">,</span>  <span class="n">Position</span> <span class="o">=</span> <span class="n">VP</span><span class="p">:</span><span class="n">GetLineCastPosition</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">delay</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">width</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span><span class="p">,</span> <span class="n">Speed</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">)</span></div><div class='line' id='LC278'>	<span class="kd">local</span> <span class="n">CastPoint</span> <span class="o">=</span> <span class="n">CastPosition</span></div><div class='line' id='LC279'>	<span class="k">if</span> <span class="p">(</span><span class="n">HitChance</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="k">then</span> <span class="k">return</span> <span class="k">end</span></div><div class='line' id='LC280'>	<span class="n">DrawPrediction</span> <span class="o">=</span> <span class="n">CastPoint</span></div><div class='line' id='LC281'><br/></div><div class='line' id='LC282'>	<span class="k">if</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">myHero</span><span class="p">.</span><span class="n">visionPos</span><span class="p">,</span> <span class="n">Position</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span> <span class="o">+</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_W</span><span class="p">].</span><span class="n">width</span> <span class="o">+</span> <span class="n">VP</span><span class="p">:</span><span class="n">GetHitBox</span><span class="p">(</span><span class="n">target</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC283'>		<span class="n">target2</span> <span class="o">=</span> <span class="n">GetBestTarget</span><span class="p">(</span><span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></div><div class='line' id='LC284'>		<span class="k">if</span> <span class="n">target2</span> <span class="k">then</span></div><div class='line' id='LC285'>			<span class="n">CastPosition</span><span class="p">,</span>  <span class="n">HitChance</span><span class="p">,</span>  <span class="n">Position</span> <span class="o">=</span> <span class="n">VP</span><span class="p">:</span><span class="n">GetLineCastPosition</span><span class="p">(</span><span class="n">target2</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">delay</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">width</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span><span class="p">,</span> <span class="n">Speed</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">)</span></div><div class='line' id='LC286'>			<span class="n">CastPoint</span> <span class="o">=</span> <span class="n">CastPosition</span></div><div class='line' id='LC287'>	<span class="n">DrawPrediction</span> <span class="o">=</span> <span class="n">CastPoint</span></div><div class='line' id='LC288'>		<span class="k">else</span></div><div class='line' id='LC289'>			<span class="k">do</span> <span class="k">return</span> <span class="k">end</span></div><div class='line' id='LC290'>		<span class="k">end</span></div><div class='line' id='LC291'>	<span class="k">end</span></div><div class='line' id='LC292'><br/></div><div class='line' id='LC293'>	<span class="k">if</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">myHero</span><span class="p">.</span><span class="n">visionPos</span><span class="p">,</span> <span class="n">Position</span><span class="p">)</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span> <span class="o">+</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_W</span><span class="p">].</span><span class="n">width</span> <span class="o">+</span> <span class="n">VP</span><span class="p">:</span><span class="n">GetHitBox</span><span class="p">(</span><span class="n">target</span><span class="p">))</span>  <span class="k">then</span></div><div class='line' id='LC294'>		<span class="k">do</span> <span class="k">return</span> <span class="k">end</span></div><div class='line' id='LC295'>	<span class="k">end</span></div><div class='line' id='LC296'><br/></div><div class='line' id='LC297'>	<span class="k">if</span> <span class="n">spellE</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="ow">and</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">.</span><span class="n">EQ</span> <span class="o">~=</span> <span class="mi">0</span> <span class="k">then</span></div><div class='line' id='LC298'>		<span class="kd">local</span> <span class="n">TravelTime</span> <span class="o">=</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">BallPos</span><span class="p">,</span> <span class="n">CastPoint</span><span class="p">)</span> <span class="o">/</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">speed</span></div><div class='line' id='LC299'>		<span class="kd">local</span> <span class="n">MinTravelTime</span> <span class="o">=</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">myHero</span><span class="p">,</span> <span class="n">CastPoint</span><span class="p">)</span> <span class="o">/</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">speed</span> <span class="o">+</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">myHero</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">)</span> <span class="o">/</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_E</span><span class="p">].</span><span class="n">speed</span></div><div class='line' id='LC300'>		<span class="kd">local</span> <span class="n">Etarget</span> <span class="o">=</span> <span class="n">myHero</span></div><div class='line' id='LC301'><br/></div><div class='line' id='LC302'>		<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ally</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">GetAllyHeroes</span><span class="p">())</span> <span class="k">do</span></div><div class='line' id='LC303'>			<span class="k">if</span> <span class="n">ValidTarget</span><span class="p">(</span><span class="n">ally</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_E</span><span class="p">].</span><span class="n">range</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC304'>				<span class="kd">local</span> <span class="n">t</span> <span class="o">=</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">ally</span><span class="p">,</span> <span class="n">CastPoint</span><span class="p">)</span> <span class="o">/</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">speed</span> <span class="o">+</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">ally</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">)</span> <span class="o">/</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_E</span><span class="p">].</span><span class="n">speed</span></div><div class='line' id='LC305'>				<span class="k">if</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="n">MinTravelTime</span> <span class="k">then</span></div><div class='line' id='LC306'>					<span class="n">MinTravelTime</span> <span class="o">=</span> <span class="n">t</span></div><div class='line' id='LC307'>					<span class="n">Etarget</span> <span class="o">=</span> <span class="n">ally</span></div><div class='line' id='LC308'>				<span class="k">end</span></div><div class='line' id='LC309'>			<span class="k">end</span></div><div class='line' id='LC310'>		<span class="k">end</span></div><div class='line' id='LC311'><br/></div><div class='line' id='LC312'><br/></div><div class='line' id='LC313'>		<span class="k">if</span> <span class="n">MinTravelTime</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">.</span><span class="n">EQ</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span> <span class="o">*</span> <span class="n">TravelTime</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">Etarget</span><span class="p">.</span><span class="n">isMe</span> <span class="ow">or</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">BallPos</span><span class="p">,</span> <span class="n">myHero</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">)</span> <span class="ow">and</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">Etarget</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">CastPoint</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC314'>			<span class="n">CastE</span><span class="p">(</span><span class="n">Etarget</span><span class="p">)</span></div><div class='line' id='LC315'>			<span class="k">do</span> <span class="k">return</span> <span class="k">end</span></div><div class='line' id='LC316'>		<span class="k">end</span></div><div class='line' id='LC317'>	<span class="k">end</span></div><div class='line' id='LC318'>	<span class="k">if</span> <span class="n">GetDistanceSqr</span><span class="p">(</span><span class="n">myHero</span><span class="p">.</span><span class="n">visionPos</span><span class="p">,</span> <span class="n">CastPoint</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span><span class="o">^</span><span class="mi">2</span> <span class="k">then</span></div><div class='line' id='LC319'>		<span class="n">spellQ</span><span class="p">:</span><span class="n">Cast</span><span class="p">(</span><span class="n">CastPoint</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="n">CastPoint</span><span class="p">.</span><span class="n">z</span><span class="p">)</span></div><div class='line' id='LC320'>	<span class="k">else</span></div><div class='line' id='LC321'>		<span class="n">CastPoint</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">myHero</span><span class="p">.</span><span class="n">visionPos</span><span class="p">)</span> <span class="o">+</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span> <span class="o">*</span> <span class="p">(</span><span class="n">Vector</span><span class="p">(</span><span class="n">CastPoint</span><span class="p">)</span> <span class="o">-</span> <span class="n">Vector</span><span class="p">(</span><span class="n">myHero</span><span class="p">)):</span><span class="n">normalized</span><span class="p">()</span></div><div class='line' id='LC322'>		<span class="n">spellQ</span><span class="p">:</span><span class="n">Cast</span><span class="p">(</span><span class="n">CastPoint</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="n">CastPoint</span><span class="p">.</span><span class="n">z</span><span class="p">)</span></div><div class='line' id='LC323'>	<span class="k">end</span></div><div class='line' id='LC324'><span class="k">end</span></div><div class='line' id='LC325'><br/></div><div class='line' id='LC326'><span class="k">function</span> <span class="nf">CastW</span><span class="p">()</span></div><div class='line' id='LC327'>	<span class="kd">local</span> <span class="n">hitcount</span><span class="p">,</span> <span class="n">hit</span> <span class="o">=</span> <span class="n">CheckEnemiesHitByW</span><span class="p">()</span></div><div class='line' id='LC328'>	<span class="k">if</span> <span class="n">hitcount</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="k">then</span></div><div class='line' id='LC329'>		<span class="n">spellW</span><span class="p">:</span><span class="n">Cast</span><span class="p">()</span></div><div class='line' id='LC330'>	<span class="k">end</span></div><div class='line' id='LC331'><span class="k">end</span></div><div class='line' id='LC332'><br/></div><div class='line' id='LC333'><span class="k">function</span> <span class="nf">CastE</span><span class="p">(</span><span class="n">target</span><span class="p">)</span></div><div class='line' id='LC334'>	<span class="k">if</span> <span class="n">target</span> <span class="k">then</span></div><div class='line' id='LC335'>		<span class="n">spellE</span><span class="p">:</span><span class="n">Cast</span><span class="p">(</span><span class="n">target</span><span class="p">)</span></div><div class='line' id='LC336'>	<span class="k">end</span></div><div class='line' id='LC337'><span class="k">end</span></div><div class='line' id='LC338'><br/></div><div class='line' id='LC339'><span class="k">function</span> <span class="nf">CastECH</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span></div><div class='line' id='LC340'>	<span class="kd">local</span> <span class="n">hitcount</span><span class="p">,</span> <span class="n">hit</span> <span class="o">=</span> <span class="n">CheckEnemiesHitByE</span><span class="p">(</span><span class="n">target</span><span class="p">)</span></div><div class='line' id='LC341'>	<span class="k">if</span> <span class="n">hitcount</span> <span class="o">&gt;=</span> <span class="n">n</span> <span class="k">then</span></div><div class='line' id='LC342'>		<span class="n">CastE</span><span class="p">(</span><span class="n">target</span><span class="p">)</span></div><div class='line' id='LC343'>	<span class="k">end</span></div><div class='line' id='LC344'><span class="k">end</span></div><div class='line' id='LC345'><br/></div><div class='line' id='LC346'><span class="k">function</span> <span class="nf">CastR</span><span class="p">(</span><span class="n">target</span><span class="p">)</span></div><div class='line' id='LC347'>	<span class="kd">local</span> <span class="n">position</span> <span class="o">=</span> <span class="n">VP</span><span class="p">:</span><span class="n">GetPredictedPos</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_R</span><span class="p">].</span><span class="n">delay</span><span class="p">)</span></div><div class='line' id='LC348'>	<span class="k">if</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_R</span><span class="p">].</span><span class="n">width</span> <span class="ow">and</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_R</span><span class="p">].</span><span class="n">width</span> <span class="k">then</span></div><div class='line' id='LC349'>		<span class="n">spellR</span><span class="p">:</span><span class="n">Cast</span><span class="p">()</span></div><div class='line' id='LC350'>	<span class="k">end</span></div><div class='line' id='LC351'><span class="k">end</span></div><div class='line' id='LC352'><br/></div><div class='line' id='LC353'><span class="k">function</span> <span class="nf">GetNMinionsHit</span><span class="p">(</span><span class="n">Pos</span><span class="p">,</span> <span class="n">radius</span><span class="p">)</span></div><div class='line' id='LC354'>	<span class="kd">local</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span></div><div class='line' id='LC355'>	<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">minion</span> <span class="k">in</span> <span class="nb">pairs</span><span class="p">(</span><span class="n">EnemyMinions</span><span class="p">.</span><span class="n">objects</span><span class="p">)</span> <span class="k">do</span></div><div class='line' id='LC356'>		<span class="k">if</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">minion</span><span class="p">,</span> <span class="n">Pos</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">radius</span> <span class="k">then</span></div><div class='line' id='LC357'>			<span class="n">count</span> <span class="o">=</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span></div><div class='line' id='LC358'>		<span class="k">end</span></div><div class='line' id='LC359'>	<span class="k">end</span></div><div class='line' id='LC360'>	<span class="k">return</span> <span class="n">count</span></div><div class='line' id='LC361'><span class="k">end</span></div><div class='line' id='LC362'><br/></div><div class='line' id='LC363'><span class="k">function</span> <span class="nf">GetNMinionsHitE</span><span class="p">(</span><span class="n">Pos</span><span class="p">)</span></div><div class='line' id='LC364'>	<span class="kd">local</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span></div><div class='line' id='LC365'>	<span class="kd">local</span> <span class="n">StartPoint</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">Pos</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">Pos</span><span class="p">.</span><span class="n">z</span><span class="p">)</span></div><div class='line' id='LC366'>	<span class="kd">local</span> <span class="n">EndPoint</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">myHero</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">myHero</span><span class="p">.</span><span class="n">z</span><span class="p">)</span></div><div class='line' id='LC367'>	<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">minion</span> <span class="k">in</span> <span class="nb">pairs</span><span class="p">(</span><span class="n">EnemyMinions</span><span class="p">.</span><span class="n">objects</span><span class="p">)</span> <span class="k">do</span></div><div class='line' id='LC368'>		<span class="kd">local</span> <span class="n">position</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">minion</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">minion</span><span class="p">.</span><span class="n">z</span><span class="p">)</span></div><div class='line' id='LC369'>		<span class="kd">local</span> <span class="n">PointInLine</span> <span class="o">=</span> <span class="n">VectorPointProjectionOnLineSegment</span><span class="p">(</span><span class="n">StartPoint</span><span class="p">,</span> <span class="n">EndPoint</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span></div><div class='line' id='LC370'>		<span class="k">if</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">PointInLine</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_E</span><span class="p">].</span><span class="n">width</span> <span class="k">then</span></div><div class='line' id='LC371'>			<span class="n">count</span> <span class="o">=</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span></div><div class='line' id='LC372'>		<span class="k">end</span></div><div class='line' id='LC373'>	<span class="k">end</span></div><div class='line' id='LC374'>	<span class="k">return</span> <span class="n">count</span></div><div class='line' id='LC375'><span class="k">end</span></div><div class='line' id='LC376'><br/></div><div class='line' id='LC377'><span class="k">function</span> <span class="nf">Farm</span><span class="p">(</span><span class="n">Mode</span><span class="p">)</span></div><div class='line' id='LC378'>	<span class="kd">local</span> <span class="n">UseQ</span></div><div class='line' id='LC379'>	<span class="kd">local</span> <span class="n">UseW</span></div><div class='line' id='LC380'>	<span class="kd">local</span> <span class="n">UseE</span></div><div class='line' id='LC381'>	<span class="k">if</span> <span class="ow">not</span> <span class="n">SOWi</span><span class="p">:</span><span class="n">CanMove</span><span class="p">()</span> <span class="k">then</span> <span class="k">return</span> <span class="k">end</span></div><div class='line' id='LC382'><br/></div><div class='line' id='LC383'>	<span class="n">EnemyMinions</span><span class="p">:</span><span class="n">update</span><span class="p">()</span></div><div class='line' id='LC384'>	<span class="k">if</span> <span class="n">Mode</span> <span class="o">==</span> <span class="s2">&quot;</span><span class="s">Freeze&quot;</span> <span class="k">then</span></div><div class='line' id='LC385'>		<span class="n">UseQ</span> <span class="o">=</span>  <span class="n">Menu</span><span class="p">.</span><span class="n">Farm</span><span class="p">.</span><span class="n">UseQ</span> <span class="o">==</span> <span class="mi">2</span></div><div class='line' id='LC386'>		<span class="n">UseW</span> <span class="o">=</span>  <span class="n">Menu</span><span class="p">.</span><span class="n">Farm</span><span class="p">.</span><span class="n">UseW</span> <span class="o">==</span> <span class="mi">2</span> </div><div class='line' id='LC387'>		<span class="n">UseE</span> <span class="o">=</span>  <span class="n">Menu</span><span class="p">.</span><span class="n">Farm</span><span class="p">.</span><span class="n">UseE</span> <span class="o">==</span> <span class="mi">2</span> </div><div class='line' id='LC388'>	<span class="k">elseif</span> <span class="n">Mode</span> <span class="o">==</span> <span class="s2">&quot;</span><span class="s">LaneClear&quot;</span> <span class="k">then</span></div><div class='line' id='LC389'>		<span class="n">UseQ</span> <span class="o">=</span>  <span class="n">Menu</span><span class="p">.</span><span class="n">Farm</span><span class="p">.</span><span class="n">UseQ</span> <span class="o">==</span> <span class="mi">3</span></div><div class='line' id='LC390'>		<span class="n">UseW</span> <span class="o">=</span>  <span class="n">Menu</span><span class="p">.</span><span class="n">Farm</span><span class="p">.</span><span class="n">UseW</span> <span class="o">==</span> <span class="mi">3</span> </div><div class='line' id='LC391'>		<span class="n">UseE</span> <span class="o">=</span>  <span class="n">Menu</span><span class="p">.</span><span class="n">Farm</span><span class="p">.</span><span class="n">UseE</span> <span class="o">==</span> <span class="mi">3</span> </div><div class='line' id='LC392'>	<span class="k">end</span></div><div class='line' id='LC393'><br/></div><div class='line' id='LC394'>	<span class="n">UseQ</span> <span class="o">=</span>  <span class="n">Menu</span><span class="p">.</span><span class="n">Farm</span><span class="p">.</span><span class="n">UseQ</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">or</span> <span class="n">UseQ</span></div><div class='line' id='LC395'>	<span class="n">UseW</span> <span class="o">=</span>  <span class="n">Menu</span><span class="p">.</span><span class="n">Farm</span><span class="p">.</span><span class="n">UseW</span> <span class="o">==</span> <span class="mi">4</span>  <span class="ow">or</span> <span class="n">UseW</span></div><div class='line' id='LC396'>	<span class="n">UseE</span> <span class="o">=</span>  <span class="n">Menu</span><span class="p">.</span><span class="n">Farm</span><span class="p">.</span><span class="n">UseE</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">or</span> <span class="n">UseE</span></div><div class='line' id='LC397'><br/></div><div class='line' id='LC398'>	<span class="k">if</span> <span class="n">UseQ</span> <span class="ow">and</span> <span class="n">spellQ</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="k">then</span></div><div class='line' id='LC399'>		<span class="k">if</span> <span class="n">UseW</span> <span class="k">then</span></div><div class='line' id='LC400'>			<span class="kd">local</span> <span class="n">MaxHit</span> <span class="o">=</span> <span class="mi">0</span></div><div class='line' id='LC401'>			<span class="kd">local</span> <span class="n">MaxPos</span> <span class="o">=</span> <span class="mi">0</span></div><div class='line' id='LC402'>			<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">minion</span> <span class="k">in</span> <span class="nb">pairs</span><span class="p">(</span><span class="n">EnemyMinions</span><span class="p">.</span><span class="n">objects</span><span class="p">)</span> <span class="k">do</span></div><div class='line' id='LC403'>				<span class="k">if</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">minion</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span> <span class="k">then</span></div><div class='line' id='LC404'>					<span class="kd">local</span> <span class="n">MinionPos</span> <span class="o">=</span> <span class="n">VP</span><span class="p">:</span><span class="n">GetPredictedPos</span><span class="p">(</span><span class="n">minion</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">delay</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">speed</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">)</span></div><div class='line' id='LC405'>					<span class="kd">local</span> <span class="n">Hit</span> <span class="o">=</span> <span class="n">GetNMinionsHit</span><span class="p">(</span><span class="n">minion</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_W</span><span class="p">].</span><span class="n">width</span><span class="p">)</span></div><div class='line' id='LC406'>					<span class="k">if</span> <span class="n">Hit</span> <span class="o">&gt;=</span> <span class="n">MaxHit</span> <span class="k">then</span></div><div class='line' id='LC407'>						<span class="n">MaxHit</span> <span class="o">=</span> <span class="n">Hit</span></div><div class='line' id='LC408'>						<span class="n">MaxPos</span> <span class="o">=</span> <span class="n">MinionPos</span></div><div class='line' id='LC409'>					<span class="k">end</span></div><div class='line' id='LC410'>				<span class="k">end</span></div><div class='line' id='LC411'>			<span class="k">end</span></div><div class='line' id='LC412'>			<span class="k">if</span> <span class="n">MaxHit</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">MaxPos</span> <span class="k">then</span></div><div class='line' id='LC413'>				<span class="n">spellQ</span><span class="p">:</span><span class="n">Cast</span><span class="p">(</span><span class="n">MaxPos</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="n">MaxPos</span><span class="p">.</span><span class="n">z</span><span class="p">)</span></div><div class='line' id='LC414'>			<span class="k">end</span></div><div class='line' id='LC415'>		<span class="k">else</span></div><div class='line' id='LC416'>			<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">minion</span> <span class="k">in</span> <span class="nb">pairs</span><span class="p">(</span><span class="n">EnemyMinions</span><span class="p">.</span><span class="n">objects</span><span class="p">)</span> <span class="k">do</span></div><div class='line' id='LC417'>				<span class="k">if</span> <span class="n">minion</span><span class="p">.</span><span class="n">health</span> <span class="o">+</span> <span class="mi">15</span> <span class="o">&lt;</span> <span class="n">DLib</span><span class="p">:</span><span class="n">CalcSpellDamage</span><span class="p">(</span><span class="n">minion</span><span class="p">,</span> <span class="n">_Q</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">SOWi</span><span class="p">:</span><span class="n">InRange</span><span class="p">(</span><span class="n">minion</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC418'>					<span class="kd">local</span> <span class="n">MinionPos</span> <span class="o">=</span> <span class="n">VP</span><span class="p">:</span><span class="n">GetPredictedPos</span><span class="p">(</span><span class="n">minion</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">delay</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">speed</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">)</span></div><div class='line' id='LC419'>					<span class="n">spellQ</span><span class="p">:</span><span class="n">Cast</span><span class="p">(</span><span class="n">MinionPos</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="n">MinionPos</span><span class="p">.</span><span class="n">z</span><span class="p">)</span></div><div class='line' id='LC420'>					<span class="k">break</span></div><div class='line' id='LC421'>				<span class="k">end</span></div><div class='line' id='LC422'>			<span class="k">end</span></div><div class='line' id='LC423'>		<span class="k">end</span></div><div class='line' id='LC424'>	<span class="k">end</span></div><div class='line' id='LC425'><br/></div><div class='line' id='LC426'>	<span class="k">if</span> <span class="n">UseW</span> <span class="ow">and</span> <span class="n">spellW</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="k">then</span></div><div class='line' id='LC427'>		<span class="kd">local</span> <span class="n">Hit</span> <span class="o">=</span> <span class="n">GetNMinionsHit</span><span class="p">(</span><span class="n">BallPos</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_W</span><span class="p">].</span><span class="n">width</span><span class="p">)</span></div><div class='line' id='LC428'>		<span class="k">if</span> <span class="n">Hit</span> <span class="o">&gt;=</span> <span class="mi">3</span> <span class="k">then</span></div><div class='line' id='LC429'>			<span class="n">spellW</span><span class="p">:</span><span class="n">Cast</span><span class="p">()</span></div><div class='line' id='LC430'>		<span class="k">end</span></div><div class='line' id='LC431'>	<span class="k">end</span></div><div class='line' id='LC432'><br/></div><div class='line' id='LC433'>	<span class="k">if</span> <span class="n">UseE</span> <span class="ow">and</span> <span class="n">spellE</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="k">then</span></div><div class='line' id='LC434'>		<span class="kd">local</span> <span class="n">Hit</span> <span class="o">=</span> <span class="n">GetNMinionsHitE</span><span class="p">(</span><span class="n">BallPos</span><span class="p">)</span></div><div class='line' id='LC435'>		<span class="k">if</span> <span class="n">Hit</span> <span class="o">&gt;=</span> <span class="mi">3</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">spellW</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">UseW</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC436'>			<span class="n">CastE</span><span class="p">(</span><span class="n">myHero</span><span class="p">)</span></div><div class='line' id='LC437'>		<span class="k">end</span></div><div class='line' id='LC438'>	<span class="k">end</span></div><div class='line' id='LC439'><span class="k">end</span></div><div class='line' id='LC440'><br/></div><div class='line' id='LC441'><span class="k">function</span> <span class="nf">FarmJungle</span><span class="p">()</span></div><div class='line' id='LC442'>	<span class="n">JungleMinions</span><span class="p">:</span><span class="n">update</span><span class="p">()</span></div><div class='line' id='LC443'>	<span class="kd">local</span> <span class="n">UseQ</span> <span class="o">=</span> <span class="n">Menu</span><span class="p">.</span><span class="n">JungleFarm</span><span class="p">.</span><span class="n">UseQ</span> </div><div class='line' id='LC444'>	<span class="kd">local</span> <span class="n">UseW</span> <span class="o">=</span> <span class="n">Menu</span><span class="p">.</span><span class="n">JungleFarm</span><span class="p">.</span><span class="n">UseW</span> </div><div class='line' id='LC445'>	<span class="kd">local</span> <span class="n">UseE</span> <span class="o">=</span> <span class="n">Menu</span><span class="p">.</span><span class="n">JungleFarm</span><span class="p">.</span><span class="n">UseE</span> </div><div class='line' id='LC446'><br/></div><div class='line' id='LC447'>	<span class="kd">local</span> <span class="n">Minion</span> <span class="o">=</span> <span class="n">JungleMinions</span><span class="p">.</span><span class="n">objects</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">JungleMinions</span><span class="p">.</span><span class="n">objects</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">or</span> <span class="kc">nil</span></div><div class='line' id='LC448'><br/></div><div class='line' id='LC449'>	<span class="k">if</span> <span class="n">Minion</span> <span class="k">then</span></div><div class='line' id='LC450'>		<span class="kd">local</span> <span class="n">Position</span> <span class="o">=</span> <span class="n">VP</span><span class="p">:</span><span class="n">GetPredictedPos</span><span class="p">(</span><span class="n">Minion</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">delay</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">speed</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">)</span></div><div class='line' id='LC451'>		<span class="k">if</span> <span class="n">UseQ</span> <span class="ow">and</span> <span class="n">spellQ</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="k">then</span></div><div class='line' id='LC452'>			<span class="n">spellQ</span><span class="p">:</span><span class="n">Cast</span><span class="p">(</span><span class="n">Position</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="n">Position</span><span class="p">.</span><span class="n">z</span><span class="p">)</span></div><div class='line' id='LC453'>		<span class="k">end</span></div><div class='line' id='LC454'><br/></div><div class='line' id='LC455'>		<span class="k">if</span> <span class="n">UseW</span> <span class="ow">and</span> <span class="n">spellW</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="ow">and</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">BallPos</span><span class="p">,</span> <span class="n">Minion</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_W</span><span class="p">].</span><span class="n">width</span> <span class="k">then</span></div><div class='line' id='LC456'>			<span class="n">spellW</span><span class="p">:</span><span class="n">Cast</span><span class="p">()</span></div><div class='line' id='LC457'>		<span class="k">end</span></div><div class='line' id='LC458'><br/></div><div class='line' id='LC459'>		<span class="k">if</span> <span class="n">UseE</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">spellW</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">UseW</span><span class="p">)</span> <span class="ow">and</span> <span class="n">spellE</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="ow">and</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">Minion</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">700</span> <span class="k">then</span></div><div class='line' id='LC460'>			<span class="kd">local</span> <span class="n">starget</span> <span class="o">=</span> <span class="n">myHero</span></div><div class='line' id='LC461'>			<span class="kd">local</span> <span class="n">dist</span> <span class="o">=</span> <span class="n">GetDistanceSqr</span><span class="p">(</span><span class="n">Minion</span><span class="p">)</span></div><div class='line' id='LC462'>			<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ally</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">GetAllyHeroes</span><span class="p">())</span> <span class="k">do</span></div><div class='line' id='LC463'>				<span class="kd">local</span> <span class="n">dist2</span> <span class="o">=</span> <span class="n">GetDistanceSqr</span><span class="p">(</span><span class="n">ally</span><span class="p">,</span> <span class="n">Minion</span><span class="p">)</span></div><div class='line' id='LC464'>				<span class="k">if</span> <span class="n">ValidTarget</span><span class="p">(</span><span class="n">ally</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_E</span><span class="p">].</span><span class="n">range</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span> <span class="ow">and</span> <span class="n">dist2</span> <span class="o">&lt;</span> <span class="n">dist</span> <span class="k">then</span></div><div class='line' id='LC465'>					<span class="n">dist</span> <span class="o">=</span> <span class="n">dist2</span></div><div class='line' id='LC466'>					<span class="n">starget</span> <span class="o">=</span> <span class="n">ally</span></div><div class='line' id='LC467'>				<span class="k">end</span></div><div class='line' id='LC468'>			<span class="k">end</span></div><div class='line' id='LC469'>			<span class="n">CastE</span><span class="p">(</span><span class="n">starget</span><span class="p">)</span></div><div class='line' id='LC470'>		<span class="k">end</span></div><div class='line' id='LC471'>	<span class="k">end</span></div><div class='line' id='LC472'><span class="k">end</span></div><div class='line' id='LC473'><br/></div><div class='line' id='LC474'><span class="k">function</span> <span class="nf">FindBestLocationToQ</span><span class="p">(</span><span class="n">target</span><span class="p">)</span></div><div class='line' id='LC475'>	<span class="kd">local</span> <span class="n">points</span> <span class="o">=</span> <span class="p">{}</span></div><div class='line' id='LC476'>	<span class="kd">local</span> <span class="n">targets</span> <span class="o">=</span> <span class="p">{}</span></div><div class='line' id='LC477'><br/></div><div class='line' id='LC478'>	<span class="kd">local</span> <span class="n">CastPosition</span><span class="p">,</span>  <span class="n">HitChance</span><span class="p">,</span>  <span class="n">Position</span> <span class="o">=</span> <span class="n">VP</span><span class="p">:</span><span class="n">GetLineCastPosition</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">delay</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">width</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">speed</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">)</span></div><div class='line' id='LC479'>	<span class="nb">table.insert</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">Position</span><span class="p">)</span></div><div class='line' id='LC480'>	<span class="nb">table.insert</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></div><div class='line' id='LC481'><br/></div><div class='line' id='LC482'>	<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">enemy</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">GetEnemyHeroes</span><span class="p">())</span> <span class="k">do</span></div><div class='line' id='LC483'>		<span class="k">if</span> <span class="n">ValidTarget</span><span class="p">(</span><span class="n">enemy</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span> <span class="o">+</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_R</span><span class="p">].</span><span class="n">width</span><span class="p">)</span> <span class="ow">and</span> <span class="n">enemy</span><span class="p">.</span><span class="n">networkID</span> <span class="o">~=</span> <span class="n">target</span><span class="p">.</span><span class="n">networkID</span> <span class="k">then</span></div><div class='line' id='LC484'>			<span class="n">CastPosition</span><span class="p">,</span>  <span class="n">HitChance</span><span class="p">,</span>  <span class="n">Position</span> <span class="o">=</span> <span class="n">VP</span><span class="p">:</span><span class="n">GetLineCastPosition</span><span class="p">(</span><span class="n">enemy</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">delay</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">width</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">speed</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">)</span></div><div class='line' id='LC485'>			<span class="nb">table.insert</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">Position</span><span class="p">)</span></div><div class='line' id='LC486'>			<span class="nb">table.insert</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="n">enemy</span><span class="p">)</span></div><div class='line' id='LC487'>		<span class="k">end</span></div><div class='line' id='LC488'>	<span class="k">end</span></div><div class='line' id='LC489'><br/></div><div class='line' id='LC490'><br/></div><div class='line' id='LC491'>	<span class="k">for</span> <span class="n">o</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span> <span class="k">do</span></div><div class='line' id='LC492'>		<span class="kd">local</span> <span class="n">MECa</span> <span class="o">=</span> <span class="n">MEC</span><span class="p">(</span><span class="n">points</span><span class="p">)</span></div><div class='line' id='LC493'>		<span class="kd">local</span> <span class="n">Circle</span> <span class="o">=</span> <span class="n">MECa</span><span class="p">:</span><span class="n">Compute</span><span class="p">()</span></div><div class='line' id='LC494'><br/></div><div class='line' id='LC495'>		<span class="k">if</span> <span class="n">Circle</span><span class="p">.</span><span class="n">radius</span> <span class="o">&lt;=</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_R</span><span class="p">].</span><span class="n">width</span> <span class="ow">and</span> <span class="o">#</span><span class="n">points</span> <span class="o">&gt;=</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">spellR</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="k">then</span></div><div class='line' id='LC496'>			<span class="k">return</span> <span class="n">Circle</span><span class="p">.</span><span class="n">center</span><span class="p">,</span> <span class="mi">3</span></div><div class='line' id='LC497'>		<span class="k">end</span></div><div class='line' id='LC498'><br/></div><div class='line' id='LC499'>		<span class="k">if</span> <span class="n">Circle</span><span class="p">.</span><span class="n">radius</span> <span class="o">&lt;=</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_W</span><span class="p">].</span><span class="n">width</span> <span class="ow">and</span> <span class="o">#</span><span class="n">points</span> <span class="o">&gt;=</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">spellW</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="k">then</span></div><div class='line' id='LC500'>			<span class="k">return</span> <span class="n">Circle</span><span class="p">.</span><span class="n">center</span><span class="p">,</span> <span class="mi">2</span></div><div class='line' id='LC501'>		<span class="k">end</span></div><div class='line' id='LC502'><br/></div><div class='line' id='LC503'>		<span class="k">if</span> <span class="o">#</span><span class="n">points</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">then</span></div><div class='line' id='LC504'>			<span class="k">return</span> <span class="n">Circle</span><span class="p">.</span><span class="n">center</span><span class="p">,</span> <span class="mi">1</span></div><div class='line' id='LC505'>		<span class="k">elseif</span> <span class="n">Circle</span><span class="p">.</span><span class="n">radius</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">width</span> <span class="o">+</span> <span class="mi">50</span><span class="p">)</span> <span class="ow">and</span> <span class="o">#</span><span class="n">points</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="k">then</span></div><div class='line' id='LC506'>			<span class="k">return</span> <span class="n">Circle</span><span class="p">.</span><span class="n">center</span><span class="p">,</span> <span class="mi">2</span></div><div class='line' id='LC507'>		<span class="k">end</span></div><div class='line' id='LC508'><br/></div><div class='line' id='LC509'>		<span class="kd">local</span> <span class="n">Dist</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span></div><div class='line' id='LC510'>		<span class="kd">local</span> <span class="n">MyPoint</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div><div class='line' id='LC511'>		<span class="kd">local</span> <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span></div><div class='line' id='LC512'><br/></div><div class='line' id='LC513'>		<span class="k">for</span> <span class="n">i</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">#</span><span class="n">points</span><span class="p">,</span> <span class="mi">1</span> <span class="k">do</span></div><div class='line' id='LC514'>			<span class="k">if</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">MyPoint</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">Dist</span> <span class="k">then</span></div><div class='line' id='LC515'>				<span class="n">Dist</span> <span class="o">=</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">MyPoint</span><span class="p">)</span></div><div class='line' id='LC516'>				<span class="n">index</span> <span class="o">=</span> <span class="n">i</span></div><div class='line' id='LC517'>			<span class="k">end</span></div><div class='line' id='LC518'>		<span class="k">end</span></div><div class='line' id='LC519'>		<span class="k">if</span> <span class="n">index</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">then</span></div><div class='line' id='LC520'>			<span class="nb">table.remove</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span></div><div class='line' id='LC521'>		<span class="k">end</span></div><div class='line' id='LC522'>	<span class="k">end</span></div><div class='line' id='LC523'><span class="k">end</span></div><div class='line' id='LC524'><br/></div><div class='line' id='LC525'><br/></div><div class='line' id='LC526'><span class="k">function</span> <span class="nf">GetBestTarget</span><span class="p">(</span><span class="n">Range</span><span class="p">,</span> <span class="n">Ignore</span><span class="p">)</span></div><div class='line' id='LC527'>	<span class="kd">local</span> <span class="n">LessToKill</span> <span class="o">=</span> <span class="mi">100</span></div><div class='line' id='LC528'>	<span class="kd">local</span> <span class="n">LessToKilli</span> <span class="o">=</span> <span class="mi">0</span></div><div class='line' id='LC529'>	<span class="kd">local</span> <span class="n">target</span> <span class="o">=</span> <span class="kc">nil</span></div><div class='line' id='LC530'><br/></div><div class='line' id='LC531'>	<span class="kd">local</span> <span class="n">target</span> <span class="o">=</span> <span class="n">STS</span><span class="p">:</span><span class="n">GetTarget</span><span class="p">(</span><span class="n">Range</span><span class="p">)</span></div><div class='line' id='LC532'><br/></div><div class='line' id='LC533'>	<span class="k">if</span> <span class="n">SelectedTarget</span> <span class="o">~=</span> <span class="kc">nil</span> <span class="ow">and</span> <span class="n">ValidTarget</span><span class="p">(</span><span class="n">SelectedTarget</span><span class="p">,</span> <span class="n">Range</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">Ignore</span> <span class="o">==</span> <span class="kc">nil</span> <span class="ow">or</span> <span class="p">(</span><span class="n">Ignore</span><span class="p">.</span><span class="n">networkID</span> <span class="o">~=</span> <span class="n">SelectedTarget</span><span class="p">.</span><span class="n">networkID</span><span class="p">))</span> <span class="k">then</span></div><div class='line' id='LC534'>		<span class="n">target</span> <span class="o">=</span> <span class="n">SelectedTarget</span></div><div class='line' id='LC535'>	<span class="k">end</span></div><div class='line' id='LC536'><br/></div><div class='line' id='LC537'>	<span class="k">return</span> <span class="n">target</span></div><div class='line' id='LC538'><span class="k">end</span></div><div class='line' id='LC539'><br/></div><div class='line' id='LC540'><span class="k">function</span> <span class="nf">OnTickChecks</span><span class="p">()</span></div><div class='line' id='LC541'>	<span class="n">DrawPrediction</span> <span class="o">=</span> <span class="kc">nil</span></div><div class='line' id='LC542'>	<span class="n">IGNITEREADY</span> <span class="o">=</span> <span class="n">_IGNITE</span> <span class="ow">and</span> <span class="n">myHero</span><span class="p">:</span><span class="n">CanUseSpell</span><span class="p">(</span><span class="n">_IGNITE</span><span class="p">)</span> <span class="o">==</span> <span class="n">READY</span> <span class="ow">or</span> <span class="kc">false</span></div><div class='line' id='LC543'>	<span class="cm">--[[When the ball reaches an ally]]</span></div><div class='line' id='LC544'>	<span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">ally</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">GetAllyHeroes</span><span class="p">())</span> <span class="k">do</span></div><div class='line' id='LC545'>		<span class="k">if</span> <span class="n">TargetHaveBuff</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">orianaghostself&quot;</span><span class="p">,</span> <span class="n">ally</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC546'>			<span class="n">BallMoving</span> <span class="o">=</span> <span class="kc">false</span></div><div class='line' id='LC547'>			<span class="n">BallPos</span> <span class="o">=</span> <span class="n">ally</span></div><div class='line' id='LC548'>		<span class="k">end</span></div><div class='line' id='LC549'>	<span class="k">end</span></div><div class='line' id='LC550'>	<span class="k">if</span> <span class="n">CountEnemyHeroInRange</span><span class="p">(</span><span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span> <span class="o">+</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_R</span><span class="p">].</span><span class="n">width</span><span class="p">,</span> <span class="n">myHero</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">then</span></div><div class='line' id='LC551'>		<span class="n">ComboMode</span> <span class="o">=</span> <span class="n">_ST</span></div><div class='line' id='LC552'>	<span class="k">else</span></div><div class='line' id='LC553'>		<span class="n">ComboMode</span> <span class="o">=</span> <span class="n">_TF</span></div><div class='line' id='LC554'>	<span class="k">end</span></div><div class='line' id='LC555'><br/></div><div class='line' id='LC556'><br/></div><div class='line' id='LC557'>	<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">.</span><span class="n">UseW</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">spellW</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="k">then</span></div><div class='line' id='LC558'>		<span class="kd">local</span> <span class="n">hitcount</span><span class="p">,</span> <span class="n">hit</span> <span class="o">=</span> <span class="n">CheckEnemiesHitByW</span><span class="p">()</span></div><div class='line' id='LC559'>		<span class="k">if</span> <span class="n">hitcount</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">.</span><span class="n">UseW</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC560'>			<span class="n">spellW</span><span class="p">:</span><span class="n">Cast</span><span class="p">()</span></div><div class='line' id='LC561'>		<span class="k">end</span>		</div><div class='line' id='LC562'>	<span class="k">end</span></div><div class='line' id='LC563'><br/></div><div class='line' id='LC564'>	<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">.</span><span class="n">UseR</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">spellR</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="k">then</span></div><div class='line' id='LC565'>		<span class="kd">local</span> <span class="n">hitcount</span><span class="p">,</span> <span class="n">hit</span> <span class="o">=</span> <span class="n">CheckEnemiesHitByR</span><span class="p">()</span></div><div class='line' id='LC566'>		<span class="k">if</span> <span class="p">(</span><span class="n">hitcount</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">.</span><span class="n">UseR</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="ow">and</span> <span class="n">GetDistanceToClosestAlly</span><span class="p">(</span><span class="n">BallPos</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span> <span class="o">*</span> <span class="n">Far</span> <span class="k">then</span></div><div class='line' id='LC567'>			<span class="n">spellR</span><span class="p">:</span><span class="n">Cast</span><span class="p">()</span></div><div class='line' id='LC568'>		<span class="k">end</span>		</div><div class='line' id='LC569'>	<span class="k">end</span></div><div class='line' id='LC570'><br/></div><div class='line' id='LC571'>	<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">.</span><span class="n">AutoEInitiate</span><span class="p">.</span><span class="n">Active</span> <span class="ow">and</span> <span class="n">spellE</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="k">then</span></div><div class='line' id='LC572'>		<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">unit</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">GetAllyHeroes</span><span class="p">())</span> <span class="k">do</span></div><div class='line' id='LC573'>			<span class="k">if</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_E</span><span class="p">].</span><span class="n">range</span> <span class="k">then</span></div><div class='line' id='LC574'>				<span class="k">for</span> <span class="n">champion</span><span class="p">,</span> <span class="n">spell</span> <span class="k">in</span> <span class="nb">pairs</span><span class="p">(</span><span class="n">InitiatorsList</span><span class="p">)</span> <span class="k">do</span></div><div class='line' id='LC575'>					<span class="k">if</span> <span class="n">LastChampionSpell</span><span class="p">[</span><span class="n">unit</span><span class="p">.</span><span class="n">networkID</span><span class="p">]</span> <span class="ow">and</span> <span class="n">LastChampionSpell</span><span class="p">[</span><span class="n">unit</span><span class="p">.</span><span class="n">networkID</span><span class="p">].</span><span class="n">name</span> <span class="o">~=</span><span class="kc">nil</span> <span class="ow">and</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">.</span><span class="n">AutoEInitiate</span><span class="p">[</span><span class="n">champion</span><span class="o">..</span> <span class="n">LastChampionSpell</span><span class="p">[</span><span class="n">unit</span><span class="p">.</span><span class="n">networkID</span><span class="p">].</span><span class="n">name</span><span class="p">]</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">os.clock</span><span class="p">()</span> <span class="o">-</span> <span class="n">LastChampionSpell</span><span class="p">[</span><span class="n">unit</span><span class="p">.</span><span class="n">networkID</span><span class="p">].</span><span class="n">time</span> <span class="o">&lt;</span> <span class="mf">1.5</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC576'>						<span class="n">spellE</span><span class="p">:</span><span class="n">Cast</span><span class="p">(</span><span class="n">Unit</span><span class="p">)</span></div><div class='line' id='LC577'>					<span class="k">end</span></div><div class='line' id='LC578'>				<span class="k">end</span></div><div class='line' id='LC579'>			<span class="k">end</span></div><div class='line' id='LC580'>		<span class="k">end</span></div><div class='line' id='LC581'>	<span class="k">end</span></div><div class='line' id='LC582'><span class="k">end</span></div><div class='line' id='LC583'><br/></div><div class='line' id='LC584'><span class="k">function</span> <span class="nf">OnWndMsg</span><span class="p">(</span><span class="n">Msg</span><span class="p">,</span> <span class="n">Key</span><span class="p">)</span></div><div class='line' id='LC585'>	<span class="k">if</span> <span class="n">Msg</span> <span class="o">==</span> <span class="n">WM_LBUTTONDOWN</span> <span class="k">then</span></div><div class='line' id='LC586'>		<span class="kd">local</span> <span class="n">minD</span> <span class="o">=</span> <span class="mi">0</span></div><div class='line' id='LC587'>		<span class="kd">local</span> <span class="n">starget</span> <span class="o">=</span> <span class="kc">nil</span></div><div class='line' id='LC588'>		<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">enemy</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">GetEnemyHeroes</span><span class="p">())</span> <span class="k">do</span></div><div class='line' id='LC589'>			<span class="k">if</span> <span class="n">ValidTarget</span><span class="p">(</span><span class="n">enemy</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC590'>				<span class="k">if</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">enemy</span><span class="p">,</span> <span class="n">mousePos</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">minD</span> <span class="ow">or</span> <span class="n">starget</span> <span class="o">==</span> <span class="kc">nil</span> <span class="k">then</span></div><div class='line' id='LC591'>					<span class="n">minD</span> <span class="o">=</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">enemy</span><span class="p">,</span> <span class="n">mousePos</span><span class="p">)</span></div><div class='line' id='LC592'>					<span class="n">starget</span> <span class="o">=</span> <span class="n">enemy</span></div><div class='line' id='LC593'>				<span class="k">end</span></div><div class='line' id='LC594'>			<span class="k">end</span></div><div class='line' id='LC595'>		<span class="k">end</span></div><div class='line' id='LC596'><br/></div><div class='line' id='LC597'>		<span class="k">if</span> <span class="n">starget</span> <span class="ow">and</span> <span class="n">minD</span> <span class="o">&lt;</span> <span class="mi">100</span> <span class="k">then</span></div><div class='line' id='LC598'>			<span class="k">if</span> <span class="n">SelectedTarget</span> <span class="ow">and</span> <span class="n">starget</span><span class="p">.</span><span class="n">charName</span> <span class="o">==</span> <span class="n">SelectedTarget</span><span class="p">.</span><span class="n">charName</span> <span class="k">then</span></div><div class='line' id='LC599'>				<span class="n">SelectedTarget</span> <span class="o">=</span> <span class="kc">nil</span></div><div class='line' id='LC600'>			<span class="k">else</span></div><div class='line' id='LC601'>				<span class="n">SelectedTarget</span> <span class="o">=</span> <span class="n">starget</span></div><div class='line' id='LC602'>				<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">&lt;font color=</span><span class="se">\&quot;</span><span class="s">#FF0000</span><span class="se">\&quot;</span><span class="s">&gt;Orianna: New target selected: &quot;</span><span class="o">..</span><span class="n">starget</span><span class="p">.</span><span class="n">charName</span><span class="o">..</span><span class="s2">&quot;</span><span class="s">&lt;/font&gt;&quot;</span><span class="p">)</span></div><div class='line' id='LC603'>			<span class="k">end</span></div><div class='line' id='LC604'>		<span class="k">end</span></div><div class='line' id='LC605'>	<span class="k">end</span></div><div class='line' id='LC606'><span class="k">end</span></div><div class='line' id='LC607'><br/></div><div class='line' id='LC608'><span class="k">function</span> <span class="nf">Harass</span><span class="p">(</span><span class="n">target</span><span class="p">)</span></div><div class='line' id='LC609'>	<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Harass</span><span class="p">.</span><span class="n">UseQ</span> <span class="ow">and</span> <span class="n">target</span> <span class="k">then</span></div><div class='line' id='LC610'>		<span class="n">CastQ</span><span class="p">(</span><span class="n">target</span><span class="p">)</span></div><div class='line' id='LC611'>	<span class="k">end</span></div><div class='line' id='LC612'>	<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Harass</span><span class="p">.</span><span class="n">UseW</span> <span class="k">then</span></div><div class='line' id='LC613'>		<span class="n">CastW</span><span class="p">()</span></div><div class='line' id='LC614'>	<span class="k">end</span></div><div class='line' id='LC615'><span class="k">end</span></div><div class='line' id='LC616'><br/></div><div class='line' id='LC617'><span class="k">function</span> <span class="nf">GetDistanceToClosestAlly</span><span class="p">(</span><span class="n">p</span><span class="p">)</span></div><div class='line' id='LC618'>	<span class="kd">local</span> <span class="n">d</span> <span class="o">=</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">myHero</span><span class="p">)</span></div><div class='line' id='LC619'>	<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ally</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">GetAllyHeroes</span><span class="p">())</span> <span class="k">do</span></div><div class='line' id='LC620'>		<span class="k">if</span> <span class="n">ValidTarget</span><span class="p">(</span><span class="n">ally</span><span class="p">,</span> <span class="nb">math.huge</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC621'>			<span class="kd">local</span> <span class="n">dist</span> <span class="o">=</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">ally</span><span class="p">)</span></div><div class='line' id='LC622'>			<span class="k">if</span> <span class="n">dist</span> <span class="o">&lt;</span> <span class="n">d</span> <span class="k">then</span></div><div class='line' id='LC623'>				<span class="n">d</span> <span class="o">=</span> <span class="n">dist</span></div><div class='line' id='LC624'>			<span class="k">end</span></div><div class='line' id='LC625'>		<span class="k">end</span></div><div class='line' id='LC626'>	<span class="k">end</span></div><div class='line' id='LC627'>	<span class="k">return</span> <span class="n">d</span></div><div class='line' id='LC628'><span class="k">end</span></div><div class='line' id='LC629'><br/></div><div class='line' id='LC630'><span class="k">function</span> <span class="nf">CountAllyHeroInRange</span><span class="p">(</span><span class="n">range</span><span class="p">,</span> <span class="n">point</span><span class="p">)</span></div><div class='line' id='LC631'>	<span class="kd">local</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span></div><div class='line' id='LC632'>	<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ally</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">GetAllyHeroes</span><span class="p">())</span> <span class="k">do</span></div><div class='line' id='LC633'>		<span class="k">if</span> <span class="n">ValidTarget</span><span class="p">(</span><span class="n">ally</span><span class="p">,</span> <span class="nb">math.huge</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span> <span class="ow">and</span> <span class="n">GetDistanceSqr</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">ally</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">range</span> <span class="o">*</span> <span class="n">range</span> <span class="k">then</span></div><div class='line' id='LC634'>			<span class="n">n</span> <span class="o">=</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span></div><div class='line' id='LC635'>		<span class="k">end</span></div><div class='line' id='LC636'>	<span class="k">end</span></div><div class='line' id='LC637'>	<span class="k">return</span> <span class="n">n</span></div><div class='line' id='LC638'><span class="k">end</span></div><div class='line' id='LC639'><br/></div><div class='line' id='LC640'><span class="k">function</span> <span class="nf">Combo</span><span class="p">(</span><span class="n">target</span><span class="p">)</span></div><div class='line' id='LC641'>		<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Combo</span><span class="p">.</span><span class="n">UseI</span> <span class="ow">and</span> <span class="n">target</span> <span class="ow">and</span> <span class="n">_IGNITE</span> <span class="ow">and</span> <span class="n">IGNITEREADY</span> <span class="ow">and</span> <span class="n">GetDistanceSqr</span><span class="p">(</span><span class="n">target</span><span class="p">.</span><span class="n">visionPos</span><span class="p">,</span> <span class="n">myHero</span><span class="p">.</span><span class="n">visionPos</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">600</span> <span class="o">*</span> <span class="mi">600</span> <span class="ow">and</span> <span class="n">DLib</span><span class="p">:</span><span class="n">IsKillable</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">MainCombo</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC642'>			<span class="n">CastSpell</span><span class="p">(</span><span class="n">_IGNITE</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></div><div class='line' id='LC643'>		<span class="k">end</span></div><div class='line' id='LC644'>&nbsp;&nbsp;&nbsp;&nbsp;<span class="c1">-- TODO: Single target / team fight checks</span></div><div class='line' id='LC645'>&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">SINGLE_TARGET</span> <span class="k">then</span></div><div class='line' id='LC646'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">target</span> <span class="ow">and</span> <span class="p">((</span><span class="n">GetDistanceSqr</span><span class="p">(</span><span class="n">target</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">tonumber</span><span class="p">(</span><span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">.</span><span class="n">AARange</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span><span class="p">)</span> <span class="ow">or</span> <span class="p">((</span><span class="n">player</span><span class="p">.</span><span class="n">health</span><span class="o">/</span><span class="n">player</span><span class="p">.</span><span class="n">maxHealth</span> <span class="o">&lt;=</span> <span class="mf">0.25</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">player</span><span class="p">.</span><span class="n">health</span><span class="o">/</span><span class="n">player</span><span class="p">.</span><span class="n">maxHealth</span> <span class="o">&lt;</span> <span class="n">target</span><span class="p">.</span><span class="n">health</span><span class="o">/</span><span class="n">target</span><span class="p">.</span><span class="n">maxHealth</span><span class="p">)))</span> <span class="k">then</span></div><div class='line' id='LC647'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">SOWi</span><span class="p">:</span><span class="n">DisableAttacks</span><span class="p">()</span></div><div class='line' id='LC648'>		<span class="k">end</span></div><div class='line' id='LC649'><br/></div><div class='line' id='LC650'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">target</span> <span class="ow">and</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Combo</span><span class="p">.</span><span class="n">UseR</span> <span class="ow">and</span> <span class="n">CountEnemyHeroInRange</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">CountAllyHeroInRange</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>  <span class="k">then</span></div><div class='line' id='LC651'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">target</span> <span class="ow">and</span> <span class="n">DLib</span><span class="p">:</span><span class="n">CalcComboDamage</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">MainCombo</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">target</span><span class="p">.</span><span class="n">health</span> <span class="ow">and</span> <span class="n">GetDistanceToClosestAlly</span><span class="p">(</span><span class="n">BallPos</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span> <span class="o">*</span> <span class="n">Far</span> <span class="k">then</span></div><div class='line' id='LC652'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kd">local</span> <span class="n">hitcount</span><span class="p">,</span> <span class="n">hit</span> <span class="o">=</span> <span class="n">CheckEnemiesHitByR</span><span class="p">()</span></div><div class='line' id='LC653'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">hitcount</span> <span class="o">&gt;=</span> <span class="n">NCounter</span> <span class="k">then</span></div><div class='line' id='LC654'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">spellR</span><span class="p">:</span><span class="n">Cast</span><span class="p">()</span></div><div class='line' id='LC655'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC656'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC657'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC658'><br/></div><div class='line' id='LC659'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Combo</span><span class="p">.</span><span class="n">UseW</span> <span class="k">then</span></div><div class='line' id='LC660'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">CastW</span><span class="p">()</span></div><div class='line' id='LC661'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC662'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><div class='line' id='LC663'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Combo</span><span class="p">.</span><span class="n">UseQ</span> <span class="ow">and</span> <span class="n">target</span> <span class="k">then</span></div><div class='line' id='LC664'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">CastQ</span><span class="p">(</span><span class="n">target</span><span class="p">)</span></div><div class='line' id='LC665'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC666'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><div class='line' id='LC667'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Combo</span><span class="p">.</span><span class="n">UseE</span> <span class="k">then</span></div><div class='line' id='LC668'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ally</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">GetAllyHeroes</span><span class="p">())</span> <span class="k">do</span></div><div class='line' id='LC669'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">ValidTarget</span><span class="p">(</span><span class="n">ally</span><span class="p">,</span> <span class="nb">math.huge</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span> <span class="ow">and</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">ally</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_E</span><span class="p">].</span><span class="n">range</span> <span class="ow">and</span> <span class="n">CountEnemyHeroInRange</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="n">ally</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="p">(</span><span class="n">target</span> <span class="o">==</span> <span class="kc">nil</span> <span class="ow">or</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">ally</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">400</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC670'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">CastE</span><span class="p">(</span><span class="n">ally</span><span class="p">)</span></div><div class='line' id='LC671'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC672'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC673'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC674'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><div class='line' id='LC675'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Combo</span><span class="p">.</span><span class="n">UseE</span> <span class="k">then</span></div><div class='line' id='LC676'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">CastECH</span><span class="p">(</span><span class="n">player</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div><div class='line' id='LC677'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC678'>&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">else</span></div><div class='line' id='LC679'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">enemy</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">GetEnemyHeroes</span><span class="p">())</span> <span class="k">do</span></div><div class='line' id='LC680'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">ValidTarget</span><span class="p">(</span><span class="n">enemy</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">GetDistanceSqr</span><span class="p">(</span><span class="n">enemy</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">tonumber</span><span class="p">(</span><span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">.</span><span class="n">AARange</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">player</span><span class="p">.</span><span class="n">health</span><span class="o">/</span><span class="n">player</span><span class="p">.</span><span class="n">maxHealth</span> <span class="o">&lt;=</span> <span class="mf">0.25</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC681'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">SOWi</span><span class="p">:</span><span class="n">DisableAttacks</span><span class="p">()</span></div><div class='line' id='LC682'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC683'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC684'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Combo</span><span class="p">.</span><span class="n">UseR</span> <span class="k">then</span></div><div class='line' id='LC685'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">CountEnemyHeroInRange</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">then</span></div><div class='line' id='LC686'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kd">local</span> <span class="n">hitcount</span><span class="p">,</span> <span class="n">hit</span> <span class="o">=</span> <span class="n">CheckEnemiesHitByR</span><span class="p">()</span></div><div class='line' id='LC687'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kd">local</span> <span class="n">potentialkills</span><span class="p">,</span> <span class="n">kills</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span></div><div class='line' id='LC688'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">hitcount</span> <span class="o">&gt;=</span> <span class="mi">2</span> <span class="k">then</span></div><div class='line' id='LC689'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">champion</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">hit</span><span class="p">)</span> <span class="k">do</span></div><div class='line' id='LC690'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="p">(</span><span class="n">champion</span><span class="p">.</span><span class="n">health</span> <span class="o">-</span> <span class="n">DLib</span><span class="p">:</span><span class="n">CalcComboDamage</span><span class="p">(</span><span class="n">champion</span><span class="p">,</span> <span class="n">MainCombo</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mf">0.4</span><span class="o">*</span><span class="n">champion</span><span class="p">.</span><span class="n">maxHealth</span> <span class="ow">or</span> <span class="p">(</span><span class="n">DLib</span><span class="p">:</span><span class="n">CalcComboDamage</span><span class="p">(</span><span class="n">champion</span><span class="p">,</span> <span class="n">MainCombo</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mf">0.4</span><span class="o">*</span><span class="n">champion</span><span class="p">.</span><span class="n">maxHealth</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC691'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">potentialkills</span> <span class="o">=</span> <span class="n">potentialkills</span> <span class="o">+</span> <span class="mi">1</span></div><div class='line' id='LC692'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC693'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="p">(</span><span class="n">champion</span><span class="p">.</span><span class="n">health</span> <span class="o">-</span> <span class="n">DLib</span><span class="p">:</span><span class="n">CalcComboDamage</span><span class="p">(</span><span class="n">champion</span><span class="p">,</span> <span class="n">MainCombo</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">then</span></div><div class='line' id='LC694'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">kills</span> <span class="o">=</span> <span class="n">kills</span> <span class="o">+</span> <span class="mi">1</span></div><div class='line' id='LC695'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC696'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC697'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC698'>				<span class="k">if</span> <span class="p">((</span><span class="n">GetDistanceToClosestAlly</span><span class="p">(</span><span class="n">BallPos</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">hitcount</span> <span class="o">&gt;=</span> <span class="n">CountEnemyHeroInRange</span><span class="p">(</span><span class="n">spellData</span><span class="p">[</span><span class="n">_R</span><span class="p">].</span><span class="n">width</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">)</span> <span class="ow">or</span> <span class="n">potentialkills</span> <span class="o">&gt;=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">kills</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="n">hitcount</span> <span class="o">&gt;=</span> <span class="n">NCounter</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC699'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">spellR</span><span class="p">:</span><span class="n">Cast</span><span class="p">()</span></div><div class='line' id='LC700'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC701'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">elseif</span> <span class="n">NCounter</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">then</span></div><div class='line' id='LC702'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="p">(</span><span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">.</span><span class="n">PaR</span> <span class="ow">and</span> <span class="n">target</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">target</span> <span class="ow">and</span> <span class="n">DLib</span><span class="p">:</span><span class="n">CalcComboDamage</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="p">{</span><span class="n">_Q</span><span class="p">,</span> <span class="n">_W</span><span class="p">,</span> <span class="n">_R</span><span class="p">})</span> <span class="o">&gt;</span> <span class="n">target</span><span class="p">.</span><span class="n">health</span> <span class="ow">and</span> <span class="n">GetDistanceToClosestAlly</span><span class="p">(</span><span class="n">BallPos</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span> <span class="o">*</span> <span class="n">Far</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC703'>					<span class="n">CastR</span><span class="p">(</span><span class="n">target</span><span class="p">)</span></div><div class='line' id='LC704'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC705'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC706'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC707'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><div class='line' id='LC708'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Combo</span><span class="p">.</span><span class="n">UseW</span> <span class="k">then</span></div><div class='line' id='LC709'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">CastW</span><span class="p">()</span></div><div class='line' id='LC710'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC711'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">target</span> <span class="ow">and</span> <span class="n">SOWi</span><span class="p">:</span><span class="n">InRange</span><span class="p">(</span><span class="n">target</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC712'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">SOWi</span><span class="p">:</span><span class="n">ForceTarget</span><span class="p">(</span><span class="n">target</span><span class="p">)</span></div><div class='line' id='LC713'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC714'><br/></div><div class='line' id='LC715'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Combo</span><span class="p">.</span><span class="n">UseQ</span> <span class="ow">and</span> <span class="n">target</span> <span class="k">then</span></div><div class='line' id='LC716'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kd">local</span> <span class="n">Qposition</span><span class="p">,</span> <span class="n">hit</span> <span class="o">=</span> <span class="n">FindBestLocationToQ</span><span class="p">(</span><span class="n">target</span><span class="p">)</span></div><div class='line' id='LC717'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><div class='line' id='LC718'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">Qposition</span> <span class="ow">and</span> <span class="n">hit</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">then</span></div><div class='line' id='LC719'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">spellQ</span><span class="p">:</span><span class="n">Cast</span><span class="p">(</span><span class="n">Qposition</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="n">Qposition</span><span class="p">.</span><span class="n">z</span><span class="p">)</span></div><div class='line' id='LC720'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">else</span></div><div class='line' id='LC721'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">CastQ</span><span class="p">(</span><span class="n">target</span><span class="p">)</span></div><div class='line' id='LC722'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC723'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC724'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><div class='line' id='LC725'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Combo</span><span class="p">.</span><span class="n">UseE</span> <span class="ow">and</span> <span class="n">spellE</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="k">then</span></div><div class='line' id='LC726'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">CountEnemyHeroInRange</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">2</span> <span class="k">then</span></div><div class='line' id='LC727'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">CastECH</span><span class="p">(</span><span class="n">player</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div><div class='line' id='LC728'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">else</span></div><div class='line' id='LC729'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">CastECH</span><span class="p">(</span><span class="n">player</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span></div><div class='line' id='LC730'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC731'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><div class='line' id='LC732'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><div class='line' id='LC733'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ally</span> <span class="k">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">GetAllyHeroes</span><span class="p">())</span> <span class="k">do</span></div><div class='line' id='LC734'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">ValidTarget</span><span class="p">(</span><span class="n">ally</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_E</span><span class="p">].</span><span class="n">range</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span> <span class="ow">and</span> <span class="n">CountEnemyHeroInRange</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="n">ally</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span> <span class="ow">and</span> <span class="p">(</span><span class="n">target</span> <span class="o">==</span> <span class="kc">nil</span> <span class="ow">or</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">ally</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">300</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC735'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">CastE</span><span class="p">(</span><span class="n">ally</span><span class="p">)</span></div><div class='line' id='LC736'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC737'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC738'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC739'>&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC740'><br/></div><div class='line' id='LC741'><span class="k">end</span></div><div class='line' id='LC742'><br/></div><div class='line' id='LC743'><span class="k">function</span> <span class="nf">OnTick</span><span class="p">()</span></div><div class='line' id='LC744'>	<span class="n">DManager</span><span class="p">:</span><span class="n">OnDraw</span><span class="p">()</span></div><div class='line' id='LC745'>	<span class="n">OnTickChecks</span><span class="p">()</span></div><div class='line' id='LC746'>	<span class="n">SOWi</span><span class="p">:</span><span class="n">EnableAttacks</span><span class="p">()</span></div><div class='line' id='LC747'>	<span class="n">SOWi</span><span class="p">:</span><span class="n">ForceTarget</span><span class="p">()</span></div><div class='line' id='LC748'>	<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">.</span><span class="n">PaR</span> <span class="k">then</span></div><div class='line' id='LC749'>		<span class="n">NCounter</span> <span class="o">=</span> <span class="mi">1</span></div><div class='line' id='LC750'>	<span class="k">else</span></div><div class='line' id='LC751'>		<span class="n">NCounter</span> <span class="o">=</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Combo</span><span class="p">.</span><span class="n">UseRN</span></div><div class='line' id='LC752'>	<span class="k">end</span></div><div class='line' id='LC753'>	<span class="kd">local</span> <span class="n">target</span> <span class="o">=</span> <span class="n">GetBestTarget</span><span class="p">(</span><span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span> <span class="o">+</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">width</span><span class="p">)</span></div><div class='line' id='LC754'>	<span class="k">if</span> <span class="ow">not</span> <span class="n">target</span> <span class="k">then</span></div><div class='line' id='LC755'>		<span class="n">target</span> <span class="o">=</span> <span class="n">GetBestTarget</span><span class="p">(</span><span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span> <span class="o">+</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">width</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span></div><div class='line' id='LC756'>	<span class="k">end</span></div><div class='line' id='LC757'>	<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Combo</span><span class="p">.</span><span class="n">Enabled</span> <span class="k">then</span></div><div class='line' id='LC758'>		<span class="n">Combo</span><span class="p">(</span><span class="n">target</span><span class="p">)</span></div><div class='line' id='LC759'>	<span class="k">elseif</span> <span class="p">(</span><span class="n">Menu</span><span class="p">.</span><span class="n">Harass</span><span class="p">.</span><span class="n">Enabled</span> <span class="ow">or</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Harass</span><span class="p">.</span><span class="n">Enabled2</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">Menu</span><span class="p">.</span><span class="n">Harass</span><span class="p">.</span><span class="n">ManaCheck</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">myHero</span><span class="p">.</span><span class="n">mana</span> <span class="o">/</span> <span class="n">myHero</span><span class="p">.</span><span class="n">maxMana</span> <span class="o">*</span> <span class="mi">100</span><span class="p">))</span> <span class="k">then</span></div><div class='line' id='LC760'>		<span class="n">Harass</span><span class="p">(</span><span class="n">target</span><span class="p">)</span></div><div class='line' id='LC761'>	<span class="k">end</span></div><div class='line' id='LC762'><br/></div><div class='line' id='LC763'>	<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Farm</span><span class="p">.</span><span class="n">Freeze</span> <span class="ow">or</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Farm</span><span class="p">.</span><span class="n">LaneClear</span> <span class="k">then</span></div><div class='line' id='LC764'>		<span class="kd">local</span> <span class="n">Mode</span> <span class="o">=</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Farm</span><span class="p">.</span><span class="n">Freeze</span> <span class="ow">and</span> <span class="s2">&quot;</span><span class="s">Freeze&quot;</span> <span class="ow">or</span> <span class="s2">&quot;</span><span class="s">LaneClear&quot;</span></div><div class='line' id='LC765'>		<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Farm</span><span class="p">.</span><span class="n">ManaCheck</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">myHero</span><span class="p">.</span><span class="n">mana</span> <span class="o">/</span> <span class="n">myHero</span><span class="p">.</span><span class="n">maxMana</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC766'>			<span class="n">Mode</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">Freeze&quot;</span></div><div class='line' id='LC767'>		<span class="k">end</span></div><div class='line' id='LC768'><br/></div><div class='line' id='LC769'>		<span class="n">Farm</span><span class="p">(</span><span class="n">Mode</span><span class="p">)</span></div><div class='line' id='LC770'>	<span class="k">end</span></div><div class='line' id='LC771'><br/></div><div class='line' id='LC772'>	<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">JungleFarm</span><span class="p">.</span><span class="n">Enabled</span> <span class="k">then</span></div><div class='line' id='LC773'>		<span class="n">FarmJungle</span><span class="p">()</span></div><div class='line' id='LC774'>	<span class="k">end</span></div><div class='line' id='LC775'><span class="k">end</span></div><div class='line' id='LC776'><br/></div><div class='line' id='LC777'><span class="k">function</span> <span class="nf">OnDraw</span><span class="p">()</span></div><div class='line' id='LC778'>	<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Drawing</span><span class="p">.</span><span class="n">AADistance</span> <span class="k">then</span></div><div class='line' id='LC779'>		<span class="n">DrawCircle3D</span><span class="p">(</span><span class="n">myHero</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="n">myHero</span><span class="p">.</span><span class="n">y</span><span class="p">,</span> <span class="n">myHero</span><span class="p">.</span><span class="n">z</span><span class="p">,</span> <span class="nb">tonumber</span><span class="p">(</span><span class="n">Menu</span><span class="p">.</span><span class="n">Misc</span><span class="p">.</span><span class="n">AARange</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ARGB</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">180</span><span class="p">)</span></div><div class='line' id='LC780'>	<span class="k">end</span></div><div class='line' id='LC781'><br/></div><div class='line' id='LC782'>	<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Drawing</span><span class="p">.</span><span class="n">Qrange</span> <span class="k">then</span></div><div class='line' id='LC783'>		<span class="n">DrawCircle3D</span><span class="p">(</span><span class="n">myHero</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="n">myHero</span><span class="p">.</span><span class="n">y</span><span class="p">,</span> <span class="n">myHero</span><span class="p">.</span><span class="n">z</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ARGB</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">180</span><span class="p">)</span></div><div class='line' id='LC784'>	<span class="k">end</span></div><div class='line' id='LC785'><br/></div><div class='line' id='LC786'>	<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Drawing</span><span class="p">.</span><span class="n">Erange</span> <span class="k">then</span></div><div class='line' id='LC787'>		<span class="n">DrawCircle3D</span><span class="p">(</span><span class="n">myHero</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="n">myHero</span><span class="p">.</span><span class="n">y</span><span class="p">,</span> <span class="n">myHero</span><span class="p">.</span><span class="n">z</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_E</span><span class="p">].</span><span class="n">range</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ARGB</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">180</span><span class="p">)</span></div><div class='line' id='LC788'>	<span class="k">end</span></div><div class='line' id='LC789'><br/></div><div class='line' id='LC790'>	<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Drawing</span><span class="p">.</span><span class="n">Wrange</span> <span class="k">then</span></div><div class='line' id='LC791'>		<span class="n">DrawCircle3D</span><span class="p">(</span><span class="n">BallPos</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">.</span><span class="n">y</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">.</span><span class="n">z</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_W</span><span class="p">].</span><span class="n">width</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ARGB</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">180</span><span class="p">)</span></div><div class='line' id='LC792'>	<span class="k">end</span></div><div class='line' id='LC793'><br/></div><div class='line' id='LC794'>	<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Drawing</span><span class="p">.</span><span class="n">Rrange</span> <span class="k">then</span></div><div class='line' id='LC795'>		<span class="n">DrawCircle3D</span><span class="p">(</span><span class="n">BallPos</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">.</span><span class="n">y</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">.</span><span class="n">z</span><span class="p">,</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_R</span><span class="p">].</span><span class="n">width</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ARGB</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">180</span><span class="p">)</span></div><div class='line' id='LC796'>	<span class="k">end</span></div><div class='line' id='LC797'><br/></div><div class='line' id='LC798'>	<span class="k">if</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Drawing</span><span class="p">.</span><span class="n">DrawBall</span> <span class="k">then</span></div><div class='line' id='LC799'>		<span class="n">DrawCircle3D</span><span class="p">(</span><span class="n">BallPos</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">.</span><span class="n">y</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">.</span><span class="n">z</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ARGB</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">180</span><span class="p">)</span></div><div class='line' id='LC800'>	<span class="k">end</span></div><div class='line' id='LC801'>	<span class="k">if</span> <span class="n">DrawPrediction</span> <span class="o">~=</span> <span class="kc">nil</span> <span class="ow">and</span> <span class="n">Menu</span><span class="p">.</span><span class="n">Debug</span><span class="p">.</span><span class="n">DebugQ</span> <span class="k">then</span></div><div class='line' id='LC802'>		<span class="n">DrawCircle3D</span><span class="p">(</span><span class="n">DrawPrediction</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="n">DrawPrediction</span><span class="p">.</span><span class="n">y</span><span class="p">,</span> <span class="n">DrawPrediction</span><span class="p">.</span><span class="n">z</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">ARGB</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">111</span><span class="p">,</span> <span class="mi">111</span><span class="p">),</span> <span class="mi">20</span><span class="p">)</span><span class="c1">--sorry for colorblind people D:</span></div><div class='line' id='LC803'>	<span class="k">end</span></div><div class='line' id='LC804'><span class="k">end</span></div><div class='line' id='LC805'><span class="c1">------------------------------------------------------------------------------------------------</span></div><div class='line' id='LC806'><span class="c1">-----------------------------============LISTENERS====================--------------------------</span></div><div class='line' id='LC807'><span class="c1">------------------------------------------------------------------------------------------------</span></div><div class='line' id='LC808'><br/></div><div class='line' id='LC809'><span class="cm">--[[Ball location]]</span></div><div class='line' id='LC810'><span class="k">function</span> <span class="nf">OnCreateObj</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div><div class='line' id='LC811'>	<span class="cm">--[[Casting Q creates this object when ball lands]]</span></div><div class='line' id='LC812'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="n">obj</span><span class="p">.</span><span class="n">name</span><span class="p">:</span><span class="n">lower</span><span class="p">():</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">yomu_ring_green&quot;</span><span class="p">)</span> <span class="k">then</span></div><div class='line' id='LC813'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">BallPos</span> <span class="o">=</span> <span class="n">obj</span></div><div class='line' id='LC814'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">BallMoving</span> <span class="o">=</span> <span class="kc">false</span></div><div class='line' id='LC815'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC816'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><div class='line' id='LC817'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">--[[When ball goes out of range it returns to Orianna and creates this object]]</span></div><div class='line' id='LC818'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span> <span class="p">(</span><span class="n">obj</span><span class="p">.</span><span class="n">name</span><span class="p">:</span><span class="n">lower</span><span class="p">():</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">orianna_ball_flash_reverse&quot;</span><span class="p">))</span> <span class="k">then</span></div><div class='line' id='LC819'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">BallPos</span> <span class="o">=</span> <span class="n">myHero</span></div><div class='line' id='LC820'>			<span class="n">BallMoving</span> <span class="o">=</span> <span class="kc">false</span></div><div class='line' id='LC821'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">end</span></div><div class='line' id='LC822'><span class="k">end</span></div><div class='line' id='LC823'><br/></div><div class='line' id='LC824'><span class="k">function</span> <span class="nf">OnProcessSpell</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="n">spell</span><span class="p">)</span></div><div class='line' id='LC825'>	<span class="k">if</span> <span class="n">unit</span><span class="p">.</span><span class="n">isMe</span> <span class="ow">and</span> <span class="n">spell</span><span class="p">.</span><span class="n">name</span><span class="p">:</span><span class="n">lower</span><span class="p">():</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">orianaizunacommand&quot;</span><span class="p">)</span> <span class="k">then</span><span class="c1">--Q</span></div><div class='line' id='LC826'>		<span class="n">BallMoving</span> <span class="o">=</span> <span class="kc">true</span></div><div class='line' id='LC827'>		<span class="n">DelayAction</span><span class="p">(</span><span class="k">function</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="n">BallPos</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">end</span><span class="p">,</span> <span class="n">GetDistance</span><span class="p">(</span><span class="n">spell</span><span class="p">.</span><span class="n">endPos</span><span class="p">,</span> <span class="n">BallPos</span><span class="p">)</span> <span class="o">/</span> <span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">speed</span> <span class="o">-</span> <span class="n">GetLatency</span><span class="p">()</span><span class="o">/</span><span class="mi">1000</span> <span class="o">-</span> <span class="mf">0.35</span><span class="p">,</span> <span class="p">{</span><span class="n">Vector</span><span class="p">(</span><span class="n">spell</span><span class="p">.</span><span class="n">endPos</span><span class="p">)})</span></div><div class='line' id='LC828'>	<span class="k">end</span></div><div class='line' id='LC829'><br/></div><div class='line' id='LC830'>	<span class="k">if</span> <span class="n">unit</span><span class="p">.</span><span class="n">isMe</span> <span class="ow">and</span> <span class="n">spell</span><span class="p">.</span><span class="n">name</span><span class="p">:</span><span class="n">lower</span><span class="p">():</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">orianaredactcommand&quot;</span><span class="p">)</span> <span class="k">then</span><span class="c1">--E</span></div><div class='line' id='LC831'>		<span class="n">BallMoving</span> <span class="o">=</span> <span class="kc">true</span></div><div class='line' id='LC832'>		<span class="n">BallPos</span> <span class="o">=</span> <span class="n">spell</span><span class="p">.</span><span class="n">target</span></div><div class='line' id='LC833'>	<span class="k">end</span></div><div class='line' id='LC834'><br/></div><div class='line' id='LC835'>	<span class="k">if</span> <span class="n">unit</span><span class="p">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;</span><span class="s">obj_AI_Hero&quot;</span> <span class="k">then</span></div><div class='line' id='LC836'>		<span class="n">LastChampionSpell</span><span class="p">[</span><span class="n">unit</span><span class="p">.</span><span class="n">networkID</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span> <span class="o">=</span> <span class="n">spell</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="nb">os.clock</span><span class="p">()}</span></div><div class='line' id='LC837'>	<span class="k">end</span></div><div class='line' id='LC838'><span class="k">end</span></div><div class='line' id='LC839'><span class="cm">--[[End of ball location]]</span></div><div class='line' id='LC840'><span class="k">function</span> <span class="nf">OnInterruptSpell</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="n">spell</span><span class="p">)</span></div><div class='line' id='LC841'>	<span class="k">if</span> <span class="n">GetDistanceSqr</span><span class="p">(</span><span class="n">unit</span><span class="p">.</span><span class="n">visionPos</span><span class="p">,</span> <span class="n">myHero</span><span class="p">.</span><span class="n">visionPos</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">spellData</span><span class="p">[</span><span class="n">_Q</span><span class="p">].</span><span class="n">range</span><span class="o">^</span><span class="mi">2</span><span class="o">+</span><span class="p">(</span><span class="n">spellData</span><span class="p">[</span><span class="n">_R</span><span class="p">].</span><span class="n">width</span><span class="o">^</span><span class="mi">2</span><span class="p">))</span> <span class="ow">and</span> <span class="n">spellR</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="k">then</span></div><div class='line' id='LC842'>		<span class="k">if</span> <span class="n">spellQ</span><span class="p">:</span><span class="n">IsReady</span><span class="p">()</span> <span class="k">then</span></div><div class='line' id='LC843'>			<span class="n">spellQ</span><span class="p">:</span><span class="n">Cast</span><span class="p">(</span><span class="n">unit</span><span class="p">.</span><span class="n">visionPos</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="n">unit</span><span class="p">.</span><span class="n">visionPos</span><span class="p">.</span><span class="n">z</span><span class="p">)</span></div><div class='line' id='LC844'>		<span class="k">else</span></div><div class='line' id='LC845'>			<span class="k">if</span> <span class="ow">not</span> <span class="n">BallMoving</span> <span class="k">then</span></div><div class='line' id='LC846'>				<span class="n">spellR</span><span class="p">:</span><span class="n">Cast</span><span class="p">()</span></div><div class='line' id='LC847'>			<span class="k">end</span></div><div class='line' id='LC848'>		<span class="k">end</span></div><div class='line' id='LC849'>	<span class="k">end</span></div><div class='line' id='LC850'><span class="k">end</span></div></pre></div></td>
-         </tr>
-       </table>
-  </div>
-
-  </div>
-</div>
-
-<a href="#jump-to-line" rel="facebox[.linejump]" data-hotkey="l" class="js-jump-to-line" style="display:none">Jump to Line</a>
-<div id="jump-to-line" style="display:none">
-  <form accept-charset="UTF-8" class="js-jump-to-line-form">
-    <input class="linejump-input js-jump-to-line-field" type="text" placeholder="Jump to line&hellip;" autofocus>
-    <button type="submit" class="button">Go</button>
-  </form>
-</div>
-
-        </div>
-
-      </div><!-- /.repo-container -->
-      <div class="modal-backdrop"></div>
-    </div><!-- /.container -->
-  </div><!-- /.site -->
-
-
-    </div><!-- /.wrapper -->
-
-      <div class="container">
-  <div class="site-footer">
-    <ul class="site-footer-links right">
-      <li><a href="https://status.github.com/">Status</a></li>
-      <li><a href="http://developer.github.com">API</a></li>
-      <li><a href="http://training.github.com">Training</a></li>
-      <li><a href="http://shop.github.com">Shop</a></li>
-      <li><a href="/blog">Blog</a></li>
-      <li><a href="/about">About</a></li>
-
-    </ul>
-
-    <a href="/">
-      <span class="mega-octicon octicon-mark-github" title="GitHub"></span>
-    </a>
-
-    <ul class="site-footer-links">
-      <li>&copy; 2014 <span title="0.06143s from github-fe139-cp1-prd.iad.github.net">GitHub</span>, Inc.</li>
-        <li><a href="/site/terms">Terms</a></li>
-        <li><a href="/site/privacy">Privacy</a></li>
-        <li><a href="/security">Security</a></li>
-        <li><a href="/contact">Contact</a></li>
-    </ul>
-  </div><!-- /.site-footer -->
-</div><!-- /.container -->
-
-
-    <div class="fullscreen-overlay js-fullscreen-overlay" id="fullscreen_overlay">
-  <div class="fullscreen-container js-fullscreen-container">
-    <div class="textarea-wrap">
-      <textarea name="fullscreen-contents" id="fullscreen-contents" class="fullscreen-contents js-fullscreen-contents" placeholder="" data-suggester="fullscreen_suggester"></textarea>
-    </div>
-  </div>
-  <div class="fullscreen-sidebar">
-    <a href="#" class="exit-fullscreen js-exit-fullscreen tooltipped tooltipped-w" aria-label="Exit Zen Mode">
-      <span class="mega-octicon octicon-screen-normal"></span>
-    </a>
-    <a href="#" class="theme-switcher js-theme-switcher tooltipped tooltipped-w"
-      aria-label="Switch themes">
-      <span class="octicon octicon-color-mode"></span>
-    </a>
-  </div>
-</div>
-
-
-
-    <div id="ajax-error-message" class="flash flash-error">
-      <span class="octicon octicon-alert"></span>
-      <a href="#" class="octicon octicon-x close js-ajax-error-dismiss" aria-label="Dismiss error"></a>
-      Something went wrong with that request. Please try again.
-    </div>
-
-
-      <script crossorigin="anonymous" src="https://assets-cdn.github.com/assets/frameworks-c23f6bb20db24ab07b4ee77598ac060d1ca974e3.js" type="text/javascript"></script>
-      <script async="async" crossorigin="anonymous" src="https://assets-cdn.github.com/assets/github-120e68e2a43c3f4431bf818efd6b442b648a7123.js" type="text/javascript"></script>
-      
-      
-        <script async src="https://www.google-analytics.com/analytics.js"></script>
-  </body>
-</html>
-
+            if Qposition and hit > 1 then
+                spellQ:Cast(Qposition.x, Qposition.z)
+            else
+                CastQ(target)
+            end
+        end
+        
+        if Menu.Combo.UseE and spellE:IsReady() then
+            if CountEnemyHeroInRange(800, BallPos) <= 2 then
+                CastECH(player, 1)
+            else
+                CastECH(player, 2)
+            end
+            
+            
+            for i, ally in ipairs(GetAllyHeroes()) do
+                if ValidTarget(ally, spellData[_E].range, false) and CountEnemyHeroInRange(300, ally) >= 3 and (target == nil or GetDistance(ally, target) < 300) then
+                    CastE(ally)
+                end
+            end
+        end
+    end
+
+end
+
+function OnTick()
+	DManager:OnDraw()
+	OnTickChecks()
+	SOWi:EnableAttacks()
+	SOWi:ForceTarget()
+	if Menu.Misc.PaR then
+		NCounter = 1
+	else
+		NCounter = Menu.Combo.UseRN
+	end
+	local target = GetBestTarget(spellData[_Q].range + spellData[_Q].width)
+	if not target then
+		target = GetBestTarget(spellData[_Q].range + spellData[_Q].width * 2)
+	end
+	if Menu.Combo.Enabled then
+		Combo(target)
+	elseif (Menu.Harass.Enabled or Menu.Harass.Enabled2) and (Menu.Harass.ManaCheck <= (myHero.mana / myHero.maxMana * 100)) then
+		Harass(target)
+	end
+
+	if Menu.Farm.Freeze or Menu.Farm.LaneClear then
+		local Mode = Menu.Farm.Freeze and "Freeze" or "LaneClear"
+		if Menu.Farm.ManaCheck >= (myHero.mana / myHero.maxMana * 100) then
+			Mode = "Freeze"
+		end
+
+		Farm(Mode)
+	end
+	
+	if Menu.JungleFarm.Enabled then
+		FarmJungle()
+	end
+end
+
+function OnDraw()
+	if Menu.Drawing.AADistance then
+		DrawCircle3D(myHero.x, myHero.y, myHero.z, tonumber(Menu.Misc.AARange), 1, ARGB(255, 0, 255, 0), 180)
+	end
+
+	if Menu.Drawing.Qrange then
+		DrawCircle3D(myHero.x, myHero.y, myHero.z, spellData[_Q].range, 1, ARGB(255, 0, 255, 0), 180)
+	end
+
+	if Menu.Drawing.Erange then
+		DrawCircle3D(myHero.x, myHero.y, myHero.z, spellData[_E].range, 1, ARGB(255, 0, 255, 0), 180)
+	end
+
+	if Menu.Drawing.Wrange then
+		DrawCircle3D(BallPos.x, BallPos.y, BallPos.z, spellData[_W].width, 1, ARGB(255, 0, 255, 0), 180)
+	end
+
+	if Menu.Drawing.Rrange then
+		DrawCircle3D(BallPos.x, BallPos.y, BallPos.z, spellData[_R].width, 1, ARGB(255, 0, 255, 0), 180)
+	end
+
+	if Menu.Drawing.DrawBall then
+		DrawCircle3D(BallPos.x, BallPos.y, BallPos.z, 100, 1, ARGB(255, 0, 255, 0), 180)
+	end
+	if DrawPrediction ~= nil and Menu.Debug.DebugQ then
+		DrawCircle3D(DrawPrediction.x, DrawPrediction.y, DrawPrediction.z, 100, 3, ARGB(200, 255, 111, 111), 20)--sorry for colorblind people D:
+	end
+end
+------------------------------------------------------------------------------------------------
+-----------------------------============LISTENERS====================--------------------------
+------------------------------------------------------------------------------------------------
+
+--[[Ball location]]
+function OnCreateObj(obj)
+	--[[Casting Q creates this object when ball lands]]
+        if obj.name:lower():find("yomu_ring_green") then
+                BallPos = obj
+                BallMoving = false
+        end
+        
+        --[[When ball goes out of range it returns to Orianna and creates this object]]
+        if (obj.name:lower():find("orianna_ball_flash_reverse")) then
+            BallPos = myHero
+			BallMoving = false
+        end
+end
+
+function OnProcessSpell(unit, spell)
+	if unit.isMe and spell.name:lower():find("orianaizunacommand") then--Q
+		BallMoving = true
+		DelayAction(function(p) BallPos = Vector(p) end, GetDistance(spell.endPos, BallPos) / spellData[_Q].speed - GetLatency()/1000 - 0.35, {Vector(spell.endPos)})
+	end
+
+	if unit.isMe and spell.name:lower():find("orianaredactcommand") then--E
+		BallMoving = true
+		BallPos = spell.target
+	end
+	
+	if unit.type == "obj_AI_Hero" then
+		LastChampionSpell[unit.networkID] = {name = spell.name, time=os.clock()}
+	end
+end
+--[[End of ball location]]
+function OnInterruptSpell(unit, spell)
+	if GetDistanceSqr(unit.visionPos, myHero.visionPos) < (spellData[_Q].range^2+(spellData[_R].width^2)) and spellR:IsReady() then
+		if spellQ:IsReady() then
+			spellQ:Cast(unit.visionPos.x, unit.visionPos.z)
+		else
+			if not BallMoving then
+				spellR:Cast()
+			end
+		end
+	end
+end

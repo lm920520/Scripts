@@ -1,5 +1,5 @@
---[[	[HFP]Fiora Combo by HFPDarkAlex
-Thanks to HeX old Combo
+--[[	Fiora Combo 1.2.2 by HeX
+Thanks to kevinkev as i did use some of his Fiora code in here.
 
 Hotkeys:
 	-Combo: Spacebar
@@ -22,37 +22,7 @@ Explanation of the marks:
 	-Blue circle: Killed with a combo, if all the skills were available
 	-3 Red circles: Killed using Items + 1 Attack + Q*2 + R	
 ]]
--- [[ AutoUpdater + Version Info + Libs ]] --
---- Info
-local version = 0.06
-local AUTOUPDATE = true
-local SCRIPT_NAME = "[HFP]Fiora"
---- Libs(Source)
-local SOURCELIB_URL = "https://raw.github.com/TheRealSource/public/master/common/SourceLib.lua"
-local SOURCELIB_PATH = LIB_PATH.."SourceLib.lua"
 
-if FileExist(SOURCELIB_PATH) then
-require("SourceLib")
-else
-DOWNLOADING_SOURCELIB = true
-DownloadFile(SOURCELIB_URL, SOURCELIB_PATH, function() print("Required libraries downloaded successfully, please reload") end)
-end
-
-if DOWNLOADING_SOURCELIB then print("Downloading required libraries, please wait...") return end
---- Update
-if AUTOUPDATE then
-SourceUpdater(SCRIPT_NAME, version, "raw.github.com", "/HFPDarkAlex/BoL/master/"..SCRIPT_NAME..".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/HFPDarkAlex/BoL/master/versions/"..SCRIPT_NAME..".version"):CheckUpdate()
-end
---- Libs(Other)
-local RequireI = Require("SourceLib")
-RequireI:Add("vPrediction", "https://raw.githubusercontent.com/AWABoL150/BoL/master/Honda7-Scripts/common/VPrediction.lua")
-RequireI:Add("SOW", "https://raw.githubusercontent.com/AWABoL150/BoL/master/Honda7-Scripts/common/SOW.lua")
-RequireI:Check()
-
-if RequireI.downloadNeeded == true then return end
--- [[ AutoUpdater End ]] --
-
--- [[ Body of the Script ]] --
 
 if myHero.charName ~= "Fiora" then return end
 --[[	Ranges	]]--
@@ -63,15 +33,13 @@ local eBuffer = 300
 local nextTick = 0
 local waitDelay = 400
 --[[	Damage Calculation	]]--
-local MainCombo = {_Q, _AA, _AA, _Q, _R, _R, _IGNITE, _ITEMS}
-
+local MainCombo = {_Q, _AA, _AA, _Q, _R, _R, _IGNITE}
 local calculationenemy = 1
 local killable = {}
 local waittxt = {}
 local floattext = {"Skills on cooldown.","Full Combo!"}
 --[[    Attacks ]]--
 local lastBasicAttack = 0
-local lastBasicAttackTarget
 local swingDelay = 0.25
 local startAttackSpeed = 0.625
 local swing = 0
@@ -81,19 +49,31 @@ local ignite = nil
 local QREADY, WREADY, EREADY, RREADY  = false, false, false, false
 local BRKSlot, DFGSlot, HXGSlot, BWCSlot, TMTSlot, RAHSlot, RNDSlot, YGBSlot = nil, nil, nil, nil, nil, nil, nil, nil
 local BRKREADY, DFGREADY, HXGREADY, BWCREADY, TMTREADY, RAHREADY, RNDREADY, YGBREADY = false, false, false, false, false, false, false, false
+--[[	Libs	]]--
+local SOURCELIB_URL = "https://raw.github.com/TheRealSource/public/master/common/SourceLib.lua"
+local SOURCELIB_PATH = LIB_PATH.."SourceLib.lua"
+
+if FileExist(SOURCELIB_PATH) then
+	require("SourceLib")
+else
+	DOWNLOADING_SOURCELIB = true
+	DownloadFile(SOURCELIB_URL, SOURCELIB_PATH, function() print("Required libraries downloaded successfully, please reload") end)
+end
+
+if DOWNLOADING_SOURCELIB then print("Downloading required libraries, please wait...") return end
+
+local RequireI = Require("SourceLib")
+RequireI:Add("vPrediction", "https://raw.githubusercontent.com/AWABoL150/BoL/master/Honda7-Scripts/common/VPrediction.lua")
+RequireI:Add("SOW", "https://raw.githubusercontent.com/AWABoL150/BoL/master/Honda7-Scripts/common/SOW.lua")
+RequireI:Check()
+
+if RequireI.downloadNeeded == true then return end
 --[[	Body	]]--
 function OnLoad()	
-	DLib = DamageLib()
-	DLib:RegisterDamageSource(_Q, _PHYSICAL, 15, 25, _PHYSICAL, _AD, 0.6, function() return (player:CanUseSpell(_Q) == READY) end)
-	DLib:RegisterDamageSource(_W, _MAGIC, 10, 50, _MAGIC, _AP, 1.0, function() return (player:CanUseSpell(_W) == READY) end)
-	DLib:RegisterDamageSource(_R, _PHYSICAL, -10, 170, _PHYSICAL, _AD, 1.2, function() return (player:CanUseSpell(_R) == READY) end)
-	
-	DManager = DrawManager()
 	PrintChat("<font color='#ff8000'> >> [HFP]Fiora Combo Loaded! <<</font>")
 	FCConfig = scriptConfig("Fiora Combo", "FioraCombo")
 	FCConfig:addParam("scriptActive", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
 	FCConfig:addParam("autoParry", "Auto Parry", SCRIPT_PARAM_ONKEYTOGGLE, true, 90)
-	FCConfig:addParam("AutoE", "Auto double AA, when AA Enemy", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("J"))
 	FCConfig:addParam("autoks", "Auto kill with Lunge", SCRIPT_PARAM_ONKEYTOGGLE, true, 88)
 	FCConfig:addParam("lasthit", "Last Hit", SCRIPT_PARAM_ONKEYDOWN, false, 65)
 	FCConfig:addParam("doubleLunge", "Use Double Lunge to Kill", SCRIPT_PARAM_ONOFF, false)
@@ -105,7 +85,6 @@ function OnLoad()
 	FCConfig:addParam("drawcirclesEnemy", "Draw Circles - Enemy", SCRIPT_PARAM_ONOFF, false)
 	FCConfig:addParam("drawtextEnemy", "Draw Text - Enemy", SCRIPT_PARAM_ONOFF, false)
 	FCConfig:addParam("drawMinions", "Draw Killable Minions", SCRIPT_PARAM_ONOFF, true)
-	DLib:AddToMenu(FCConfig, MainCombo)
 	FCConfig:addParam("qBuffer", "Min Q distance",SCRIPT_PARAM_SLICE, 250, 0, 600, 2)
 	FCConfig:addParam("waitDelay", "Delay before 2nd Q(ms)",SCRIPT_PARAM_SLICE, 400, 0, 800, 2)
 	FCConfig:permaShow("scriptActive")
@@ -118,7 +97,7 @@ function OnLoad()
 	LastBasicAttack = os.clock()
 	LastQ = 0
 	
-	enemyMinions = minionManager(MINION_ENEMY, 1500, player, MINION_SORT_HEALTH_ASC)
+	enemyMinions = minionManager(MINION_ENEMY, 600, player, MINION_SORT_HEALTH_ASC)
 
 	if myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") then ignite = SUMMONER_1
 		elseif myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") then ignite = SUMMONER_2
@@ -130,21 +109,6 @@ end
 function OnTick()
 	ts:update()
 	enemyMinions:update()
-	
-	-- AA E
-	if FCConfig.AutoE and (os.clock() - lastBasicAttack) > swingDelay and (os.clock() - lastBasicAttack) < (swingDelay * 2) and (lastBasicAttackTarget.type == "obj_AI_Hero" or lastBasicAttackTarget.type == "Turret_") and myHero:CanUseSpell(_E) == READY then
-		CastSpell(_E)
-	end
-	
-	-- if ts.target ~= nil and FCConfig.AutoE then
-		-- if (ts.target.type == "obj_AI_Hero" or ts.target.type == "Turret_") and ts.target.team ~= myHero.team and not ts.target.isMe and FCConfig.AutoE then
-			-- if EREADY and GetDistance(ts.target) <= eBuffer and os.clock() - lastBasicAttack > swingDelay then
-				-- CastSpell(_E)
-				-- swing = 0
-			-- end
-		-- end
-	-- end
-	-- END
 	
 	if tick == nil or GetTickCount()-tick>=100 then
 		tick = GetTickCount()
@@ -419,15 +383,6 @@ function OnProcessSpell(unit, spell)
 	if unit.isMe and (spell.name:find("Attack") ~= nil) then
 		swing = 1
 		lastBasicAttack = os.clock()
-		lastBasicAttackTarget = spell.target
-		-- New Code - 0.03
-		-- if spell.target.type == "obj_AI_Hero" and spell.target.team ~= myHero.team and not spell.target.isMe and FCConfig.AutoE then
-			-- if EREADY and GetDistance(spell.target) <= eBuffer and os.clock() - lastBasicAttack > swingDelay then
-				-- CastSpell(_E)
-				-- swing = 0
-			-- end
-		-- end
-		-- End New Code - 0.03
 	end
 	
 	if unit.isMe and spell.name == ("FioraQ")  then
@@ -440,10 +395,10 @@ function OnProcessSpell(unit, spell)
 				if (spell.name == Abilities[i] or spell.name:find(Abilities[i]) ~= nil) then
 					if myHero:CanUseSpell(_W) == READY and (getDmg("AD", myHero, unit) >= (myHero.maxHealth*0.06) or getDmg("AD", myHero, unit) >= (myHero.health*0.04)) then 
 						CastSpell(_W)
-						PrintChat("Parrying Spell: "..spell.name)
+					--	PrintChat("Parrying HP: "..spell.name)
 						elseif FCConfig.alwaysParry and myHero:CanUseSpell(_W) == READY then
 						CastSpell(_W)
-						PrintChat("Parrying Spell: "..spell.name)
+					--	PrintChat("Parrying PA: "..spell.name)
 					end
 				end
 			end

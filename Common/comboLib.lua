@@ -1,9 +1,22 @@
+local version = 1.3
 --[[  comboLib.lua v1.3
-
+ 
          by llama
-
+ 
 ]]
 do
+
+local AUTOUPDATE = true
+local SCRIPT_NAME = "comboLib"
+local UPDATE_HOST = "raw.github.com"
+local UPDATE_PATH = "/LlamaBoL/BoL/master/Common/comboLib.lua".."?rand="..math.random(1,10000)
+local UPDATE_FILE_PATH = LIB_PATH.."comboLib.lua"
+local UPDATE_URL = "https://"..UPDATE_HOST..UPDATE_PATH
+local VERSION_PATH = "LlamaBoL/BoL/master/Version/"..SCRIPT_NAME..".version"
+
+if AUTOUPDATE then
+ SourceUpdater(SCRIPT_NAME, version, UPDATE_HOST,UPDATE_PATH, UPDATE_FILE_PATH, VERSION_PATH):CheckUpdate()
+ end
     -- require"spellDmg"
     local itemArray = {
         { name = "DFG", id = 3128 },
@@ -13,7 +26,7 @@ do
         { name = "TIAMAT", id = 3077 },
         { name = "HYDRA", id = 3074 },
     }
-
+ 
     comboLib = {}
     local addItemFlag = false
     local BRKSlot, DFGSlot, HXGSlot, BWCSlot, TMTSlot, RAHSlot, RNDSlot, YGBSlot
@@ -25,17 +38,17 @@ do
     local skillCountArray = {}
     local skillCount
     local igniteName = "SummonerDot"
-
+ 
     local function checkItems(object)
         local ItemSlot = { ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6, }
-
+ 
         for i = 1, #comboArray, 1 do
             for j = 1, #itemArray, 1 do
                 if comboArray[i].name == itemArray[j].name then
-
+ 
                     comboArray[i].isItem = true
                     comboArray[i].slot = nil
-
+ 
                     for k = 1, #ItemSlot, 1 do
                         if player:getInventorySlot(ItemSlot[k]) == itemArray[j].id then
                             comboArray[i].slot = ItemSlot[k]
@@ -46,16 +59,16 @@ do
             end
         end
     end
-
+ 
     local function checkMana()
-
+ 
         for i = 1, #usableArray, 1 do
             usableArray[i].mana = player:GetSpellData(usableArray[i].skill).mana
         end
     end
-
+ 
     local function checkCombo(object)
-
+ 
         for i = 1, #comboArray, 1 do
             if comboArray[i].isItem == true then
                 if comboArray[i].slot == nil then
@@ -66,7 +79,7 @@ do
             else
                 comboArray[i].offCooldown = (player:CanUseSpell(comboArray[i].skill) == READY)
             end
-
+ 
             if comboArray[i].offCooldown then
                 comboArray[i].customTest = (comboArray[i].customFunction and comboArray[i].customFunction() == comboArray[i].customResult) or comboArray[i].customFunction == nil
                 comboArray[i].isInRange = (player:GetDistance(object) <= comboArray[i].range)
@@ -74,7 +87,7 @@ do
             end
         end
     end
-
+ 
     local function makeUsableCombo()
         local j = 1
         for i = 1, #comboArray, 1 do
@@ -84,7 +97,7 @@ do
             end
         end
     end
-
+ 
     local function hasDFG(combo)
         local test = false
         local dfgNumber
@@ -98,13 +111,13 @@ do
         end
         return test, dfgNumber
     end
-
+ 
     local function killableTotal(combo, health)
         local tempDmg, tempMana = 0, 0
         local length = #combo
         local usableMana = math.floor(player.mana)
         local dfgFlag, dfgNumber = hasDFG(combo)
-
+ 
         if dfgFlag == true and dfgNumber then
             for i = 1, length, 1 do
                 if combo[i].name ~= "DFG" then
@@ -122,9 +135,9 @@ do
         end
         return tempDmg > health and tempMana < usableMana
     end
-
-
-
+ 
+ 
+ 
     local function findCombo(health)
         --local totalDmg = 0
         --local totalMana = 0
@@ -132,7 +145,7 @@ do
         local usableMana = math.floor(player.mana)
         local length = #usableArray
         --local dfgFlag, dfgNumber = hasDFG(usableArray)
-
+ 
         if killableTotal(usableArray, health) == false then
             return nil
         else
@@ -405,7 +418,7 @@ do
             end
         end
     end
-
+ 
     local function checkDFG(combo)
         local tempcombo = {}
         local dfgNum
@@ -417,7 +430,7 @@ do
                 dfgNum = i
             end
         end
-
+ 
         if dfgFound then
             for i = 2, #combo, 1 do
                 if i <= dfgNum then
@@ -431,24 +444,24 @@ do
             return combo
         end
     end
-
+ 
     function comboLib:newSkill(skillName, skillRange, comboNum, myFunction, myResult)
         local combo = {}
         skillName = string.upper(skillName)
-
+ 
         comboNum = comboNum or 1
-
+ 
         if comboStorage[comboNum] == nil then
             comboStorage[comboNum] = { comboArray = {} }
         end
-
+ 
         if skillCountArray[comboNum] == nil then
             skillCountArray[comboNum] = 1
         end
-
+ 
         skillCount = skillCountArray[comboNum]
         skillCountArray[comboNum] = skillCountArray[comboNum] + 1
-
+ 
         if skillName ~= "IGNITE" or (skillName == "IGNITE" and (player:GetSpellData(SUMMONER_1).name == igniteName or player:GetSpellData(SUMMONER_2).name == igniteName)) then
             comboStorage[comboNum].comboArray[skillCount] = { name = skillName, range = skillRange, customFunction = myFunction, customResult = myResult, customTest = false, isInRange = true, offCooldown = false, isItem = false, slot = nil, skill = nil, mana = 0 }
         end
@@ -468,29 +481,29 @@ do
             end
         end
     end
-
+ 
     function comboLib:findBestCombo(target, comboNum)
         local bestCombo = {}
         if comboNum == nil then
             comboNum = 1
         end
-
+ 
         comboArray = comboStorage[comboNum].comboArray
         if target and #comboArray > 0 then
-
+ 
             checkItems() --checks array for items
-
+ 
             checkCombo(target) --checks array for cooldowns, ranges, damage, and conditionals.
-
+ 
             usableArray = {} --resets array of usable skills/items
-
+ 
             makeUsableCombo() --makes the array depending on cooldown and range
             if #usableArray > 0 then --usable array must have at least 1 skill/item
-
+ 
                 checkMana() --collects skill mana costs in the usable array.
-
+ 
                 bestCombo = findCombo(math.floor(target.health)) --find the best combo to kill.
-
+ 
                 if bestCombo and #bestCombo > 0 then
                     bestCombo = checkDFG(bestCombo) --find DFG, put it at the top of list.
                 end
@@ -499,7 +512,3 @@ do
         return bestCombo
     end
 end
-
-
---UPDATEURL=
---HASH=A9C5F4912A01384E0751674BDCE5EF51

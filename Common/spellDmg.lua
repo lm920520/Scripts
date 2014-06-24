@@ -1,5 +1,5 @@
 --[[
-	Spell Damage Library 1.40
+	Spell Damage Library 1.38
 		by eXtragoZ
 		
 		If there is a mistake, error, value has changed, bug, or you have an idea 
@@ -138,11 +138,6 @@ spellDmg = {
 		WDmgM = "math.max(45*Wlvl+30+.6*ap,(45*Wlvl+30+.6*ap)*1.25*stagedmg3)", --125% for units that are ablaze. stage3: Max damage
 		EDmgM = "35*Elvl+35+.55*ap",
 		RDmgM = "math.max(100*Rlvl+50+.5*ap,(100*Rlvl+50+.5*ap)*3*stagedmg3)", --xbounce (can hit the same enemy up to three times). stage3: Max damage
-	},
-	Braum = {
-		PDmgM = "math.max((10*lvl+60)*(stagedmg1+stagedmg3),(2*lvl+12)*stagedmg2)",--stage1-stage3:Stun. stage2:bonus damage.
-		QDmgM = "45*Qlvl+15+.025*mhp",
-		RDmgM = "100*Rlvl+50+.6*ap",
 	},
 	Caitlyn = {
 		PDmgP = ".5*ad", --xheadshot (bonus)
@@ -290,7 +285,7 @@ spellDmg = {
 		WDmgM = "55*Wlvl+5+.5*ap",
 	},
 	JarvanIV = {
-		PDmgP = "math.min(.01*tmhp,400)",
+		PDmgP = "math.min((6+2*(math.floor((lvl-1)/6)))*tmhp/100,400)",
 		PType = 2,
 		QDmgP = "45*Qlvl+25+1.2*bad",
 		EDmgM = "45*Elvl+15+.8*ap",
@@ -332,7 +327,7 @@ spellDmg = {
 	},
 	Kassadin = {
 		QDmgM = "25*Qlvl+55+.7*ap",
-		WDmgM = "math.max((25*Wlvl+15+.6*ap)*(stagedmg1+stagedmg3),(20+.1*ap)*stagedmg2)", -- stage1-3:Active. stage2: Pasive.
+		WDmgM = "math.max((35*Wlvl+5+.7*ap)*(stagedmg1+stagedmg3),(20+.1*ap)*stagedmg2)", -- stage1-3:Active. stage2: Pasive.
 		WType = 2,
 		EDmgM = "25*Elvl+55+.7*ap",
 		RDmgM = "math.max((20*Rlvl+60+.02*mmana)*(stagedmg1+stagedmg3),(10*Rlvl+30+.01*mmana)*stagedmg2)", --stage1-3:Initial. stage2:additional xstack (4 stack).
@@ -358,7 +353,7 @@ spellDmg = {
 	Khazix = {
 		PDmgM = "math.max(5*lvl+10,10*lvl-5,15*lvl-55)-math.max(0,5*(lvl-13))+.5*ap", -- (bonus)
 		PType = 2,
-		QDmgP = "math.max((25*Qlvl+30+1.2*bad)*stagedmg1,(25*Qlvl+30+2.24*bad+10*lvl)*(stagedmg2+stagedmg3))", --stage1:Normal. stage2-stage3:Evolved Enlarged Claws. (isolated increases the damage by 30%) 
+		QDmgP = "math.max((30*Qlvl+40+1.5*bad)*stagedmg1,(30*Qlvl+40+1.5*bad+.06*(tmhp-thp))*(stagedmg2+stagedmg3))", --stage1:Normal. stage2-stage3:Evolved Enlarged Claws. (isolated increases the damage by 45%) 
 		WDmgP = "40*Wlvl+35+bad",
 		EDmgP = "35*Elvl+30+.2*bad",
 	},
@@ -440,7 +435,7 @@ spellDmg = {
 		EDmgT = "5*Elvl+5+((5/2)*Elvl+15/2)*ad/100"
 	},
 	MissFortune = {
-		QDmgP = "math.max((15*Qlvl+5+.85*ad+.35*ap)*(stagedmg1+stagedmg3),(30*Qlvl+10+ad+.5*ap)*stagedmg2)", --stage1-stage3:1st target. stage2:2nd target.
+		QDmgP = "math.max((15*Qlvl+5+.85*ad)*(stagedmg1+stagedmg3),(30*Qlvl+10+ad)*stagedmg2)", --stage1-stage3:1st target. stage2:2nd target.
 		WDmgM = ".06*ad", --xstack (max 5+Rlvl stacks) (bonus)
 		EDmgM = "55*Elvl+35+.8*ap", --over 3 seconds
 		RDmgP = "math.max(25*Rlvl+25,50*Rlvl-25)+.2*ap", --xwave (8 waves) applies a stack of Impure Shots
@@ -616,7 +611,7 @@ spellDmg = {
 		RDmgM = "100*Rlvl+50+.5*ap",
 	},
 	Soraka = {
-		QDmgM = "25*Qlvl+15+.4*ap",
+		QDmgM = "25*Qlvl+35+.4*ap",
 		EDmgM = "30*Elvl+10+.4*ap+.05*mmana",
 	},
 	Swain = {

@@ -284,7 +284,3 @@ class 'Collision' -- {
         return GetDistance(target, target.minBBox)/2
     end
 -- }
-
-
---UPDATEURL=
---HASH=D99DE1022D70E175449577389E715F64
