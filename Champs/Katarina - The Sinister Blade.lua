@@ -1,4 +1,4 @@
-local version = "2.126"
+local version = "2.129"
 
 --[[
 
@@ -493,7 +493,7 @@ function Variables()
 			local object = objManager:getObject(i)
 			if object and object.valid and not object.dead then
 				if FocusJungleNames[object.name] then
-					JunglefocusMobs[#JungleFocusMobs+1] = object
+					JungleFocusMobs[#JungleFocusMobs+1] = object
 				elseif JungleMobNames[object.name] then
 					JungleMobs[#JungleMobs+1] = object
 				end
@@ -1242,26 +1242,27 @@ end
 -- / Misc Functions / --
 
 -- / On Send Packet Function / --
-function OnSendPacket(p)
+function OnSendPacket(packet)
 	-- Block Packets if Channeling --
 	--->
+		local SendP = Packet(packet)
 		if SkillR.castingUlt and not WardJumpKey then
-			if (p.header == Packet.headers.S_MOVE or p.header == Packet.headers.S_CAST) and (Packet(p):get('spellId') ~= SUMMONER_1 and Packet(p):get('spellId') ~= SUMMONER_2) then
+				if (SendP:get('name') == 'S_MOVE' or SendP:get('name') == 'S_CAST') and SendP:get('sourceNetworkId') == myHero.networkID and (SendP:get('spellId') ~= SUMMONER_1 and SendP:get('spellId') ~= SUMMONER_2) then
 				if KatarinaMenu.combo.stopUlt then
 					if not SkillQ.ready and not SkillW.ready and not SkillE.ready and ValidTarget(Target) and Target ~= nil and Target.health > (qDmg + wDmg + eDmg) then
 						-- PrintChat("Debug 1")
-						Packet(p):Block()
+						SendP:block()
 					end
 				end
 				if KatarinaMenu.combo.autoE then
 					if Packet(p):get('spellId') ~= SPELL_3 then
 						-- PrintChat("Debug 2")
-						Packet(p):Block()
+						SendP:block()
 					end
 				end
 				if not KatarinaMenu.combo.stopUlt and not KatarinaMenu.combo.autoE then
 					-- PrintChat("Debug 3")
-					Packet(p):Block()
+					SendP:block()
 				end
 			end
 		end
