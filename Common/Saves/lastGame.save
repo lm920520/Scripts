@@ -1,6 +1,6 @@
 return {
-	["WINDOW_H"] = 1024,
-	["osTime"] = 1403826901,
-	["WINDOW_W"] = 1280,
-	["tick"] = 10718922,
+	["osTime"] = 1403960011,
+	["WINDOW_H"] = 27,
+	["tick"] = 23389323,
+	["WINDOW_W"] = 160,
 }

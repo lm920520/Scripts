@@ -22,7 +22,7 @@ SourceUpdater(SCRIPT_NAME, version, "raw.github.com", "/HFPDarkAlex/BoL/master/"
 end
 local RequireI = Require("SourceLib")
 RequireI:Add("vPrediction", "https://raw.githubusercontent.com/HFPDarkAlex/Scripts/master/Common/VPrediction.lua")
--- RequireI:Add("SOW", "https://raw.githubusercontent.com/HFPDarkAlex/Scripts/master/Common/SOW.lua")
+RequireI:Add("SOW", "https://raw.githubusercontent.com/HFPDarkAlex/Scripts/master/Common/SOW.lua")
 RequireI:Check()
 if RequireI.downloadNeeded == true then return end
 
@@ -45,8 +45,8 @@ function OnLoad()
 	Menu:addSubMenu("Target selector", "STS")
 		STS:AddToMenu(Menu.STS)
 	
-	EnemyMinions = minionManager(MINION_ENEMY, SOWi:MyRange(), player, MINION_SORT_HEALTH_ASC)
-	JungleMinions = minionManager(MINION_JUNGLE, SOWi:MyRange(), player, MINION_SORT_MAXHEALTH_DEC)
+	EnemyMinions = minionManager(MINION_ENEMY, SOWi:MyRange(), myHero, MINION_SORT_HEALTH_ASC)
+	JungleMinions = minionManager(MINION_JUNGLE, SOWi:MyRange(), myHero, MINION_SORT_MAXHEALTH_DEC)
 	
 	PrintChat("<font color=\"#FFFFFF\">Only<font color=\"#FE642E\">Critical<font color=\"#04B404\"> has been loaded")
 end
