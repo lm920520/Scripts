@@ -92,6 +92,7 @@ function OnLoad()
 	PrintChat("<font color='#ff8000'> >> [HFP]Fiora Combo Loaded! <<</font>")
 	FCConfig = scriptConfig("Fiora Combo", "FioraCombo")
 	FCConfig:addParam("scriptActive", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
+	FCConfig:addParam("packets", "Use Packet Cast", SCRIPT_PARAM_ONOFF, true)
 	FCConfig:addParam("autoParry", "Auto Parry", SCRIPT_PARAM_ONKEYTOGGLE, true, 90)
 	FCConfig:addParam("AutoE", "Auto double AA, when AA Enemy", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("J"))
 	FCConfig:addParam("autoks", "Auto kill with Lunge", SCRIPT_PARAM_ONKEYTOGGLE, true, 88)
@@ -133,7 +134,11 @@ function OnTick()
 	
 	-- AA E
 	if FCConfig.AutoE and (os.clock() - lastBasicAttack) > swingDelay and (os.clock() - lastBasicAttack) < (swingDelay * 2) and (lastBasicAttackTarget.type == "obj_AI_Hero" or lastBasicAttackTarget.type == "Turret_") and myHero:CanUseSpell(_E) == READY then
-		CastSpell(_E)
+		-- if VIP_USER and FCConfig.packets then
+			-- Packet("S_CAST", {spellId = _E}):send()
+		-- else
+			CastSpell(_E)
+		-- end
 	end
 	
 	-- if ts.target ~= nil and FCConfig.AutoE then
@@ -199,7 +204,13 @@ function OnTick()
 						else dmgQ = getDmg("Q", qTarget, myHero)
 					end
 					if qTarget.health <= dmgQ then
-						CastSpell(_Q, qTarget)
+						if VIP_USER and FCConfig.packets then
+							Packet("S_CAST", {spellId = _Q, targetNetworkId = qTarget.networkID}):send()
+							PrintChat("Packet")
+						else
+							CastSpell(_Q, qTarget)
+							PrintChat("Normal")
+						end
 					end
 				end
 			end
@@ -223,11 +234,23 @@ function OnTick()
 		--[[	Abilities	]]--
 		if swing == 0 then
 			if QREADY and GetTickCount() > nextTick and GetDistance(ts.target) <= qRange and (GetDistance(ts.target) >= FCConfig.qBuffer or os.clock() - LastQ > 3.5) then
-				CastSpell(_Q, ts.target)
+				if VIP_USER and FCConfig.packets then
+					Packet("S_CAST", {spellId = _Q, targetNetworkId = ts.target.networkID}):send()
+					PrintChat("Packet")
+				else
+					CastSpell(_Q, ts.target)
+					PrintChat("Normal")
+				end
 				nextTick = GetTickCount() + FCConfig.waitDelay
 				myHero:Attack(ts.target)
-				elseif ts.target.health < QDMG then
-					CastSpell(_Q, ts.target)
+			elseif ts.target.health < QDMG then
+					if VIP_USER and FCConfig.packets then
+						Packet("S_CAST", {spellId = _Q, targetNetworkId = ts.target.networkID}):send()
+						PrintChat("Packet")
+					else
+						CastSpell(_Q, ts.target)
+						PrintChat("Normal")
+					end
 			end
 			if GetDistance(ts.target) <= 400 then
 				myHero:Attack(ts.target)
@@ -237,15 +260,33 @@ function OnTick()
 				else RDamage =  getDmg("R", ts.target,myHero,3)
 			end
 			if RREADY and FCConfig.useR and RDamage >= ts.target.health and GetDistance(ts.target) <= rRange then
-				CastSpell(_R, ts.target)
+				if VIP_USER and FCConfig.packets then
+					Packet("S_CAST", {spellId = _R, targetNetworkId = ts.target.networkID}):send()
+					PrintChat("Packet")
+				else
+					CastSpell(_R, ts.target)
+					PrintChat("Normal")
+				end
 			end
 			elseif swing == 1 then
 			if EREADY and GetDistance(ts.target) <= eBuffer and os.clock() - lastBasicAttack > swingDelay then
-				CastSpell(_E)
+				-- if VIP_USER and FCConfig.packets then
+					-- Packet("S_CAST", {spellId = _E}):send()
+					-- PrintChat("Packet")
+				-- else
+					CastSpell(_E)
+					-- PrintChat("Normal")
+				-- end
 				swing = 0
 			end
 			if QREADY and GetTickCount() > (nextTick+150) and GetDistance(ts.target) <= qRange and (GetDistance(ts.target) >= FCConfig.qBuffer or os.clock() - LastQ > 3.5) then
-				CastSpell(_Q, ts.target)
+				if VIP_USER and FCConfig.packets then
+					Packet("S_CAST", {spellId = _Q, targetNetworkId = ts.target.networkID}):send()
+					PrintChat("Packet")
+				else
+					CastSpell(_Q, ts.target)
+					PrintChat("Normal")
+				end
 				nextTick = GetTickCount() + FCConfig.waitDelay
 			end
 		end
@@ -437,12 +478,24 @@ function OnProcessSpell(unit, spell)
 	if FCConfig.autoParry then
 		if unit ~= nil and unit.type == "obj_AI_Hero" and GetDistance(spell.endPos) <= 50 and unit.team ~= myHero.team and not unit.isMe then
 			for i=1, #Abilities do
-				if (spell.name == Abilities[i] or spell.name:find(Abilities[i]) ~= nil) then
+				if (spell.name == Abilities[i] or spell.name:find(Abilities[i]) ~= nil) or (spell.name:find("Attack") ~= nil) then
 					if myHero:CanUseSpell(_W) == READY and (getDmg("AD", myHero, unit) >= (myHero.maxHealth*0.06) or getDmg("AD", myHero, unit) >= (myHero.health*0.04)) then 
-						CastSpell(_W)
+						-- if VIP_USER and FCConfig.packets then
+							-- Packet("S_CAST", {spellId = _W}):send()
+							-- PrintChat("Packet")
+						-- else
+							CastSpell(_W)
+							-- PrintChat("Normal")
+						-- end
 						PrintChat("Parrying Spell: "..spell.name)
-						elseif FCConfig.alwaysParry and myHero:CanUseSpell(_W) == READY then
-						CastSpell(_W)
+					elseif FCConfig.alwaysParry and myHero:CanUseSpell(_W) == READY then
+						-- if VIP_USER and FCConfig.packets then
+							-- Packet("S_CAST", {spellId = _W}):send()
+							-- PrintChat("Packet")
+						-- else
+							CastSpell(_W)
+							-- PrintChat("Normal")
+						-- end
 						PrintChat("Parrying Spell: "..spell.name)
 					end
 				end

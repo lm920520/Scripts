@@ -185,6 +185,20 @@ function Menu()
 		menu:addSubMenu('Interruptions', 'inter')
 			menu.inter:addParam("inter1", "Interrupt skills with Ultimate.", SCRIPT_PARAM_ONOFF, false)
 			menu.inter:addParam("inter2", "------------------------------", SCRIPT_PARAM_INFO, "")
+			-- for i, enemy in ipairs(GetEnemyHeroes()) do
+				-- for _, champ in pairs(InterruptSpells) do
+					-- if enemy.charName == champ.charName then
+						-- table.insert(ToInterrupt, {charName = champ.charName, spellName = champ.spellName})
+					-- end
+				-- end
+			-- end
+			-- if #ToInterrupt > 0 then
+				-- for _, Inter in pairs(ToInterrupt) do
+					-- menu.inter:addParam(Inter.spellName, "Stop "..Inter.charName.." "..Inter.spellName, SCRIPT_PARAM_ONOFF, true)
+				-- end
+			-- else
+				-- menu.inter:addParam("inter3", "No supported skills to interupt.", SCRIPT_PARAM_INFO, "")
+			-- end
 			for i, enemy in ipairs(GetEnemyHeroes()) do
 				for _, champ in pairs(InterruptSpells) do
 					if enemy.charName == champ.charName then

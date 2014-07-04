@@ -109,7 +109,7 @@ local informationTable = {}
 local spellExpired = true
 
 function OnLoad()
-getVersion()
+-- getVersion()
 Init()
 ScriptSetUp()
 PrintChat("<font color=\"#81BEF7\">Awa Quinn loaded</font>")
